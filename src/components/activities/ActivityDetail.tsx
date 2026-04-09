@@ -18,6 +18,17 @@ export default function ActivityDetail({ activity }: ActivityDetailProps) {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
+      {/* Hero image */}
+      {activity.image_url && (
+        <div className="mb-6 -mx-4 sm:-mx-6 overflow-hidden rounded-none sm:rounded-xl">
+          <img
+            src={activity.image_url}
+            alt={activity.title}
+            className="h-64 w-full object-cover sm:h-80"
+          />
+        </div>
+      )}
+
       {/* Header */}
       <div className="mb-6">
         <div className="mb-2 flex items-start justify-between gap-3">

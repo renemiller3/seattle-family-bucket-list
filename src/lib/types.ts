@@ -31,6 +31,7 @@ export interface Activity {
   start_date: string | null
   end_date: string | null
   recurrence: Recurrence | null
+  image_url: string | null
   created_at: string
   updated_at: string
 }
