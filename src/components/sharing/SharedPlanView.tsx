@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react'
 import { format, parseISO } from 'date-fns'
+import Link from 'next/link'
 import type { PlanItem } from '@/lib/types'
 import { formatTime, formatDuration } from '@/lib/utils'
 
@@ -59,9 +60,15 @@ export default function SharedPlanView({ items, notes, ownerName }: SharedPlanVi
                       >
                         <div className="flex items-center gap-2">
                           {item.is_completed && <span className="text-emerald-500">&#10003;</span>}
-                          <span className={`font-medium text-gray-900 ${item.is_completed ? 'line-through' : ''}`}>
-                            {title}
-                          </span>
+                          {item.activity_id ? (
+                            <Link href={`/activities/${item.activity_id}`} className={`font-medium text-emerald-700 hover:text-emerald-800 underline decoration-emerald-300 ${item.is_completed ? 'line-through' : ''}`}>
+                              {title}
+                            </Link>
+                          ) : (
+                            <span className={`font-medium text-gray-900 ${item.is_completed ? 'line-through' : ''}`}>
+                              {title}
+                            </span>
+                          )}
                         </div>
                         {item.start_time && (
                           <p className="mt-0.5 text-xs text-gray-500">
