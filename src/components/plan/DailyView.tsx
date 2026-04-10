@@ -2,7 +2,9 @@
 
 import { useMemo } from 'react'
 import { format, parseISO } from 'date-fns'
+import Link from 'next/link'
 import type { PlanItem } from '@/lib/types'
+import { formatTime, formatDuration } from '@/lib/utils'
 import PlanItemCard from './PlanItem'
 
 interface DailyViewProps {
@@ -80,14 +82,56 @@ export default function DailyView({ items, date, onUpdate, onDelete }: DailyView
         {timedItems.map((item) => {
           const pos = getItemPosition(item)
           if (!pos) return null
+
+          const title = item.title || item.activity?.title || 'Untitled'
+          const isCompleted = item.is_completed
+          const typeStyles: Record<string, string> = {
+            activity: 'border-l-emerald-500 bg-emerald-50',
+            life_block: 'border-l-blue-400 bg-blue-50',
+            custom: 'border-l-purple-400 bg-purple-50',
+            restaurant: 'border-l-orange-400 bg-orange-50',
+          }
+
           return (
             <div
               key={item.id}
               className="absolute left-16 right-0 pl-3 pr-1 z-10"
               style={{ top: pos.top, height: pos.height }}
             >
-              <div className="h-full">
-                <PlanItemCard item={item} onUpdate={onUpdate} onDelete={onDelete} />
+              <div
+                className={`h-full rounded-lg border border-gray-200 border-l-4 p-2 overflow-hidden ${typeStyles[item.type] || 'bg-white'} ${isCompleted ? 'opacity-60' : ''}`}
+              >
+                <div className="flex items-start justify-between gap-1">
+                  <div className="min-w-0">
+                    <p className={`text-sm font-medium text-gray-900 truncate ${isCompleted ? 'line-through' : ''}`}>
+                      {item.type === 'life_block' && (
+                        <span className="mr-1">
+                          {{'Nap': '😴', 'Meal': '🍽️', 'Break': '☕', 'Travel': '🚗'}[title] || '📌'}
+                        </span>
+                      )}
+                      {item.activity_id ? (
+                        <Link href={`/activities/${item.activity_id}`} className="hover:text-emerald-700">{title}</Link>
+                      ) : title}
+                    </p>
+                    {item.start_time && (
+                      <p className="text-xs text-gray-500">
+                        {formatTime(item.start_time)}
+                        {item.duration_minutes && <> ({formatDuration(item.duration_minutes)})</>}
+                      </p>
+                    )}
+                    {item.notes && pos.height > 60 && (
+                      <p className="mt-0.5 text-xs text-gray-500 truncate">{item.notes}</p>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => onDelete(item.id)}
+                    className="shrink-0 rounded p-0.5 text-gray-400 hover:bg-red-50 hover:text-red-500"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M18 6L6 18M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
           )
