@@ -16,7 +16,7 @@ interface FilterBarProps {
 }
 
 const AGE_RANGES: AgeRange[] = ['All Ages', 'Toddler', '3-5', '5+', '8+', '12+']
-const AREAS: Area[] = ['Seattle', 'Eastside', 'North', 'South', 'Tacoma', 'Beyond Seattle / PNW']
+const AREAS: Area[] = ['Seattle', 'Eastside', 'North', 'South', 'Tacoma', 'Wider PNW']
 const COSTS: Cost[] = ['Free', '$', '$$', '$$$']
 
 function SelectFilter<T extends string>({
