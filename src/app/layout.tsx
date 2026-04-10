@@ -17,6 +17,18 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'Seattle Family Bucket List',
   description: 'Discover great family activities in the Seattle area, plan outings, and create memories together.',
+  openGraph: {
+    title: 'Seattle Family Bucket List',
+    description: 'Discover great family activities in the Seattle area, plan outings, and create memories together.',
+    images: [{ url: '/images/og-image.jpg', width: 1200, height: 630 }],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Seattle Family Bucket List',
+    description: 'Discover great family activities in the Seattle area, plan outings, and create memories together.',
+    images: ['/images/og-image.jpg'],
+  },
 }
 
 export default function RootLayout({

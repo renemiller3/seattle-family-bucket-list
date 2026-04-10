@@ -5,9 +5,45 @@ import type { Metadata } from 'next'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
+  const supabase = await createClient()
+
+  const { data: sharedPlan } = await supabase
+    .from('shared_plans')
+    .select('title, user_id')
+    .eq('slug', slug)
+    .eq('is_active', true)
+    .maybeSingle()
+
+  const planTitle = sharedPlan?.title || 'Family Plan'
+
+  let ownerName = 'Someone'
+  if (sharedPlan?.user_id) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('display_name')
+      .eq('id', sharedPlan.user_id)
+      .maybeSingle()
+    if (profile) ownerName = profile.display_name
+  }
+
+  const title = `${planTitle} — Shared by ${ownerName}`
+  const description = `Check out this family outing plan on Seattle Family Bucket List.`
+
   return {
-    title: `Shared Plan - Seattle Family Bucket List`,
-    description: `View this shared family outing plan.`,
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: [{ url: '/images/og-image.jpg', width: 1200, height: 630 }],
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: ['/images/og-image.jpg'],
+    },
   }
 }
 
