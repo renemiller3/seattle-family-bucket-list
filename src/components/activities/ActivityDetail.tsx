@@ -111,6 +111,16 @@ export default function ActivityDetail({ activity }: ActivityDetailProps) {
       <section className="mb-6">
         <h2 className="mb-2 text-xl font-semibold text-gray-900">Why It's Worth It</h2>
         <p className="text-gray-700 leading-relaxed">{activity.why_its_worth_it}</p>
+        {activity.video_url && (
+          <a
+            href={activity.video_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-emerald-600 hover:text-emerald-700"
+          >
+            <span>▶</span> Watch the video
+          </a>
+        )}
       </section>
 
       {/* Watch outs */}
