@@ -45,8 +45,8 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
     })
   }, [activities, filters])
 
-  const regularActivities = filtered.filter((a) => a.type === 'activity')
-  const events = filtered.filter((a) => a.type === 'event')
+  const regularActivities = filtered
+  const events = filtered.filter((a) => a.start_date !== null)
     .sort((a, b) => {
       if (!a.start_date) return 1
       if (!b.start_date) return -1
