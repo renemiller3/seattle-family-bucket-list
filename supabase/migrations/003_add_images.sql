@@ -1,39 +1,51 @@
 -- Add image_url column
 alter table public.activities add column if not exists image_url text;
 
--- Update activities with Unsplash images
-update public.activities set image_url = 'https://images.unsplash.com/photo-1534567153574-2b12153a87f0?w=800&q=80'
-where title = 'Woodland Park Zoo';
-
-update public.activities set image_url = 'https://images.unsplash.com/photo-1566140967404-b8b3932483f5?w=800&q=80'
-where title = 'Seattle Children''s Museum';
-
-update public.activities set image_url = 'https://images.unsplash.com/photo-1657199371273-e8646af1a5c5?w=800&q=80'
-where title = 'Golden Gardens Beach';
-
-update public.activities set image_url = 'https://images.unsplash.com/photo-1596566113560-db94ab30f982?w=800&q=80'
-where title = 'Discovery Park';
-
-update public.activities set image_url = 'https://images.unsplash.com/photo-1511346378249-01906bcff537?w=800&q=80'
+-- Update activities with location-specific Unsplash photos
+-- Pike Place Market sign (photo by Erin Hervey, taken at Pike Place Market)
+update public.activities set image_url = 'https://images.unsplash.com/photo-1540321553803-f9c048dd5f9a?w=800&q=80'
 where title = 'Pike Place Market (Family Edition)';
 
-update public.activities set image_url = 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=800&q=80'
-where title = 'Bellevue Downtown Park';
+-- Golden Gardens Beach sunset (photo by Srivatsan Balaji, taken at Golden Gardens Park)
+update public.activities set image_url = 'https://images.unsplash.com/photo-1657127939747-7281daf5691f?w=800&q=80'
+where title = 'Golden Gardens Beach';
 
-update public.activities set image_url = 'https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=800&q=80'
-where title = 'Ballard Locks (Hiram M. Chittenden Locks)';
+-- Kerry Park / Seattle skyline with Space Needle (photo by Andrea Leopardi)
+update public.activities set image_url = 'https://images.unsplash.com/photo-1542223616-740d5dff7f56?w=800&q=80'
+where title = 'Kerry Park';
 
-update public.activities set image_url = 'https://images.unsplash.com/photo-1540962351504-03099e0a754b?w=800&q=80'
-where title = 'Museum of Flight';
+-- Discovery Park lighthouse (photo taken at Discovery Park)
+update public.activities set image_url = 'https://images.unsplash.com/photo-1630381962358-a17a4cb47b4d?w=800&q=80'
+where title = 'Discovery Park';
 
-update public.activities set image_url = 'https://images.unsplash.com/photo-1515586838455-8f8f940d6853?w=800&q=80'
-where title = 'Green Lake';
-
-update public.activities set image_url = 'https://images.unsplash.com/photo-1567025046685-af10f5e4d178?w=800&q=80'
-where title = 'WA State Fair (Puyallup Fair)';
-
-update public.activities set image_url = 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&q=80'
+-- Seattle Aquarium jellyfish (photo by Rakshith Acharya, taken at Seattle Aquarium)
+update public.activities set image_url = 'https://images.unsplash.com/photo-1711911486034-906abc0d1d94?w=800&q=80'
 where title = 'Seattle Aquarium';
 
-update public.activities set image_url = 'https://images.unsplash.com/photo-1502175353174-a7a70e73b362?w=800&q=80'
-where title = 'Kerry Park';
+-- State fair carnival at night (photo by benjamin lehman, county fair)
+update public.activities set image_url = 'https://images.unsplash.com/photo-1694271643834-4aaaef614add?w=800&q=80'
+where title = 'WA State Fair (Puyallup Fair)';
+
+-- Woodland Park Zoo (photo by Bryan Hanson, taken at Woodland Park Zoo)
+update public.activities set image_url = 'https://images.unsplash.com/photo-1517524392322-311409f24e4a?w=800&q=80'
+where title = 'Woodland Park Zoo';
+
+-- Children playing in colorful indoor space
+update public.activities set image_url = 'https://images.unsplash.com/photo-1521327023263-d1e2ca16ca6b?w=800&q=80'
+where title = 'Seattle Children''s Museum';
+
+-- Green Lake Seattle (photo taken at Green Lake)
+update public.activities set image_url = 'https://images.unsplash.com/photo-1652029181656-83716e5089bc?w=800&q=80'
+where title = 'Green Lake';
+
+-- Ballard Locks / boats
+update public.activities set image_url = 'https://images.unsplash.com/photo-1566492238579-73920a74378a?w=800&q=80'
+where title = 'Ballard Locks (Hiram M. Chittenden Locks)';
+
+-- Museum of Flight / airplane in hangar
+update public.activities set image_url = 'https://images.unsplash.com/photo-1662905213757-dc996db42049?w=800&q=80'
+where title = 'Museum of Flight';
+
+-- Bellevue Downtown Park / Seattle skyline view
+update public.activities set image_url = 'https://images.unsplash.com/photo-1696605837476-ba5143a12701?w=800&q=80'
+where title = 'Bellevue Downtown Park';
