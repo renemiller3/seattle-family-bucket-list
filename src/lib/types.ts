@@ -1,7 +1,7 @@
 export type ActivityType = 'activity' | 'event'
 export type PlanItemType = 'activity' | 'life_block' | 'custom' | 'restaurant'
 export type AgeRange = 'All Ages' | 'Toddler' | '3-5' | '5+' | '8+' | '12+'
-export type Area = 'Seattle' | 'Eastside' | 'North' | 'South' | 'Tacoma'
+export type Area = 'Seattle' | 'Eastside' | 'North' | 'South' | 'Tacoma' | 'Beyond Seattle / PNW'
 export type Cost = 'Free' | '$' | '$$' | '$$$'
 export type Vibe = 'Chill / Easy' | 'Burn Energy' | 'Outdoor / Nature' | 'Rainy Day' | 'Special / Treat' | 'Quick Outing'
 export type Recurrence = 'one-time' | 'seasonal' | 'annual'
