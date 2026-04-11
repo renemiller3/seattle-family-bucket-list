@@ -112,7 +112,7 @@ export default function DailyView({ items, date, onUpdate, onDelete }: DailyView
                     <p className={`text-sm font-medium text-gray-900 truncate ${isCompleted ? 'line-through' : ''}`}>
                       {item.type === 'life_block' && (
                         <span className="mr-1">
-                          {{'Nap': '😴', 'Meal': '🍽️', 'Break': '☕', 'Travel': '🚗'}[title] || '📌'}
+                          {{'Nap': '😴', 'Meal': '🍽️', 'Break': '🧃', 'Travel': '🚗'}[title] || '📌'}
                         </span>
                       )}
                       {item.activity_id ? (

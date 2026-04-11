@@ -12,7 +12,7 @@ interface EditItemModalProps {
 const LIFE_BLOCK_OPTIONS = [
   { label: 'Nap', icon: '😴' },
   { label: 'Meal', icon: '🍽️' },
-  { label: 'Break', icon: '☕' },
+  { label: 'Break', icon: '🧃' },
   { label: 'Travel', icon: '🚗' },
 ]
 

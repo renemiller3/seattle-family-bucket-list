@@ -23,7 +23,7 @@ const TYPE_STYLES: Record<string, string> = {
 const LIFE_BLOCK_ICONS: Record<string, string> = {
   Nap: '😴',
   Meal: '🍽️',
-  Break: '☕',
+  Break: '🧃',
   Travel: '🚗',
 }
 

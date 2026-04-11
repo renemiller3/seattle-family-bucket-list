@@ -6,7 +6,7 @@ import { format } from 'date-fns'
 const PRESETS = [
   { label: 'Nap', icon: '😴', duration: 90 },
   { label: 'Meal', icon: '🍽️', duration: 60 },
-  { label: 'Break', icon: '☕', duration: 30 },
+  { label: 'Break', icon: '🧃', duration: 30 },
   { label: 'Travel', icon: '🚗', duration: 30 },
 ]
 
