@@ -10,8 +10,9 @@ import MonthlyView from './MonthlyView'
 import LifeBlockPicker from './LifeBlockPicker'
 import PlanNotes from './PlanNotes'
 import OutingManager from './OutingManager'
+import MapView from './MapView'
 
-type ViewMode = 'itinerary' | 'daily' | 'weekly' | 'monthly'
+type ViewMode = 'itinerary' | 'daily' | 'weekly' | 'monthly' | 'map'
 
 interface CalendarViewProps {
   items: PlanItem[]
@@ -111,6 +112,7 @@ export default function CalendarView({
     { key: 'daily', label: 'Day' },
     { key: 'weekly', label: 'Week' },
     { key: 'monthly', label: 'Month' },
+    { key: 'map', label: 'Map' },
   ]
 
   return (
@@ -209,7 +211,7 @@ export default function CalendarView({
         </div>
 
         <div className="flex items-center gap-2">
-          {view !== 'itinerary' && (
+          {view !== 'itinerary' && view !== 'map' && (
             <>
               <button onClick={handlePrev} className="rounded-lg border border-gray-200 bg-white px-2 py-1 hover:bg-gray-50">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -266,6 +268,9 @@ export default function CalendarView({
       )}
       {view === 'monthly' && (
         <MonthlyView items={items} month={currentMonth} onSelectDay={handleSelectDay} />
+      )}
+      {view === 'map' && (
+        <MapView items={items} />
       )}
 
       {/* Notes */}
