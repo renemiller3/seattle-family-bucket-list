@@ -64,28 +64,12 @@ export default function DiscoverMap({ activities }: DiscoverMapProps) {
               onCloseClick={() => setSelectedActivity(null)}
               pixelOffset={[0, -30]}
             >
-              <div className="max-w-[220px] p-1">
-                {selectedActivity.image_url && (
-                  <div className="mb-2 h-24 w-full overflow-hidden rounded-lg bg-gray-100">
-                    <img
-                      src={selectedActivity.image_url}
-                      alt=""
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                )}
-                <p className="font-semibold text-gray-900 text-sm">{selectedActivity.title}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{selectedActivity.area}</p>
-                <div className="mt-1 flex flex-wrap gap-1">
-                  {selectedActivity.vibes.slice(0, 2).map((vibe) => (
-                    <span key={vibe} className="text-[10px] text-gray-500">
-                      {getVibeEmoji(vibe)} {vibe}
-                    </span>
-                  ))}
-                </div>
+              <div className="w-[200px]">
+                <p className="font-semibold text-gray-900 text-sm leading-tight">{selectedActivity.title}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{selectedActivity.area} · {selectedActivity.cost}</p>
                 <Link
                   href={`/activities/${selectedActivity.id}`}
-                  className="mt-2 inline-block text-xs font-medium text-emerald-600 hover:text-emerald-700"
+                  className="mt-1.5 inline-block text-xs font-medium text-emerald-600 hover:text-emerald-700"
                 >
                   View details →
                 </Link>
