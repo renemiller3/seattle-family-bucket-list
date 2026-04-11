@@ -70,7 +70,7 @@ export default function PlanItemCard({ item, onUpdate, onDelete, dragHandleProps
 
         {/* Checkbox */}
         <button
-          onClick={() => onUpdate(item.id, { is_completed: !item.is_completed })}
+          onClick={(e) => { e.stopPropagation(); onUpdate(item.id, { is_completed: !item.is_completed }) }}
           className={`mt-0.5 shrink-0 h-5 w-5 rounded border-2 transition-colors ${
             item.is_completed
               ? 'border-emerald-500 bg-emerald-500 text-white'
@@ -151,7 +151,7 @@ export default function PlanItemCard({ item, onUpdate, onDelete, dragHandleProps
         {/* Actions */}
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <button
-            onClick={() => setEditing(true)}
+            onClick={(e) => { e.stopPropagation(); setEditing(true) }}
             className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
             title="Edit notes"
           >
@@ -161,7 +161,7 @@ export default function PlanItemCard({ item, onUpdate, onDelete, dragHandleProps
             </svg>
           </button>
           <button
-            onClick={() => onDelete(item.id)}
+            onClick={(e) => { e.stopPropagation(); onDelete(item.id) }}
             className="rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-500"
             title="Remove"
           >
