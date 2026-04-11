@@ -20,6 +20,15 @@ export default function ItineraryView({ items, onUpdate, onDelete }: ItineraryVi
       if (!groups[item.date]) groups[item.date] = []
       groups[item.date].push(item)
     }
+    // Sort items within each day by start_time (items without a time go to the end)
+    for (const dateItems of Object.values(groups)) {
+      dateItems.sort((a, b) => {
+        if (!a.start_time && !b.start_time) return 0
+        if (!a.start_time) return 1
+        if (!b.start_time) return -1
+        return a.start_time.localeCompare(b.start_time)
+      })
+    }
     return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b))
   }, [items])
 
