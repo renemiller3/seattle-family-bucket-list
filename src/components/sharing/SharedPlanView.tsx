@@ -63,6 +63,7 @@ export default function SharedPlanView({ items, notes, ownerName }: SharedPlanVi
                       'Travel': '🚗',
                     }
                     const icon = item.type === 'life_block' ? lifeBlockIcons[title] || '📌' : null
+                    const imageUrl = item.activity?.image_url
                     return (
                       <div
                         key={item.id}
@@ -70,28 +71,37 @@ export default function SharedPlanView({ items, notes, ownerName }: SharedPlanVi
                           item.is_completed ? 'opacity-60' : ''
                         }`}
                       >
-                        <div className="flex items-center gap-2">
-                          {item.is_completed && <span className="text-emerald-500">&#10003;</span>}
-                          {icon && <span className="text-sm">{icon}</span>}
-                          {item.activity_id ? (
-                            <Link href={`/activities/${item.activity_id}`} className={`font-medium text-emerald-700 hover:text-emerald-800 underline decoration-emerald-300 ${item.is_completed ? 'line-through' : ''}`}>
-                              {title}
-                            </Link>
-                          ) : (
-                            <span className={`font-medium text-gray-900 ${item.is_completed ? 'line-through' : ''}`}>
-                              {title}
-                            </span>
+                        <div className="flex gap-3">
+                          {imageUrl && (
+                            <div className="shrink-0 h-16 w-16 overflow-hidden rounded-lg bg-gray-100">
+                              <img src={imageUrl} alt="" className="h-full w-full object-cover" />
+                            </div>
                           )}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              {item.is_completed && <span className="text-emerald-500">&#10003;</span>}
+                              {icon && <span className="text-sm">{icon}</span>}
+                              {item.activity_id ? (
+                                <Link href={`/activities/${item.activity_id}`} className={`font-medium text-emerald-700 hover:text-emerald-800 underline decoration-emerald-300 ${item.is_completed ? 'line-through' : ''}`}>
+                                  {title}
+                                </Link>
+                              ) : (
+                                <span className={`font-medium text-gray-900 ${item.is_completed ? 'line-through' : ''}`}>
+                                  {title}
+                                </span>
+                              )}
+                            </div>
+                            {item.start_time && (
+                              <p className="mt-0.5 text-xs text-gray-500">
+                                {formatTime(item.start_time)}
+                                {item.duration_minutes && <> ({formatDuration(item.duration_minutes)})</>}
+                              </p>
+                            )}
+                            {item.notes && (
+                              <p className="mt-1 text-xs text-gray-500">{item.notes}</p>
+                            )}
+                          </div>
                         </div>
-                        {item.start_time && (
-                          <p className="mt-0.5 text-xs text-gray-500">
-                            {formatTime(item.start_time)}
-                            {item.duration_minutes && <> ({formatDuration(item.duration_minutes)})</>}
-                          </p>
-                        )}
-                        {item.notes && (
-                          <p className="mt-1 text-xs text-gray-500">{item.notes}</p>
-                        )}
                       </div>
                     )
                   })}
