@@ -56,6 +56,13 @@ export default function SharedPlanView({ items, notes, ownerName }: SharedPlanVi
                   })
                   .map((item) => {
                     const title = item.title || item.activity?.title || 'Untitled'
+                    const lifeBlockIcons: Record<string, string> = {
+                      'Nap': '😴',
+                      'Meal': '🍽️',
+                      'Break': '🧃',
+                      'Travel': '🚗',
+                    }
+                    const icon = item.type === 'life_block' ? lifeBlockIcons[title] || '📌' : null
                     return (
                       <div
                         key={item.id}
@@ -65,6 +72,7 @@ export default function SharedPlanView({ items, notes, ownerName }: SharedPlanVi
                       >
                         <div className="flex items-center gap-2">
                           {item.is_completed && <span className="text-emerald-500">&#10003;</span>}
+                          {icon && <span className="text-sm">{icon}</span>}
                           {item.activity_id ? (
                             <Link href={`/activities/${item.activity_id}`} className={`font-medium text-emerald-700 hover:text-emerald-800 underline decoration-emerald-300 ${item.is_completed ? 'line-through' : ''}`}>
                               {title}
