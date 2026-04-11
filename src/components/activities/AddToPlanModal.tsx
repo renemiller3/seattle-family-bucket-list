@@ -87,16 +87,6 @@ export default function AddToPlanModal({ activity, onClose, onAdded }: AddToPlan
         <p className="mb-4 text-sm text-gray-500">{activity.title}</p>
 
         <div className="space-y-4">
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Date</label>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-            />
-          </div>
-
           {outings.length > 0 && (
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">Outing</label>
@@ -112,6 +102,16 @@ export default function AddToPlanModal({ activity, onClose, onAdded }: AddToPlan
               </select>
             </div>
           )}
+
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Date</label>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            />
+          </div>
 
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">
