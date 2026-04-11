@@ -93,22 +93,15 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
   if (showMap) {
     return (
       <div>
-        {/* Hero + Filters (always visible) */}
-        <section className="mb-8">
-          <h1 className="mb-2 text-3xl font-bold text-gray-900 sm:text-4xl">
-            What kind of day do you want?
-          </h1>
-          <p className="mb-6 text-gray-600">
-            Pick a vibe and discover family activities around Seattle.
-          </p>
+        {/* Compact filters for map view */}
+        <div className="mb-3 flex flex-wrap items-center gap-2">
           <VibeButtons selected={filters.vibes} onToggle={handleVibeToggle} />
-        </section>
-
-        <section className="mb-4">
+        </div>
+        <div className="mb-3">
           <FilterBar filters={filters} onChange={setFilters} />
-        </section>
+        </div>
 
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-3 flex items-center justify-between">
           <p className="text-sm text-gray-500">
             {filtered.length} {filtered.length === 1 ? 'result' : 'results'}
           </p>
@@ -129,7 +122,7 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
             activities={filtered}
             selectedActivityId={selectedMapActivity}
             onSelectActivity={setSelectedMapActivity}
-            className="h-[calc(100vh-12rem)] w-full overflow-hidden rounded-xl border border-gray-200"
+            className="h-[calc(100vh-14rem)] w-full overflow-hidden rounded-xl border border-gray-200"
           />
         </div>
 
