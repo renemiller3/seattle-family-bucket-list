@@ -64,7 +64,7 @@ export default function DiscoverMap({ activities }: DiscoverMapProps) {
               onCloseClick={() => setSelectedActivity(null)}
               pixelOffset={[0, -30]}
             >
-              <div className="w-[200px] pr-4">
+              <div className="w-[200px] pr-4 -mt-2">
                 <p className="font-semibold text-gray-900 text-sm leading-tight">{selectedActivity.title}</p>
                 <p className="text-xs text-gray-500 mt-0.5">{selectedActivity.area} · {selectedActivity.cost}</p>
                 <Link
