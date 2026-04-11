@@ -102,7 +102,7 @@ export default function ActivityCard({ activity, onAddToPlan, onToggleBucketList
                 }}
                 className="flex-1 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700"
               >
-                + Add to Plan
+                + Add to Outing
               </button>
             )}
           </div>

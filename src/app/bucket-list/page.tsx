@@ -108,7 +108,7 @@ export default function BucketListPage() {
           {doneItems.length > 0 && (
             <section>
               <h2 className="mb-3 text-sm font-semibold text-gray-500 uppercase tracking-wide">
-                Done ({doneItems.length})
+                Memories ({doneItems.length})
               </h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 {doneItems.map(({ activity_id, activity }) => (

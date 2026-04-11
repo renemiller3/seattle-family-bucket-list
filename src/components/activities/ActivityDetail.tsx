@@ -207,7 +207,7 @@ export default function ActivityDetail({ activity }: ActivityDetailProps) {
           }}
           className="flex-1 rounded-lg bg-emerald-600 px-6 py-3 text-sm font-medium text-white hover:bg-emerald-700 transition-colors"
         >
-          Add to My Plan
+          Add to Outing
         </button>
       </div>
 
@@ -226,7 +226,7 @@ export default function ActivityDetail({ activity }: ActivityDetailProps) {
 
       {showAddedToast && (
         <div className="fixed bottom-8 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-lg">
-          Added to your plan!
+          Added to your outing!
         </div>
       )}
 
