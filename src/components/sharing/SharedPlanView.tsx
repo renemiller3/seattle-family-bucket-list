@@ -48,7 +48,12 @@ export default function SharedPlanView({ items, notes, ownerName }: SharedPlanVi
               </h3>
               <div className="space-y-2">
                 {dateItems
-                  .sort((a, b) => a.sort_order - b.sort_order)
+                  .sort((a, b) => {
+                    if (!a.start_time && !b.start_time) return 0
+                    if (!a.start_time) return 1
+                    if (!b.start_time) return -1
+                    return a.start_time.localeCompare(b.start_time)
+                  })
                   .map((item) => {
                     const title = item.title || item.activity?.title || 'Untitled'
                     return (
