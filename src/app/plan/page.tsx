@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { format } from 'date-fns'
 import { useAuth } from '@/hooks/useAuth'
 import { usePlanItems } from '@/hooks/usePlanItems'
 import { useOutings } from '@/hooks/useOutings'
@@ -14,8 +15,18 @@ export default function PlanPage() {
   const [selectedOutingId, setSelectedOutingId] = useState<string | null>(null)
 
   const filteredItems = useMemo(() => {
-    if (!selectedOutingId) return items
-    return items.filter((item) => item.outing_id === selectedOutingId)
+    let result = items
+
+    // When viewing a specific outing, show all items (past + future)
+    // When viewing "All", hide past items
+    if (!selectedOutingId) {
+      const today = format(new Date(), 'yyyy-MM-dd')
+      result = result.filter((item) => item.date >= today)
+    } else {
+      result = result.filter((item) => item.outing_id === selectedOutingId)
+    }
+
+    return result
   }, [items, selectedOutingId])
 
   if (authLoading) {
