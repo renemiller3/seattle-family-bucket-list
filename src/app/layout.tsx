@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import Header from '@/components/layout/Header'
-import MobileNav from '@/components/layout/MobileNav'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -44,8 +43,8 @@ export default function RootLayout({
     >
       <body className="flex min-h-full flex-col bg-gray-50">
         <Header />
-        <main className="flex-1 pb-20 md:pb-0">{children}</main>
-        <footer className="border-t border-gray-200 bg-white py-4 text-center pb-20 md:pb-4">
+        <main className="flex-1">{children}</main>
+        <footer className="border-t border-gray-200 bg-white py-4 text-center">
           <a
             href="https://mail.google.com/mail/?view=cm&to=rene.miller3@gmail.com&su=Seattle%20Family%20Bucket%20List%20%E2%80%94%20Feedback"
             target="_blank"
@@ -58,7 +57,6 @@ export default function RootLayout({
             Report an issue or share an idea
           </a>
         </footer>
-        <MobileNav />
       </body>
     </html>
   )
