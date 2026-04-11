@@ -1,12 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import type { PlanItem } from '@/lib/types'
+import type { PlanItem, Outing } from '@/lib/types'
 
 interface EditItemModalProps {
   item: PlanItem
   onSave: (id: string, updates: Partial<PlanItem>) => void
   onClose: () => void
+  outings?: Outing[]
 }
 
 const LIFE_BLOCK_OPTIONS = [
@@ -16,12 +17,13 @@ const LIFE_BLOCK_OPTIONS = [
   { label: 'Travel', icon: '🚗' },
 ]
 
-export default function EditItemModal({ item, onSave, onClose }: EditItemModalProps) {
+export default function EditItemModal({ item, onSave, onClose, outings = [] }: EditItemModalProps) {
   const [startTime, setStartTime] = useState(item.start_time ?? '')
   const [endTime, setEndTime] = useState(item.end_time ?? '')
   const [notes, setNotes] = useState(item.notes ?? '')
   const [date, setDate] = useState(item.date)
   const [title, setTitle] = useState(item.title || item.activity?.title || '')
+  const [outingId, setOutingId] = useState(item.outing_id ?? '')
 
   const isLifeBlock = item.type === 'life_block'
   const isCustom = item.type === 'custom'
@@ -43,6 +45,7 @@ export default function EditItemModal({ item, onSave, onClose }: EditItemModalPr
       duration_minutes: durationMinutes,
       notes: notes || null,
       date,
+      outing_id: outingId || null,
       ...(isLifeBlock || isCustom ? { title } : {}),
     })
     onClose()
@@ -101,6 +104,23 @@ export default function EditItemModal({ item, onSave, onClose }: EditItemModalPr
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
             />
           </div>
+
+          {/* Outing */}
+          {outings.length > 0 && (
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Outing</label>
+              <select
+                value={outingId}
+                onChange={(e) => setOutingId(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              >
+                <option value="">None</option>
+                {outings.map((o) => (
+                  <option key={o.id} value={o.id}>{o.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Start and end time */}
           <div className="grid grid-cols-2 gap-3">

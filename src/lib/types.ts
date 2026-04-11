@@ -37,6 +37,13 @@ export interface Activity {
   updated_at: string
 }
 
+export interface Outing {
+  id: string
+  user_id: string
+  name: string
+  created_at: string
+}
+
 export interface Profile {
   id: string
   display_name: string
@@ -59,6 +66,7 @@ export interface PlanItem {
   sort_order: number
   notes: string | null
   is_completed: boolean
+  outing_id: string | null
   created_at: string
   updated_at: string
   activity?: Activity
@@ -77,6 +85,7 @@ export interface SharedPlan {
   slug: string
   title: string | null
   is_active: boolean
+  outing_id: string | null
   created_at: string
 }
 

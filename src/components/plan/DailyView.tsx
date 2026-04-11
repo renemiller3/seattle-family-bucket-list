@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import { format, parseISO } from 'date-fns'
 import Link from 'next/link'
-import type { PlanItem } from '@/lib/types'
+import type { PlanItem, Outing } from '@/lib/types'
 import { formatTime, formatDuration } from '@/lib/utils'
 import PlanItemCard from './PlanItem'
 import EditItemModal from './EditItemModal'
@@ -13,6 +13,7 @@ interface DailyViewProps {
   date: string
   onUpdate: (id: string, updates: Partial<PlanItem>) => void
   onDelete: (id: string) => void
+  outings?: Outing[]
 }
 
 const HOURS = Array.from({ length: 16 }, (_, i) => i + 6) // 6 AM to 9 PM
@@ -36,7 +37,7 @@ function getItemPosition(item: PlanItem) {
   return { top: startOffset, height }
 }
 
-export default function DailyView({ items, date, onUpdate, onDelete }: DailyViewProps) {
+export default function DailyView({ items, date, onUpdate, onDelete, outings }: DailyViewProps) {
   const [editingItem, setEditingItem] = useState<PlanItem | null>(null)
 
   const dayItems = useMemo(
@@ -154,6 +155,7 @@ export default function DailyView({ items, date, onUpdate, onDelete }: DailyView
           item={editingItem}
           onSave={onUpdate}
           onClose={() => setEditingItem(null)}
+          outings={outings}
         />
       )}
     </div>

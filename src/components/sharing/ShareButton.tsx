@@ -1,15 +1,32 @@
 'use client'
 
 import { useState } from 'react'
+import type { Outing } from '@/lib/types'
 
-export default function ShareButton() {
+interface ShareButtonProps {
+  outings?: Outing[]
+  selectedOutingId?: string | null
+}
+
+export default function ShareButton({ outings = [], selectedOutingId = null }: ShareButtonProps) {
   const [shareUrl, setShareUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [sharingOutingId, setSharingOutingId] = useState<string | null>(null)
+
+  const selectedOuting = outings.find((o) => o.id === selectedOutingId)
+  const sharingLabel = selectedOuting ? `Share "${selectedOuting.name}"` : 'Share Plan'
 
   const handleShare = async () => {
     setLoading(true)
-    const res = await fetch('/api/share', { method: 'POST' })
+    const outingToShare = selectedOutingId
+    setSharingOutingId(outingToShare)
+
+    const res = await fetch('/api/share', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ outing_id: outingToShare }),
+    })
     const data = await res.json()
     if (data.slug) {
       const url = `${window.location.origin}/plan/${data.slug}`
@@ -27,8 +44,13 @@ export default function ShareButton() {
   }
 
   const handleUnshare = async () => {
-    await fetch('/api/share', { method: 'DELETE' })
+    await fetch('/api/share', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ outing_id: sharingOutingId }),
+    })
     setShareUrl(null)
+    setSharingOutingId(null)
   }
 
   if (shareUrl) {
@@ -59,7 +81,7 @@ export default function ShareButton() {
       disabled={loading}
       className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
     >
-      {loading ? 'Creating link...' : 'Share Plan'}
+      {loading ? 'Creating link...' : sharingLabel}
     </button>
   )
 }

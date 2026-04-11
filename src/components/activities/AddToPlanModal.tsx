@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { format } from 'date-fns'
-import type { Activity } from '@/lib/types'
+import type { Activity, Outing } from '@/lib/types'
 import { createClient } from '@/lib/supabase/client'
 
 interface AddToPlanModalProps {
@@ -15,11 +15,28 @@ export default function AddToPlanModal({ activity, onClose, onAdded }: AddToPlan
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'))
   const [startTime, setStartTime] = useState('')
   const [notes, setNotes] = useState('')
+  const [outingId, setOutingId] = useState('')
+  const [outings, setOutings] = useState<Outing[]>([])
   const [saving, setSaving] = useState(false)
+  const supabase = createClient()
+
+  // Fetch outings for the current user
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return
+      supabase
+        .from('outings')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at')
+        .then(({ data }) => {
+          if (data) setOutings(data as Outing[])
+        })
+    })
+  }, [supabase])
 
   const handleSave = async () => {
     setSaving(true)
-    const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
@@ -48,6 +65,7 @@ export default function AddToPlanModal({ activity, onClose, onAdded }: AddToPlan
       end_time: null,
       travel_time_before: null,
       travel_time_after: null,
+      outing_id: outingId || null,
     })
 
     setSaving(false)
@@ -73,6 +91,22 @@ export default function AddToPlanModal({ activity, onClose, onAdded }: AddToPlan
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
             />
           </div>
+
+          {outings.length > 0 && (
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Outing</label>
+              <select
+                value={outingId}
+                onChange={(e) => setOutingId(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              >
+                <option value="">None</option>
+                {outings.map((o) => (
+                  <option key={o.id} value={o.id}>{o.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">

@@ -9,12 +9,22 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   const { data: sharedPlan } = await supabase
     .from('shared_plans')
-    .select('title, user_id')
+    .select('title, user_id, outing_id')
     .eq('slug', slug)
     .eq('is_active', true)
     .maybeSingle()
 
-  const planTitle = sharedPlan?.title || 'Family Plan'
+  let planTitle = sharedPlan?.title || 'Family Plan'
+
+  // If sharing an outing, use the outing name
+  if (sharedPlan?.outing_id) {
+    const { data: outing } = await supabase
+      .from('outings')
+      .select('name')
+      .eq('id', sharedPlan.outing_id)
+      .maybeSingle()
+    if (outing) planTitle = outing.name
+  }
 
   let ownerName = 'Someone'
   if (sharedPlan?.user_id) {
@@ -70,30 +80,53 @@ export default async function SharedPlanPage({ params }: { params: Promise<{ slu
     .eq('id', sharedPlan.user_id)
     .single()
 
-  // Get plan items
-  const { data: items } = await supabase
+  // Get plan items — filter by outing if set
+  let itemsQuery = supabase
     .from('plan_items')
     .select('*, activity:activities(*)')
     .eq('user_id', sharedPlan.user_id)
+
+  if (sharedPlan.outing_id) {
+    itemsQuery = itemsQuery.eq('outing_id', sharedPlan.outing_id)
+  }
+
+  const { data: items } = await itemsQuery
     .order('date')
     .order('sort_order')
 
-  // Get notes
-  const { data: noteData } = await supabase
-    .from('plan_notes')
-    .select('content')
-    .eq('user_id', sharedPlan.user_id)
-    .limit(1)
-    .single()
+  // Get outing name for title
+  let outingName: string | null = null
+  if (sharedPlan.outing_id) {
+    const { data: outing } = await supabase
+      .from('outings')
+      .select('name')
+      .eq('id', sharedPlan.outing_id)
+      .maybeSingle()
+    outingName = outing?.name ?? null
+  }
+
+  // Only show notes for full calendar shares, not outing-specific ones
+  let notesContent: string | null = null
+  if (!sharedPlan.outing_id) {
+    const { data: noteData } = await supabase
+      .from('plan_notes')
+      .select('content')
+      .eq('user_id', sharedPlan.user_id)
+      .limit(1)
+      .single()
+    notesContent = noteData?.content ?? null
+  }
+
+  const pageTitle = sharedPlan.title || outingName || 'Family Plan'
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
       <h1 className="mb-2 text-2xl font-bold text-gray-900">
-        {sharedPlan.title || 'Family Plan'}
+        {pageTitle}
       </h1>
       <SharedPlanView
         items={(items as any[]) ?? []}
-        notes={noteData?.content ?? null}
+        notes={notesContent}
         ownerName={profile?.display_name?.split(' ')[0] ?? 'Someone'}
       />
     </div>

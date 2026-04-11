@@ -1,7 +1,9 @@
 'use client'
 
+import { useState, useMemo } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { usePlanItems } from '@/hooks/usePlanItems'
+import { useOutings } from '@/hooks/useOutings'
 import CalendarView from '@/components/plan/CalendarView'
 import ShareButton from '@/components/sharing/ShareButton'
 import Link from 'next/link'
@@ -9,6 +11,13 @@ import Link from 'next/link'
 export default function PlanPage() {
   const { user, loading: authLoading } = useAuth()
   const { items, loading: itemsLoading, updateItem, deleteItem, reorderItems, addItem } = usePlanItems(user?.id)
+  const { outings, addOuting, updateOuting, deleteOuting } = useOutings(user?.id)
+  const [selectedOutingId, setSelectedOutingId] = useState<string | null>(null)
+
+  const filteredItems = useMemo(() => {
+    if (!selectedOutingId) return items
+    return items.filter((item) => item.outing_id === selectedOutingId)
+  }, [items, selectedOutingId])
 
   if (authLoading) {
     return (
@@ -56,6 +65,7 @@ export default function PlanPage() {
       sort_order: maxOrder,
       notes: null,
       is_completed: false,
+      outing_id: selectedOutingId,
     })
   }
 
@@ -63,7 +73,7 @@ export default function PlanPage() {
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold text-gray-900">My Calendar</h1>
-        <ShareButton />
+        <ShareButton outings={outings} selectedOutingId={selectedOutingId} />
       </div>
       {itemsLoading ? (
         <div className="animate-pulse space-y-4">
@@ -72,12 +82,18 @@ export default function PlanPage() {
         </div>
       ) : (
         <CalendarView
-          items={items}
+          items={filteredItems}
           userId={user.id}
           onUpdate={updateItem}
           onDelete={deleteItem}
           onReorder={reorderItems}
           onAddLifeBlock={handleAddLifeBlock}
+          outings={outings}
+          selectedOutingId={selectedOutingId}
+          onOutingChange={setSelectedOutingId}
+          onAddOuting={addOuting}
+          onUpdateOuting={updateOuting}
+          onDeleteOuting={deleteOuting}
         />
       )}
     </div>

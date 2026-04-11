@@ -2,13 +2,14 @@
 
 import { useState, useMemo } from 'react'
 import { format, addDays, subDays, addWeeks, subWeeks, addMonths, subMonths, startOfWeek } from 'date-fns'
-import type { PlanItem } from '@/lib/types'
+import type { PlanItem, Outing } from '@/lib/types'
 import ItineraryView from './ItineraryView'
 import DailyView from './DailyView'
 import WeeklyView from './WeeklyView'
 import MonthlyView from './MonthlyView'
 import LifeBlockPicker from './LifeBlockPicker'
 import PlanNotes from './PlanNotes'
+import OutingManager from './OutingManager'
 
 type ViewMode = 'itinerary' | 'daily' | 'weekly' | 'monthly'
 
@@ -24,6 +25,12 @@ interface CalendarViewProps {
     duration_minutes: number
     start_time: string | null
   }) => void
+  outings: Outing[]
+  selectedOutingId: string | null
+  onOutingChange: (outingId: string | null) => void
+  onAddOuting: (name: string) => Promise<Outing | null>
+  onUpdateOuting: (id: string, name: string) => Promise<void>
+  onDeleteOuting: (id: string) => Promise<void>
 }
 
 export default function CalendarView({
@@ -33,12 +40,19 @@ export default function CalendarView({
   onDelete,
   onReorder,
   onAddLifeBlock,
+  outings,
+  selectedOutingId,
+  onOutingChange,
+  onAddOuting,
+  onUpdateOuting,
+  onDeleteOuting,
 }: CalendarViewProps) {
   const [view, setView] = useState<ViewMode>('itinerary')
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'))
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [showLifeBlock, setShowLifeBlock] = useState(false)
   const [lifeBlockDate, setLifeBlockDate] = useState(format(new Date(), 'yyyy-MM-dd'))
+  const [showOutingManager, setShowOutingManager] = useState(false)
 
   const weekStart = useMemo(
     () => startOfWeek(new Date(selectedDate + 'T00:00:00')),
@@ -85,6 +99,47 @@ export default function CalendarView({
 
   return (
     <div className="space-y-4">
+      {/* Outing filter */}
+      {outings.length > 0 && (
+        <div className="flex items-center gap-2">
+          <div className="flex flex-1 flex-wrap items-center gap-2">
+            <button
+              onClick={() => onOutingChange(null)}
+              className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
+                selectedOutingId === null
+                  ? 'bg-emerald-600 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              All
+            </button>
+            {outings.map((outing) => (
+              <button
+                key={outing.id}
+                onClick={() => onOutingChange(outing.id)}
+                className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
+                  selectedOutingId === outing.id
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {outing.name}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={() => setShowOutingManager(true)}
+            className="shrink-0 rounded-lg border border-gray-200 p-1.5 text-gray-400 hover:bg-gray-50 hover:text-gray-600"
+            title="Manage Outings"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+          </button>
+        </div>
+      )}
+
       {/* Toolbar */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
@@ -148,10 +203,10 @@ export default function CalendarView({
 
       {/* Calendar view */}
       {view === 'itinerary' && (
-        <ItineraryView items={items} onUpdate={onUpdate} onDelete={onDelete} onReorder={onReorder} />
+        <ItineraryView items={items} onUpdate={onUpdate} onDelete={onDelete} onReorder={onReorder} outings={outings} />
       )}
       {view === 'daily' && (
-        <DailyView items={items} date={selectedDate} onUpdate={onUpdate} onDelete={onDelete} />
+        <DailyView items={items} date={selectedDate} onUpdate={onUpdate} onDelete={onDelete} outings={outings} />
       )}
       {view === 'weekly' && (
         <WeeklyView
@@ -178,6 +233,17 @@ export default function CalendarView({
             setShowLifeBlock(false)
           }}
           onClose={() => setShowLifeBlock(false)}
+        />
+      )}
+
+      {/* Outing manager modal */}
+      {showOutingManager && (
+        <OutingManager
+          outings={outings}
+          onAdd={onAddOuting}
+          onUpdate={onUpdateOuting}
+          onDelete={onDeleteOuting}
+          onClose={() => setShowOutingManager(false)}
         />
       )}
     </div>

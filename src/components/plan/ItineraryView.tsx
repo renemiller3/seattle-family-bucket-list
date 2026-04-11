@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { format, parseISO } from 'date-fns'
-import type { PlanItem } from '@/lib/types'
+import type { PlanItem, Outing } from '@/lib/types'
 import PlanItemCard from './PlanItem'
 import DriveTimeDisplay from './DriveTimeDisplay'
 import EditItemModal from './EditItemModal'
@@ -12,9 +12,10 @@ interface ItineraryViewProps {
   onUpdate: (id: string, updates: Partial<PlanItem>) => void
   onDelete: (id: string) => void
   onReorder: (date: string, orderedIds: string[]) => void
+  outings?: Outing[]
 }
 
-export default function ItineraryView({ items, onUpdate, onDelete }: ItineraryViewProps) {
+export default function ItineraryView({ items, onUpdate, onDelete, outings }: ItineraryViewProps) {
   const [editingItem, setEditingItem] = useState<PlanItem | null>(null)
 
   const groupedByDate = useMemo(() => {
@@ -76,6 +77,7 @@ export default function ItineraryView({ items, onUpdate, onDelete }: ItineraryVi
           item={editingItem}
           onSave={onUpdate}
           onClose={() => setEditingItem(null)}
+          outings={outings}
         />
       )}
     </div>
