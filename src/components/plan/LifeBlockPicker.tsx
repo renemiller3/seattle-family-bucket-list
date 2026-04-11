@@ -4,10 +4,10 @@ import { useState } from 'react'
 import { format } from 'date-fns'
 
 const PRESETS = [
-  { label: 'Nap', icon: '😴', duration: 90 },
-  { label: 'Meal', icon: '🍽️', duration: 60 },
-  { label: 'Break', icon: '🧃', duration: 30 },
-  { label: 'Travel', icon: '🚗', duration: 30 },
+  { label: 'Nap', icon: '😴' },
+  { label: 'Meal', icon: '🍽️' },
+  { label: 'Break', icon: '🧃' },
+  { label: 'Travel', icon: '🚗' },
 ]
 
 interface LifeBlockPickerProps {
@@ -17,95 +17,129 @@ interface LifeBlockPickerProps {
 }
 
 export default function LifeBlockPicker({ date, onAdd, onClose }: LifeBlockPickerProps) {
+  const [selected, setSelected] = useState<string | null>(null)
   const [customTitle, setCustomTitle] = useState('')
-  const [customDuration, setCustomDuration] = useState(30)
-  const [startTime, setStartTime] = useState('')
   const [showCustom, setShowCustom] = useState(false)
+  const [startTime, setStartTime] = useState('')
+  const [endTime, setEndTime] = useState('')
+
+  const activeTitle = showCustom ? customTitle : selected
+  const canSave = activeTitle && activeTitle.trim().length > 0
+
+  const handleSave = () => {
+    if (!canSave) return
+
+    let durationMinutes = 60 // default
+    if (startTime && endTime) {
+      const [startH, startM] = startTime.split(':').map(Number)
+      const [endH, endM] = endTime.split(':').map(Number)
+      const calc = (endH * 60 + endM) - (startH * 60 + startM)
+      if (calc > 0) durationMinutes = calc
+    }
+
+    onAdd({
+      title: activeTitle!.trim(),
+      duration_minutes: durationMinutes,
+      start_time: startTime || null,
+    })
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
-      <div className="w-full max-w-sm rounded-xl bg-white p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
         <h3 className="mb-4 text-lg font-semibold text-gray-900">Add Life Block</h3>
-        <p className="mb-4 text-sm text-gray-500">
-          {format(new Date(date + 'T00:00:00'), 'EEEE, MMMM d')}
-        </p>
 
-        <div className="mb-4">
-          <label className="mb-1 block text-sm font-medium text-gray-700">
-            Start Time <span className="text-gray-400">(optional)</span>
-          </label>
-          <input
-            type="time"
-            value={startTime}
-            onChange={(e) => setStartTime(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-2 mb-4">
-          {PRESETS.map((preset) => (
-            <button
-              key={preset.label}
-              onClick={() => onAdd({ title: preset.label, duration_minutes: preset.duration, start_time: startTime || null })}
-              className="flex items-center gap-2 rounded-lg border border-gray-200 p-3 text-left hover:bg-gray-50 transition-colors"
-            >
-              <span className="text-lg">{preset.icon}</span>
-              <div>
-                <p className="text-sm font-medium text-gray-900">{preset.label}</p>
-                <p className="text-xs text-gray-500">{preset.duration} min</p>
-              </div>
-            </button>
-          ))}
-        </div>
-
-        {showCustom ? (
-          <div className="space-y-3 border-t border-gray-200 pt-4">
-            <input
-              type="text"
-              placeholder="Block name"
-              value={customTitle}
-              onChange={(e) => setCustomTitle(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-              autoFocus
-            />
-            <div className="flex items-center gap-2">
-              <input
-                type="number"
-                min={5}
-                max={480}
-                value={customDuration}
-                onChange={(e) => setCustomDuration(Number(e.target.value))}
-                className="w-20 rounded-lg border border-gray-300 px-3 py-2 text-sm"
-              />
-              <span className="text-sm text-gray-500">minutes</span>
+        <div className="space-y-4">
+          {/* Type selector */}
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">Type</label>
+            <div className="grid grid-cols-4 gap-2">
+              {PRESETS.map((preset) => (
+                <button
+                  key={preset.label}
+                  onClick={() => {
+                    setSelected(preset.label)
+                    setShowCustom(false)
+                  }}
+                  className={`flex flex-col items-center gap-1 rounded-lg border p-2.5 text-sm transition-colors ${
+                    selected === preset.label && !showCustom
+                      ? 'border-emerald-500 bg-emerald-50 text-emerald-800'
+                      : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  <span className="text-lg">{preset.icon}</span>
+                  <span className="text-xs font-medium">{preset.label}</span>
+                </button>
+              ))}
             </div>
-            <button
-              onClick={() => {
-                if (customTitle.trim()) {
-                  onAdd({ title: customTitle.trim(), duration_minutes: customDuration, start_time: startTime || null })
-                }
-              }}
-              disabled={!customTitle.trim()}
-              className="w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-            >
-              Add Custom Block
-            </button>
+            {showCustom ? (
+              <input
+                type="text"
+                placeholder="Custom block name"
+                value={customTitle}
+                onChange={(e) => setCustomTitle(e.target.value)}
+                className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                autoFocus
+              />
+            ) : (
+              <button
+                onClick={() => {
+                  setShowCustom(true)
+                  setSelected(null)
+                }}
+                className="mt-2 w-full rounded-lg border border-dashed border-gray-300 py-2 text-sm text-gray-500 hover:border-gray-400 hover:text-gray-700"
+              >
+                + Custom Block
+              </button>
+            )}
           </div>
-        ) : (
-          <button
-            onClick={() => setShowCustom(true)}
-            className="w-full rounded-lg border border-dashed border-gray-300 py-2 text-sm text-gray-500 hover:border-gray-400 hover:text-gray-700"
-          >
-            + Custom Block
-          </button>
-        )}
 
-        <button
-          onClick={onClose}
-          className="mt-3 w-full text-center text-sm text-gray-500 hover:text-gray-700"
-        >
-          Cancel
-        </button>
+          {/* Date */}
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Date</label>
+            <div className="rounded-lg bg-gray-50 border border-gray-200 px-3 py-2.5 text-sm text-gray-700">
+              {format(new Date(date + 'T00:00:00'), 'EEEE, MMMM d, yyyy')}
+            </div>
+          </div>
+
+          {/* Start and end time */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Start Time</label>
+              <input
+                type="time"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">End Time</label>
+              <input
+                type="time"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={!canSave}
+            className="flex-1 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+          >
+            Add
+          </button>
+        </div>
       </div>
     </div>
   )
