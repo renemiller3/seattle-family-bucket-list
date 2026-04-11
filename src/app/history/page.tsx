@@ -28,6 +28,7 @@ export default function HistoryPage() {
       .select('*, activity:activities(*)')
       .eq('user_id', user.id)
       .eq('is_completed', true)
+      .neq('type', 'life_block')
       .order('date', { ascending: false })
 
     const { data: photos } = await supabase
