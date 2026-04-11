@@ -127,37 +127,39 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
         </div>
 
         {/* Desktop: split view */}
-        <div className="hidden md:flex gap-4" style={{ height: 'calc(100vh - 12rem)' }}>
-          {/* Left: scrollable card list */}
-          <div className="w-1/2 overflow-y-auto pr-2">
+        <div className="hidden md:flex gap-4">
+          {/* Left: card list scrolls naturally */}
+          <div className="w-1/2">
             <div className="grid grid-cols-2 gap-3">
-            {regularActivities.map((activity) => (
-              <div
-                key={activity.id}
-                ref={(el) => { cardRefs.current[activity.id] = el }}
-                className={`transition-all rounded-xl ${
-                  selectedMapActivity === activity.id ? 'ring-2 ring-emerald-500' : ''
-                }`}
-              >
-                <ActivityCard
-                  activity={activity}
-                  onAddToPlan={handleAddToPlan}
-                  onToggleBucketList={handleToggleBucketList}
-                  isOnBucketList={isOnBucketList(activity.id)}
-                />
-              </div>
-            ))}
+              {regularActivities.map((activity) => (
+                <div
+                  key={activity.id}
+                  ref={(el) => { cardRefs.current[activity.id] = el }}
+                  className={`transition-all rounded-xl ${
+                    selectedMapActivity === activity.id ? 'ring-2 ring-emerald-500' : ''
+                  }`}
+                >
+                  <ActivityCard
+                    activity={activity}
+                    onAddToPlan={handleAddToPlan}
+                    onToggleBucketList={handleToggleBucketList}
+                    isOnBucketList={isOnBucketList(activity.id)}
+                  />
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Right: sticky map */}
+          {/* Right: map sticks to viewport while cards scroll */}
           <div className="w-1/2">
-            <DiscoverMap
-              activities={filtered}
-              selectedActivityId={selectedMapActivity}
-              onSelectActivity={handleMapSelectActivity}
-              className="h-full w-full overflow-hidden rounded-xl border border-gray-200"
-            />
+            <div className="sticky top-20 h-[calc(100vh-6rem)]">
+              <DiscoverMap
+                activities={filtered}
+                selectedActivityId={selectedMapActivity}
+                onSelectActivity={handleMapSelectActivity}
+                className="h-full w-full overflow-hidden rounded-xl border border-gray-200"
+              />
+            </div>
           </div>
         </div>
 
