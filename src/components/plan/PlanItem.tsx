@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import type { PlanItem as PlanItemType, Outing } from '@/lib/types'
 import { formatTime, formatDuration } from '@/lib/utils'
 
@@ -28,9 +27,6 @@ const LIFE_BLOCK_ICONS: Record<string, string> = {
 }
 
 export default function PlanItemCard({ item, onUpdate, onDelete, dragHandleProps, compact, outings = [] }: PlanItemProps) {
-  const [editing, setEditing] = useState(false)
-  const [notes, setNotes] = useState(item.notes ?? '')
-
   const title = item.title || item.activity?.title || 'Untitled'
   const icon = item.type === 'life_block' ? LIFE_BLOCK_ICONS[title] || '📌' : null
   const outingName = item.outing_id ? outings.find((o) => o.id === item.outing_id)?.name : null
@@ -107,52 +103,15 @@ export default function PlanItemCard({ item, onUpdate, onDelete, dragHandleProps
           )}
 
           {/* Notes */}
-          {editing ? (
-            <div className="mt-2">
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
-                rows={2}
-                autoFocus
-              />
-              <div className="mt-1 flex gap-2">
-                <button
-                  onClick={() => {
-                    onUpdate(item.id, { notes: notes || null })
-                    setEditing(false)
-                  }}
-                  className="text-xs text-emerald-600 hover:text-emerald-700"
-                >
-                  Save
-                </button>
-                <button onClick={() => setEditing(false)} className="text-xs text-gray-500">
-                  Cancel
-                </button>
-              </div>
-            </div>
-          ) : item.notes ? (
-            <p
-              className="mt-1 text-xs text-gray-500 cursor-pointer hover:text-gray-700"
-              onClick={() => setEditing(true)}
-            >
+          {item.notes && (
+            <p className="mt-1 text-xs text-gray-500">
               {item.notes}
             </p>
-          ) : null}
+          )}
         </div>
 
         {/* Actions */}
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button
-            onClick={(e) => { e.stopPropagation(); setEditing(true) }}
-            className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-            title="Edit notes"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-            </svg>
-          </button>
           <button
             onClick={(e) => { e.stopPropagation(); onDelete(item.id) }}
             className="rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-500"
