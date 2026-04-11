@@ -5,7 +5,6 @@ import { useAuth } from '@/hooks/useAuth'
 import { usePlanItems } from '@/hooks/usePlanItems'
 import { useOutings } from '@/hooks/useOutings'
 import CalendarView from '@/components/plan/CalendarView'
-import ShareButton from '@/components/sharing/ShareButton'
 import Link from 'next/link'
 
 export default function PlanPage() {
@@ -71,9 +70,8 @@ export default function PlanPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+      <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">My Calendar</h1>
-        <ShareButton outings={outings} selectedOutingId={selectedOutingId} />
       </div>
       {itemsLoading ? (
         <div className="animate-pulse space-y-4">

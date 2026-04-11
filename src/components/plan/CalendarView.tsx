@@ -53,6 +53,22 @@ export default function CalendarView({
   const [showLifeBlock, setShowLifeBlock] = useState(false)
   const [lifeBlockDate, setLifeBlockDate] = useState(format(new Date(), 'yyyy-MM-dd'))
   const [showOutingManager, setShowOutingManager] = useState(false)
+  const [copiedOutingId, setCopiedOutingId] = useState<string | null | undefined>(undefined) // undefined = nothing copied, null = copied "all", string = copied outing id
+
+  const handleShareOuting = async (outingId: string | null) => {
+    const res = await fetch('/api/share', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ outing_id: outingId }),
+    })
+    const data = await res.json()
+    if (data.slug) {
+      const url = `${window.location.origin}/plan/${data.slug}`
+      await navigator.clipboard.writeText(url)
+      setCopiedOutingId(outingId)
+      setTimeout(() => setCopiedOutingId(undefined), 2000)
+    }
+  }
 
   const weekStart = useMemo(
     () => startOfWeek(new Date(selectedDate + 'T00:00:00')),
@@ -104,29 +120,62 @@ export default function CalendarView({
         <div className="flex flex-1 flex-wrap items-center gap-2">
           {outings.length > 0 && (
             <>
-              <button
-                onClick={() => onOutingChange(null)}
-                className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
-                  selectedOutingId === null
-                    ? 'bg-emerald-600 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                All
-              </button>
-              {outings.map((outing) => (
+              <div className="flex items-center">
                 <button
-                  key={outing.id}
-                  onClick={() => onOutingChange(outing.id)}
+                  onClick={() => onOutingChange(null)}
                   className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
-                    selectedOutingId === outing.id
+                    selectedOutingId === null
                       ? 'bg-emerald-600 text-white'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
-                  {outing.name}
+                  {copiedOutingId === null ? 'Link copied!' : 'All'}
                 </button>
-              ))}
+                {selectedOutingId === null && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleShareOuting(null) }}
+                    className="ml-1 rounded-full p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 transition-colors"
+                    title="Copy share link"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+              {outings.map((outing) => {
+                const isActive = selectedOutingId === outing.id
+                const justCopied = copiedOutingId === outing.id
+                return (
+                  <div key={outing.id} className="flex items-center">
+                    <button
+                      onClick={() => onOutingChange(outing.id)}
+                      className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
+                        isActive
+                          ? 'bg-emerald-600 text-white'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      {justCopied ? 'Link copied!' : outing.name}
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleShareOuting(outing.id) }}
+                      className={`ml-1 rounded-full p-1 transition-colors ${
+                        isActive
+                          ? 'text-emerald-300 hover:bg-emerald-700 hover:text-white'
+                          : 'text-gray-400 hover:bg-gray-200 hover:text-gray-600'
+                      }`}
+                      title={`Copy share link for ${outing.name}`}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                      </svg>
+                    </button>
+                  </div>
+                )
+              })}
             </>
           )}
         </div>
