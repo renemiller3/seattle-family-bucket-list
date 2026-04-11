@@ -11,6 +11,7 @@ import AddToPlanModal from './AddToPlanModal'
 import { useAuth } from '@/hooks/useAuth'
 import { useBucketList } from '@/hooks/useBucketList'
 import DiscoverMap from './DiscoverMap'
+import FeaturedRow from './FeaturedRow'
 
 interface ActivityGridProps {
   activities: Activity[]
@@ -69,6 +70,10 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
       return true
     })
   }, [activities, filters])
+
+  const featuredActivities = useMemo(() => {
+    return activities.filter((a) => a.featured)
+  }, [activities])
 
   const regularActivities = filtered
   const events = filtered.filter((a) => a.start_date !== null)
@@ -207,6 +212,14 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
       <section className="mb-6">
         <FilterBar filters={filters} onChange={setFilters} />
       </section>
+
+      {/* Featured */}
+      <FeaturedRow
+        activities={featuredActivities}
+        onAddToPlan={handleAddToPlan}
+        onToggleBucketList={handleToggleBucketList}
+        isOnBucketList={isOnBucketList}
+      />
 
       {/* Results count + map toggle */}
       <div className="mb-4 flex items-center justify-between">
