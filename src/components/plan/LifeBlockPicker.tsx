@@ -47,7 +47,12 @@ export default function LifeBlockPicker({ date, onAdd, onClose }: LifeBlockPicke
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto" onClick={onClose}>
       <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl my-auto max-h-[calc(100vh-6rem)] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <h3 className="mb-4 text-lg font-semibold text-gray-900">Add Life Block</h3>
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-gray-900">Add Life Block</h3>
+          <button onClick={onClose} className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
+          </button>
+        </div>
 
         <div className="space-y-4">
           {/* Type selector */}
@@ -125,17 +130,11 @@ export default function LifeBlockPicker({ date, onAdd, onClose }: LifeBlockPicke
           </div>
         </div>
 
-        <div className="mt-6 flex gap-3">
-          <button
-            onClick={onClose}
-            className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
-            Cancel
-          </button>
+        <div className="mt-6">
           <button
             onClick={handleSave}
             disabled={!canSave}
-            className="flex-1 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+            className="w-full rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
           >
             Add
           </button>

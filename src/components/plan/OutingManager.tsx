@@ -37,7 +37,12 @@ export default function OutingManager({ outings, onAdd, onUpdate, onDelete, onCl
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto" onClick={onClose}>
       <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl my-auto max-h-[calc(100vh-6rem)] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">Manage Outings</h2>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-gray-900">Manage Outings</h2>
+          <button onClick={onClose} className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
+          </button>
+        </div>
 
         {/* Add new */}
         <div className="mb-4 flex gap-2">
@@ -150,12 +155,6 @@ export default function OutingManager({ outings, onAdd, onUpdate, onDelete, onCl
           Deleting an outing keeps its items on your calendar — they just won't be grouped anymore.
         </p>
 
-        <button
-          onClick={onClose}
-          className="mt-4 w-full rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-        >
-          Done
-        </button>
       </div>
     </div>
   )
