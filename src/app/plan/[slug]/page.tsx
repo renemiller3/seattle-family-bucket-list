@@ -36,6 +36,35 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     if (profile) ownerName = profile.display_name.split(' ')[0]
   }
 
+  // Find the first activity image from this outing's items
+  let ogImage = '/images/og-image.jpg'
+  if (sharedPlan?.user_id) {
+    let imageQuery = supabase
+      .from('plan_items')
+      .select('activity:activities(image_url)')
+      .eq('user_id', sharedPlan.user_id)
+      .eq('type', 'activity')
+      .not('activity_id', 'is', null)
+
+    if (sharedPlan.outing_id) {
+      imageQuery = imageQuery.eq('outing_id', sharedPlan.outing_id)
+    }
+
+    const { data: itemsWithImages } = await imageQuery.limit(10)
+    if (itemsWithImages) {
+      const firstWithImage = itemsWithImages.find(
+        (item: any) => item.activity?.image_url
+      )
+      if (firstWithImage) {
+        const url = (firstWithImage as any).activity.image_url
+        // Only use if it's an absolute URL (Unsplash etc), not a local path
+        if (url.startsWith('http')) {
+          ogImage = url
+        }
+      }
+    }
+  }
+
   const title = `${planTitle} — Shared by ${ownerName}`
   const description = `Check out this family outing plan on Seattle Family Bucket List.`
 
@@ -45,14 +74,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     openGraph: {
       title,
       description,
-      images: [{ url: '/images/og-image.jpg', width: 1200, height: 630 }],
+      images: [{ url: ogImage, width: 1200, height: 630 }],
       type: 'website',
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
-      images: ['/images/og-image.jpg'],
+      images: [ogImage],
     },
   }
 }
