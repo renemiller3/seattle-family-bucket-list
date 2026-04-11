@@ -93,12 +93,9 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
   if (showMap) {
     return (
       <div>
-        {/* Compact filters for map view */}
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          <VibeButtons selected={filters.vibes} onToggle={handleVibeToggle} />
-        </div>
+        {/* Single row compact filters for map view */}
         <div className="mb-3">
-          <FilterBar filters={filters} onChange={setFilters} />
+          <FilterBar filters={filters} onChange={setFilters} compact />
         </div>
 
         <div className="mb-3 flex items-center justify-between">
