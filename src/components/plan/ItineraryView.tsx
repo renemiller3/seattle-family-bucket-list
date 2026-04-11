@@ -61,7 +61,7 @@ export default function ItineraryView({ items, onUpdate, onDelete, outings }: It
                   <DriveTimeDisplay minutes={item.travel_time_before} />
                 )}
                 <div onClick={() => setEditingItem(item)} className="cursor-pointer">
-                  <PlanItemCard item={item} onUpdate={onUpdate} onDelete={onDelete} />
+                  <PlanItemCard item={item} onUpdate={onUpdate} onDelete={onDelete} outings={outings} />
                 </div>
                 {item.travel_time_after && index < dateItems.length - 1 && (
                   <DriveTimeDisplay minutes={item.travel_time_after} />

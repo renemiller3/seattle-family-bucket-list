@@ -61,7 +61,7 @@ export default function DailyView({ items, date, onUpdate, onDelete, outings }: 
           <div className="space-y-1">
             {untimedItems.map((item) => (
               <div key={item.id} onClick={() => setEditingItem(item)} className="cursor-pointer">
-                <PlanItemCard item={item} onUpdate={onUpdate} onDelete={onDelete} />
+                <PlanItemCard item={item} onUpdate={onUpdate} onDelete={onDelete} outings={outings} />
               </div>
             ))}
           </div>
@@ -91,6 +91,7 @@ export default function DailyView({ items, date, onUpdate, onDelete, outings }: 
 
           const title = item.title || item.activity?.title || 'Untitled'
           const isCompleted = item.is_completed
+          const outingName = item.outing_id && outings ? outings.find((o) => o.id === item.outing_id)?.name : null
           const typeStyles: Record<string, string> = {
             activity: 'border-l-emerald-500 bg-emerald-50',
             life_block: 'border-l-blue-400 bg-blue-50',
@@ -119,6 +120,11 @@ export default function DailyView({ items, date, onUpdate, onDelete, outings }: 
                       {item.activity_id ? (
                         <Link href={`/activities/${item.activity_id}`} className="hover:text-emerald-700">{title}</Link>
                       ) : title}
+                      {outingName && (
+                        <span className="ml-1.5 inline-block rounded-full bg-violet-100 px-1.5 py-0 text-[9px] font-medium text-violet-700 align-middle">
+                          {outingName}
+                        </span>
+                      )}
                     </p>
                     {item.start_time && (
                       <p className="text-xs text-gray-500">

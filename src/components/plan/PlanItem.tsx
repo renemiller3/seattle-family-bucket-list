@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import type { PlanItem as PlanItemType } from '@/lib/types'
+import type { PlanItem as PlanItemType, Outing } from '@/lib/types'
 import { formatTime, formatDuration } from '@/lib/utils'
 
 interface PlanItemProps {
@@ -11,6 +11,7 @@ interface PlanItemProps {
   onDelete: (id: string) => void
   dragHandleProps?: Record<string, unknown>
   compact?: boolean
+  outings?: Outing[]
 }
 
 const TYPE_STYLES: Record<string, string> = {
@@ -27,12 +28,13 @@ const LIFE_BLOCK_ICONS: Record<string, string> = {
   Travel: '🚗',
 }
 
-export default function PlanItemCard({ item, onUpdate, onDelete, dragHandleProps, compact }: PlanItemProps) {
+export default function PlanItemCard({ item, onUpdate, onDelete, dragHandleProps, compact, outings = [] }: PlanItemProps) {
   const [editing, setEditing] = useState(false)
   const [notes, setNotes] = useState(item.notes ?? '')
 
   const title = item.title || item.activity?.title || 'Untitled'
   const icon = item.type === 'life_block' ? LIFE_BLOCK_ICONS[title] || '📌' : null
+  const outingName = item.outing_id ? outings.find((o) => o.id === item.outing_id)?.name : null
 
   if (compact) {
     return (
@@ -84,7 +86,7 @@ export default function PlanItemCard({ item, onUpdate, onDelete, dragHandleProps
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {icon && <span className="text-sm">{icon}</span>}
             <span className={`font-medium text-gray-900 ${item.is_completed ? 'line-through' : ''}`}>
               {item.activity_id ? (
@@ -95,6 +97,11 @@ export default function PlanItemCard({ item, onUpdate, onDelete, dragHandleProps
                 title
               )}
             </span>
+            {outingName && (
+              <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-medium text-violet-700">
+                {outingName}
+              </span>
+            )}
           </div>
 
           {/* Time */}
