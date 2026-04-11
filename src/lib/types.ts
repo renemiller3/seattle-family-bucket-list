@@ -33,6 +33,7 @@ export interface Activity {
   recurrence: Recurrence | null
   image_url: string | null
   video_url: string | null
+  website_url: string | null
   created_at: string
   updated_at: string
 }

@@ -97,14 +97,26 @@ export default function ActivityDetail({ activity }: ActivityDetailProps) {
       <div className="mb-6 rounded-lg bg-gray-50 border border-gray-200 p-4">
         <h3 className="mb-1 text-sm font-medium text-gray-500 uppercase tracking-wide">Location</h3>
         <p className="text-gray-900">{activity.location_text}</p>
-        <a
-          href={activity.location_url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-1 inline-block text-sm text-emerald-600 hover:text-emerald-700"
-        >
-          Open in Google Maps &rarr;
-        </a>
+        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+          <a
+            href={activity.location_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm text-emerald-600 hover:text-emerald-700"
+          >
+            Open in Google Maps &rarr;
+          </a>
+          {activity.website_url && (
+            <a
+              href={activity.website_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-emerald-600 hover:text-emerald-700"
+            >
+              Visit website &rarr;
+            </a>
+          )}
+        </div>
       </div>
 
       {/* Why it's worth it */}
