@@ -126,7 +126,7 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
         {/* Desktop: split view with fixed map */}
         <div className="hidden md:block">
           {/* Fixed map on right half — below header + filters + results row */}
-          <div className="fixed right-0 bottom-0 w-1/2 p-3 pl-0" style={{ top: '11rem' }}>
+          <div className="fixed right-0 bottom-0 w-1/2 p-3 pl-0" style={{ top: '11.5rem' }}>
             <DiscoverMap
               activities={filtered}
               selectedActivityId={selectedMapActivity}
