@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
 import type { PlanItem as PlanItemType, Outing } from '@/lib/types'
 import { formatTime, formatDuration } from '@/lib/utils'
 
@@ -89,13 +88,7 @@ export default function PlanItemCard({ item, onUpdate, onDelete, dragHandleProps
           <div className="flex items-center gap-2 flex-wrap">
             {icon && <span className="text-sm">{icon}</span>}
             <span className={`font-medium text-gray-900 ${item.is_completed ? 'line-through' : ''}`}>
-              {item.activity_id ? (
-                <Link href={`/activities/${item.activity_id}`} className="hover:text-emerald-700">
-                  {title}
-                </Link>
-              ) : (
-                title
-              )}
+              {title}
             </span>
             {outingName && (
               <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-medium text-violet-700">
