@@ -47,7 +47,9 @@ export default function RootLayout({
         <main className="flex-1 pb-20 md:pb-0">{children}</main>
         <footer className="border-t border-gray-200 bg-white py-4 text-center pb-20 md:pb-4">
           <a
-            href="mailto:rene.miller3@gmail.com?subject=Seattle%20Family%20Bucket%20List%20%E2%80%94%20Feedback"
+            href="https://mail.google.com/mail/?view=cm&to=rene.miller3@gmail.com&su=Seattle%20Family%20Bucket%20List%20%E2%80%94%20Feedback"
+            target="_blank"
+            rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 transition-colors"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
