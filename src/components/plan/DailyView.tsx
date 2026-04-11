@@ -1,11 +1,12 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { format, parseISO } from 'date-fns'
 import Link from 'next/link'
 import type { PlanItem } from '@/lib/types'
 import { formatTime, formatDuration } from '@/lib/utils'
 import PlanItemCard from './PlanItem'
+import EditItemModal from './EditItemModal'
 
 interface DailyViewProps {
   items: PlanItem[]
@@ -36,6 +37,8 @@ function getItemPosition(item: PlanItem) {
 }
 
 export default function DailyView({ items, date, onUpdate, onDelete }: DailyViewProps) {
+  const [editingItem, setEditingItem] = useState<PlanItem | null>(null)
+
   const dayItems = useMemo(
     () => items.filter((item) => item.date === date),
     [items, date]
@@ -56,7 +59,9 @@ export default function DailyView({ items, date, onUpdate, onDelete }: DailyView
           <p className="mb-2 text-xs font-medium text-gray-500 uppercase tracking-wide">All Day</p>
           <div className="space-y-1">
             {untimedItems.map((item) => (
-              <PlanItemCard key={item.id} item={item} onUpdate={onUpdate} onDelete={onDelete} />
+              <div key={item.id} onClick={() => setEditingItem(item)} className="cursor-pointer">
+                <PlanItemCard item={item} onUpdate={onUpdate} onDelete={onDelete} />
+              </div>
             ))}
           </div>
         </div>
@@ -99,7 +104,8 @@ export default function DailyView({ items, date, onUpdate, onDelete }: DailyView
               style={{ top: pos.top, height: pos.height }}
             >
               <div
-                className={`h-full rounded-lg border border-gray-200 border-l-4 p-2 overflow-hidden ${typeStyles[item.type] || 'bg-white'} ${isCompleted ? 'opacity-60' : ''}`}
+                onClick={() => setEditingItem(item)}
+                className={`h-full rounded-lg border border-gray-200 border-l-4 p-2 overflow-hidden cursor-pointer transition-shadow hover:shadow-md ${typeStyles[item.type] || 'bg-white'} ${isCompleted ? 'opacity-60' : ''}`}
               >
                 <div className="flex items-start justify-between gap-1">
                   <div className="min-w-0">
@@ -116,7 +122,8 @@ export default function DailyView({ items, date, onUpdate, onDelete }: DailyView
                     {item.start_time && (
                       <p className="text-xs text-gray-500">
                         {formatTime(item.start_time)}
-                        {item.duration_minutes && <> ({formatDuration(item.duration_minutes)})</>}
+                        {item.end_time && <> – {formatTime(item.end_time)}</>}
+                        {!item.end_time && item.duration_minutes && <> ({formatDuration(item.duration_minutes)})</>}
                       </p>
                     )}
                     {item.notes && pos.height > 60 && (
@@ -124,7 +131,10 @@ export default function DailyView({ items, date, onUpdate, onDelete }: DailyView
                     )}
                   </div>
                   <button
-                    onClick={() => onDelete(item.id)}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onDelete(item.id)
+                    }}
                     className="shrink-0 rounded p-0.5 text-gray-400 hover:bg-red-50 hover:text-red-500"
                   >
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -137,6 +147,15 @@ export default function DailyView({ items, date, onUpdate, onDelete }: DailyView
           )
         })}
       </div>
+
+      {/* Edit modal */}
+      {editingItem && (
+        <EditItemModal
+          item={editingItem}
+          onSave={onUpdate}
+          onClose={() => setEditingItem(null)}
+        />
+      )}
     </div>
   )
 }
