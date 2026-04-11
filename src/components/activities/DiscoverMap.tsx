@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { APIProvider, Map, AdvancedMarker, InfoWindow } from '@vis.gl/react-google-maps'
 import type { Activity } from '@/lib/types'
 import { getVibeEmoji } from '@/lib/utils'
@@ -8,10 +8,13 @@ import Link from 'next/link'
 
 interface DiscoverMapProps {
   activities: Activity[]
+  selectedActivityId?: string | null
+  onSelectActivity?: (activityId: string | null) => void
+  className?: string
 }
 
-export default function DiscoverMap({ activities }: DiscoverMapProps) {
-  const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null)
+export default function DiscoverMap({ activities, selectedActivityId, onSelectActivity, className }: DiscoverMapProps) {
+  const [internalSelected, setInternalSelected] = useState<Activity | null>(null)
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY
 
@@ -19,7 +22,21 @@ export default function DiscoverMap({ activities }: DiscoverMapProps) {
     return activities.filter((a) => a.lat != null && a.lng != null)
   }, [activities])
 
-  // Calculate bounds to fit all pins
+  const selectedActivity = useMemo(() => {
+    if (selectedActivityId) return mappable.find((a) => a.id === selectedActivityId) || null
+    return internalSelected
+  }, [selectedActivityId, internalSelected, mappable])
+
+  const handleMarkerClick = useCallback((activity: Activity) => {
+    setInternalSelected(activity)
+    onSelectActivity?.(activity.id)
+  }, [onSelectActivity])
+
+  const handleCloseInfoWindow = useCallback(() => {
+    setInternalSelected(null)
+    onSelectActivity?.(null)
+  }, [onSelectActivity])
+
   const center = useMemo(() => {
     if (mappable.length === 0) return { lat: 47.6062, lng: -122.3321 }
     const lats = mappable.map((a) => a.lat!)
@@ -33,35 +50,42 @@ export default function DiscoverMap({ activities }: DiscoverMapProps) {
   if (!apiKey || mappable.length === 0) return null
 
   return (
-    <div className="mb-6 h-[300px] w-full overflow-hidden rounded-xl border border-gray-200">
+    <div className={className || 'h-[300px] w-full overflow-hidden rounded-xl border border-gray-200'}>
       <APIProvider apiKey={apiKey}>
         <Map
           defaultCenter={center}
           defaultZoom={9}
-          gestureHandling="cooperative"
+          gestureHandling="greedy"
           disableDefaultUI={false}
           mapId="discover-map"
         >
-          {mappable.map((activity) => (
-            <AdvancedMarker
-              key={activity.id}
-              position={{ lat: activity.lat!, lng: activity.lng! }}
-              onClick={() => setSelectedActivity(activity)}
-            >
-              <div className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-emerald-600 shadow-md text-xs">
-                {activity.vibes[0] ? (
-                  <span className="text-[11px]">{getVibeEmoji(activity.vibes[0])}</span>
-                ) : (
-                  <span className="text-white font-bold text-[10px]">●</span>
-                )}
-              </div>
-            </AdvancedMarker>
-          ))}
+          {mappable.map((activity) => {
+            const isSelected = selectedActivity?.id === activity.id
+            return (
+              <AdvancedMarker
+                key={activity.id}
+                position={{ lat: activity.lat!, lng: activity.lng! }}
+                onClick={() => handleMarkerClick(activity)}
+              >
+                <div className={`flex h-7 w-7 items-center justify-center rounded-full border-2 shadow-md text-xs transition-transform ${
+                  isSelected
+                    ? 'border-emerald-600 bg-white scale-125 z-10'
+                    : 'border-white bg-emerald-600'
+                }`}>
+                  {activity.vibes[0] ? (
+                    <span className="text-[11px]">{getVibeEmoji(activity.vibes[0])}</span>
+                  ) : (
+                    <span className={`font-bold text-[10px] ${isSelected ? 'text-emerald-600' : 'text-white'}`}>●</span>
+                  )}
+                </div>
+              </AdvancedMarker>
+            )
+          })}
 
           {selectedActivity && selectedActivity.lat && selectedActivity.lng && (
             <InfoWindow
               position={{ lat: selectedActivity.lat, lng: selectedActivity.lng }}
-              onCloseClick={() => setSelectedActivity(null)}
+              onCloseClick={handleCloseInfoWindow}
               pixelOffset={[0, -30]}
             >
               <div className="w-[200px] pr-4 -mt-2">
@@ -69,6 +93,8 @@ export default function DiscoverMap({ activities }: DiscoverMapProps) {
                 <p className="text-xs text-gray-500 mt-0.5">{selectedActivity.area} · {selectedActivity.cost}</p>
                 <Link
                   href={`/activities/${selectedActivity.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="mt-1.5 inline-block text-xs font-medium text-emerald-600 hover:text-emerald-700"
                 >
                   View details →

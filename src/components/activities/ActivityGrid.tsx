@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import type { Activity, Vibe } from '@/lib/types'
 import ActivityCard from './ActivityCard'
@@ -28,6 +28,9 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
   })
   const [planActivity, setPlanActivity] = useState<Activity | null>(null)
   const [showAddedToast, setShowAddedToast] = useState(false)
+  const [showMap, setShowMap] = useState(false)
+  const [selectedMapActivity, setSelectedMapActivity] = useState<string | null>(null)
+  const cardRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
   const handleVibeToggle = (vibe: Vibe) => {
     setFilters((prev) => ({
@@ -79,6 +82,104 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
     setTimeout(() => setShowAddedToast(false), 3000)
   }
 
+  const handleMapSelectActivity = useCallback((activityId: string | null) => {
+    setSelectedMapActivity(activityId)
+    if (activityId && cardRefs.current[activityId]) {
+      cardRefs.current[activityId]?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, [])
+
+  // ─── Map View ───
+  if (showMap) {
+    return (
+      <div>
+        {/* Hero + Filters (always visible) */}
+        <section className="mb-8">
+          <h1 className="mb-2 text-3xl font-bold text-gray-900 sm:text-4xl">
+            What kind of day do you want?
+          </h1>
+          <p className="mb-6 text-gray-600">
+            Pick a vibe and discover family activities around Seattle.
+          </p>
+          <VibeButtons selected={filters.vibes} onToggle={handleVibeToggle} />
+        </section>
+
+        <section className="mb-4">
+          <FilterBar filters={filters} onChange={setFilters} />
+        </section>
+
+        <div className="mb-4 flex items-center justify-between">
+          <p className="text-sm text-gray-500">
+            {filtered.length} {filtered.length === 1 ? 'result' : 'results'}
+          </p>
+          <button
+            onClick={() => setShowMap(false)}
+            className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" />
+            </svg>
+            Grid View
+          </button>
+        </div>
+
+        {/* Mobile: full-screen map */}
+        <div className="md:hidden">
+          <DiscoverMap
+            activities={filtered}
+            selectedActivityId={selectedMapActivity}
+            onSelectActivity={setSelectedMapActivity}
+            className="h-[calc(100vh-16rem)] w-full overflow-hidden rounded-xl border border-gray-200"
+          />
+        </div>
+
+        {/* Desktop: split view */}
+        <div className="hidden md:flex gap-4" style={{ height: 'calc(100vh - 16rem)' }}>
+          {/* Left: scrollable card list */}
+          <div className="w-1/2 overflow-y-auto pr-2 space-y-4">
+            {regularActivities.map((activity) => (
+              <div
+                key={activity.id}
+                ref={(el) => { cardRefs.current[activity.id] = el }}
+                className={`transition-all rounded-xl ${
+                  selectedMapActivity === activity.id ? 'ring-2 ring-emerald-500' : ''
+                }`}
+              >
+                <ActivityCard
+                  activity={activity}
+                  onAddToPlan={handleAddToPlan}
+                  onToggleBucketList={handleToggleBucketList}
+                  isOnBucketList={isOnBucketList(activity.id)}
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Right: sticky map */}
+          <div className="w-1/2">
+            <DiscoverMap
+              activities={filtered}
+              selectedActivityId={selectedMapActivity}
+              onSelectActivity={handleMapSelectActivity}
+              className="h-full w-full overflow-hidden rounded-xl border border-gray-200"
+            />
+          </div>
+        </div>
+
+        {/* Modals and toasts */}
+        {planActivity && (
+          <AddToPlanModal activity={planActivity} onClose={() => setPlanActivity(null)} onAdded={handleAdded} />
+        )}
+        {showAddedToast && (
+          <div className="fixed bottom-8 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-lg">
+            Added to your outing!
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // ─── Default Grid View ───
   return (
     <div>
       {/* Hero */}
@@ -97,13 +198,23 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
         <FilterBar filters={filters} onChange={setFilters} />
       </section>
 
-      {/* Map */}
-      <DiscoverMap activities={filtered} />
-
-      {/* Results count */}
-      <p className="mb-4 text-sm text-gray-500">
-        {filtered.length} {filtered.length === 1 ? 'result' : 'results'}
-      </p>
+      {/* Results count + map toggle */}
+      <div className="mb-4 flex items-center justify-between">
+        <p className="text-sm text-gray-500">
+          {filtered.length} {filtered.length === 1 ? 'result' : 'results'}
+        </p>
+        <button
+          onClick={() => setShowMap(true)}
+          className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z" />
+            <path d="M8 2v16" />
+            <path d="M16 6v16" />
+          </svg>
+          Explore Map
+        </button>
+      </div>
 
       {/* Activity cards */}
       {regularActivities.length > 0 ? (
@@ -146,16 +257,12 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
 
       {/* Add to plan modal */}
       {planActivity && (
-        <AddToPlanModal
-          activity={planActivity}
-          onClose={() => setPlanActivity(null)}
-          onAdded={handleAdded}
-        />
+        <AddToPlanModal activity={planActivity} onClose={() => setPlanActivity(null)} onAdded={handleAdded} />
       )}
 
       {/* Toast */}
       {showAddedToast && (
-        <div className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-lg md:bottom-8">
+        <div className="fixed bottom-8 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-lg">
           Added to your outing!
         </div>
       )}
