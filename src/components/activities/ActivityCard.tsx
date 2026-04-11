@@ -7,9 +7,11 @@ import { getVibeEmoji, getCostDisplay } from '@/lib/utils'
 interface ActivityCardProps {
   activity: Activity
   onAddToPlan?: (activity: Activity) => void
+  onToggleBucketList?: (activity: Activity) => void
+  isOnBucketList?: boolean
 }
 
-export default function ActivityCard({ activity, onAddToPlan }: ActivityCardProps) {
+export default function ActivityCard({ activity, onAddToPlan, onToggleBucketList, isOnBucketList }: ActivityCardProps) {
   const isEvent = activity.type === 'event'
 
   return (
@@ -75,16 +77,35 @@ export default function ActivityCard({ activity, onAddToPlan }: ActivityCardProp
           <span>{activity.age_range.join(', ')}</span>
         </div>
 
-        {onAddToPlan && (
-          <button
-            onClick={(e) => {
-              e.preventDefault()
-              onAddToPlan(activity)
-            }}
-            className="mt-auto w-full rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700"
-          >
-            + Add to Plan
-          </button>
+        {(onAddToPlan || onToggleBucketList) && (
+          <div className="mt-auto flex gap-2">
+            {onToggleBucketList && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault()
+                  onToggleBucketList(activity)
+                }}
+                className={`flex-1 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                  isOnBucketList
+                    ? 'bg-violet-100 text-violet-700 hover:bg-violet-200'
+                    : 'bg-violet-600 text-white hover:bg-violet-700'
+                }`}
+              >
+                {isOnBucketList ? '✓ Bucket List' : '♡ Bucket List'}
+              </button>
+            )}
+            {onAddToPlan && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault()
+                  onAddToPlan(activity)
+                }}
+                className="flex-1 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700"
+              >
+                + Add to Plan
+              </button>
+            )}
+          </div>
         )}
       </div>
     </div>

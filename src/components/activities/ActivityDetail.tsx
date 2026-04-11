@@ -4,6 +4,7 @@ import { useState } from 'react'
 import type { Activity } from '@/lib/types'
 import { getVibeEmoji, getCostDisplay } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
+import { useBucketList } from '@/hooks/useBucketList'
 import AddToPlanModal from './AddToPlanModal'
 
 interface ActivityDetailProps {
@@ -12,9 +13,12 @@ interface ActivityDetailProps {
 
 export default function ActivityDetail({ activity }: ActivityDetailProps) {
   const { user } = useAuth()
+  const { isOnBucketList, toggleBucketList } = useBucketList(user?.id)
   const [showAddModal, setShowAddModal] = useState(false)
   const [showAddedToast, setShowAddedToast] = useState(false)
+  const [bucketListToast, setBucketListToast] = useState<string | null>(null)
   const isEvent = activity.type === 'event'
+  const onBucketList = isOnBucketList(activity.id)
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
@@ -178,6 +182,24 @@ export default function ActivityDetail({ activity }: ActivityDetailProps) {
         <button
           onClick={() => {
             if (!user) {
+              alert('Please sign in to add to your bucket list.')
+              return
+            }
+            toggleBucketList(activity.id)
+            setBucketListToast(onBucketList ? 'Removed from bucket list' : 'Added to bucket list!')
+            setTimeout(() => setBucketListToast(null), 2000)
+          }}
+          className={`flex-1 rounded-lg px-6 py-3 text-sm font-medium transition-colors ${
+            onBucketList
+              ? 'bg-violet-100 text-violet-700 hover:bg-violet-200'
+              : 'bg-violet-600 text-white hover:bg-violet-700'
+          }`}
+        >
+          {onBucketList ? '✓ On Bucket List' : '♡ Add to Bucket List'}
+        </button>
+        <button
+          onClick={() => {
+            if (!user) {
               alert('Please sign in to add activities to your plan.')
               return
             }
@@ -203,8 +225,14 @@ export default function ActivityDetail({ activity }: ActivityDetailProps) {
       )}
 
       {showAddedToast && (
-        <div className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-lg md:bottom-8">
+        <div className="fixed bottom-8 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-lg">
           Added to your plan!
+        </div>
+      )}
+
+      {bucketListToast && (
+        <div className="fixed bottom-8 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white shadow-lg">
+          {bucketListToast}
         </div>
       )}
     </div>

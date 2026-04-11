@@ -40,8 +40,8 @@ export default function Header() {
               <Link href="/plan" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
                 My Calendar
               </Link>
-              <Link href="/history" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
-                Memories
+              <Link href="/bucket-list" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+                My Bucket List
               </Link>
             </>
           )}
@@ -105,11 +105,11 @@ export default function Header() {
                     My Calendar
                   </Link>
                   <Link
-                    href="/history"
+                    href="/bucket-list"
                     onClick={() => setMenuOpen(false)}
                     className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
                   >
-                    Memories
+                    My Bucket List
                   </Link>
                 </>
               )}

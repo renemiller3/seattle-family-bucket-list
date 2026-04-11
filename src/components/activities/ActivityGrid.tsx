@@ -9,6 +9,7 @@ import FilterBar, { type Filters } from './FilterBar'
 import EventsList from './EventsList'
 import AddToPlanModal from './AddToPlanModal'
 import { useAuth } from '@/hooks/useAuth'
+import { useBucketList } from '@/hooks/useBucketList'
 import DiscoverMap from './DiscoverMap'
 
 interface ActivityGridProps {
@@ -17,6 +18,7 @@ interface ActivityGridProps {
 
 export default function ActivityGrid({ activities }: ActivityGridProps) {
   const { user } = useAuth()
+  const { isOnBucketList, toggleBucketList } = useBucketList(user?.id)
   const [filters, setFilters] = useState<Filters>({
     vibes: [],
     ageRange: null,
@@ -63,6 +65,14 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
     setPlanActivity(activity)
   }
 
+  const handleToggleBucketList = (activity: Activity) => {
+    if (!user) {
+      alert('Please sign in to add to your bucket list.')
+      return
+    }
+    toggleBucketList(activity.id)
+  }
+
   const handleAdded = () => {
     setPlanActivity(null)
     setShowAddedToast(true)
@@ -103,6 +113,8 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
               key={activity.id}
               activity={activity}
               onAddToPlan={handleAddToPlan}
+              onToggleBucketList={handleToggleBucketList}
+              isOnBucketList={isOnBucketList(activity.id)}
             />
           ))}
         </div>
