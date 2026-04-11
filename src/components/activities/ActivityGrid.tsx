@@ -123,10 +123,20 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
           />
         </div>
 
-        {/* Desktop: split view */}
-        <div className="hidden md:flex gap-4">
-          {/* Left: card list scrolls naturally */}
-          <div className="w-1/2">
+        {/* Desktop: split view with fixed map */}
+        <div className="hidden md:block">
+          {/* Fixed map on right half */}
+          <div className="fixed top-16 right-0 bottom-0 w-1/2 p-3 pl-0">
+            <DiscoverMap
+              activities={filtered}
+              selectedActivityId={selectedMapActivity}
+              onSelectActivity={handleMapSelectActivity}
+              className="h-full w-full overflow-hidden rounded-xl border border-gray-200"
+            />
+          </div>
+
+          {/* Cards on left half, scrolls normally */}
+          <div className="w-1/2 pr-2">
             <div className="grid grid-cols-2 gap-3">
               {regularActivities.map((activity) => (
                 <div
@@ -144,18 +154,6 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
                   />
                 </div>
               ))}
-            </div>
-          </div>
-
-          {/* Right: map sticks to viewport while cards scroll */}
-          <div className="w-1/2">
-            <div className="sticky top-16 bottom-0" style={{ height: 'calc(100dvh - 4rem)' }}>
-              <DiscoverMap
-                activities={filtered}
-                selectedActivityId={selectedMapActivity}
-                onSelectActivity={handleMapSelectActivity}
-                className="h-full w-full overflow-hidden rounded-xl border border-gray-200"
-              />
             </div>
           </div>
         </div>
