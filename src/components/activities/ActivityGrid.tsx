@@ -9,6 +9,7 @@ import FilterBar, { type Filters } from './FilterBar'
 import EventsList from './EventsList'
 import AddToPlanModal from './AddToPlanModal'
 import { useAuth } from '@/hooks/useAuth'
+import DiscoverMap from './DiscoverMap'
 
 interface ActivityGridProps {
   activities: Activity[]
@@ -85,6 +86,9 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
       <section className="mb-6">
         <FilterBar filters={filters} onChange={setFilters} />
       </section>
+
+      {/* Map */}
+      <DiscoverMap activities={filtered} />
 
       {/* Results count */}
       <p className="mb-4 text-sm text-gray-500">
