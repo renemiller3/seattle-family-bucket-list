@@ -149,7 +149,7 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
 
           {/* Right: map sticks to viewport while cards scroll */}
           <div className="w-1/2">
-            <div className="sticky top-20 h-[calc(100vh-6rem)]">
+            <div className="sticky top-16 bottom-0" style={{ height: 'calc(100dvh - 4rem)' }}>
               <DiscoverMap
                 activities={filtered}
                 selectedActivityId={selectedMapActivity}
