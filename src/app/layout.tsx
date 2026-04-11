@@ -15,6 +15,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://seattle-family-bucket-list.vercel.app'),
   title: 'Seattle Family Bucket List',
   description: 'Discover great family activities in the Seattle area, plan outings, and create memories together.',
   openGraph: {

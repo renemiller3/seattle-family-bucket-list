@@ -57,9 +57,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       )
       if (firstWithImage) {
         const url = (firstWithImage as any).activity.image_url
-        // Only use if it's an absolute URL (Unsplash etc), not a local path
         if (url.startsWith('http')) {
           ogImage = url
+        } else if (url.startsWith('/')) {
+          ogImage = `https://seattle-family-bucket-list.vercel.app${url}`
         }
       }
     }
