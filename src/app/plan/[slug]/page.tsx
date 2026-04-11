@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       .select('display_name')
       .eq('id', sharedPlan.user_id)
       .maybeSingle()
-    if (profile) ownerName = profile.display_name
+    if (profile) ownerName = profile.display_name.split(' ')[0]
   }
 
   const title = `${planTitle} — Shared by ${ownerName}`
@@ -94,7 +94,7 @@ export default async function SharedPlanPage({ params }: { params: Promise<{ slu
       <SharedPlanView
         items={(items as any[]) ?? []}
         notes={noteData?.content ?? null}
-        ownerName={profile?.display_name ?? 'Someone'}
+        ownerName={profile?.display_name?.split(' ')[0] ?? 'Someone'}
       />
     </div>
   )
