@@ -17,7 +17,7 @@ export default function ActivityCard({ activity, onAddToPlan, onToggleBucketList
   return (
     <div className="group flex flex-col rounded-xl border border-gray-200 bg-white shadow-sm transition-all hover:shadow-md hover:border-gray-300 overflow-hidden">
       {/* Image */}
-      <Link href={`/activities/${activity.id}`}>
+      <Link href={`/activities/${activity.id}`} target="_blank" rel="noopener noreferrer">
         <div className="relative h-44 w-full overflow-hidden bg-gray-100">
           {activity.image_url ? (
             <img
@@ -39,7 +39,7 @@ export default function ActivityCard({ activity, onAddToPlan, onToggleBucketList
       </Link>
 
       <div className="flex flex-1 flex-col p-4">
-        <Link href={`/activities/${activity.id}`}>
+        <Link href={`/activities/${activity.id}`} target="_blank" rel="noopener noreferrer">
           <h3 className="mb-1 text-lg font-semibold text-gray-900 group-hover:text-emerald-700 transition-colors">
             {activity.title}
           </h3>
