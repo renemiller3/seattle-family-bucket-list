@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useRef, useCallback } from 'react'
+import { useState, useMemo, useRef, useCallback, useEffect } from 'react'
 import Link from 'next/link'
 import type { Activity, Vibe } from '@/lib/types'
 import ActivityCard from './ActivityCard'
@@ -30,7 +30,25 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
   const [showAddedToast, setShowAddedToast] = useState(false)
   const [showMap, setShowMap] = useState(false)
   const [selectedMapActivity, setSelectedMapActivity] = useState<string | null>(null)
+  const [mapTop, setMapTop] = useState(0)
+  const cardGridRef = useRef<HTMLDivElement | null>(null)
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({})
+
+  // Measure where the card grid starts so the map aligns perfectly
+  useEffect(() => {
+    if (showMap) {
+      // Measure after render so layout is settled
+      const measure = () => {
+        if (cardGridRef.current) {
+          setMapTop(cardGridRef.current.getBoundingClientRect().top)
+        }
+      }
+      requestAnimationFrame(measure)
+      // Re-measure on scroll since fixed positioning uses viewport coords
+      window.scrollTo(0, 0)
+      requestAnimationFrame(measure)
+    }
+  }, [showMap])
 
   const handleVibeToggle = (vibe: Vibe) => {
     setFilters((prev) => ({
@@ -126,7 +144,7 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
         {/* Desktop: split view with fixed map */}
         <div className="hidden md:block">
           {/* Fixed map on right half — below header + filters + results row */}
-          <div className="fixed right-0 bottom-0 w-1/2 pb-3 pr-3" style={{ top: '11.5rem' }}>
+          <div className="fixed right-0 bottom-0 w-1/2 pb-3 pr-3" style={{ top: mapTop > 0 ? `${mapTop}px` : '11.5rem' }}>
             <DiscoverMap
               activities={filtered}
               selectedActivityId={selectedMapActivity}
@@ -136,7 +154,7 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
           </div>
 
           {/* Cards on left half, scrolls normally */}
-          <div className="w-1/2 pr-2">
+          <div className="w-1/2 pr-2" ref={cardGridRef}>
             <div className="grid grid-cols-2 gap-3">
               {regularActivities.map((activity) => (
                 <div
