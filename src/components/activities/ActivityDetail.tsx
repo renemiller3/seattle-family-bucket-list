@@ -162,7 +162,7 @@ export default function ActivityDetail({ activity }: ActivityDetailProps) {
       )}
 
       {/* Actions */}
-      <div className="flex gap-3 sticky bottom-20 md:bottom-4 bg-gray-50/95 backdrop-blur-sm py-3 -mx-4 px-4 border-t border-gray-200 sm:static sm:bg-transparent sm:py-0 sm:mx-0 sm:px-0 sm:border-0">
+      <div className="flex gap-3">
         <button
           onClick={() => {
             if (!user) {
