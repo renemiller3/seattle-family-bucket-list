@@ -1,10 +1,11 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { format, parseISO } from 'date-fns'
 import type { PlanItem } from '@/lib/types'
 import PlanItemCard from './PlanItem'
 import DriveTimeDisplay from './DriveTimeDisplay'
+import EditItemModal from './EditItemModal'
 
 interface ItineraryViewProps {
   items: PlanItem[]
@@ -14,6 +15,8 @@ interface ItineraryViewProps {
 }
 
 export default function ItineraryView({ items, onUpdate, onDelete }: ItineraryViewProps) {
+  const [editingItem, setEditingItem] = useState<PlanItem | null>(null)
+
   const groupedByDate = useMemo(() => {
     const groups: Record<string, PlanItem[]> = {}
     for (const item of items) {
@@ -56,7 +59,9 @@ export default function ItineraryView({ items, onUpdate, onDelete }: ItineraryVi
                 {index > 0 && item.travel_time_before && (
                   <DriveTimeDisplay minutes={item.travel_time_before} />
                 )}
-                <PlanItemCard item={item} onUpdate={onUpdate} onDelete={onDelete} />
+                <div onClick={() => setEditingItem(item)} className="cursor-pointer">
+                  <PlanItemCard item={item} onUpdate={onUpdate} onDelete={onDelete} />
+                </div>
                 {item.travel_time_after && index < dateItems.length - 1 && (
                   <DriveTimeDisplay minutes={item.travel_time_after} />
                 )}
@@ -65,6 +70,14 @@ export default function ItineraryView({ items, onUpdate, onDelete }: ItineraryVi
           </div>
         </section>
       ))}
+
+      {editingItem && (
+        <EditItemModal
+          item={editingItem}
+          onSave={onUpdate}
+          onClose={() => setEditingItem(null)}
+        />
+      )}
     </div>
   )
 }
