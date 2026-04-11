@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import Link from 'next/link'
 import type { Activity, Vibe } from '@/lib/types'
 import ActivityCard from './ActivityCard'
 import VibeButtons from './VibeButtons'
@@ -115,6 +116,17 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
 
       {/* Events */}
       <EventsList events={events} />
+
+      {/* Suggest */}
+      <div className="mt-12 rounded-xl border border-dashed border-gray-300 bg-white p-8 text-center">
+        <p className="text-lg font-medium text-gray-700">Know a great family activity we're missing?</p>
+        <Link
+          href="/suggest"
+          className="mt-3 inline-block rounded-lg bg-emerald-600 px-5 py-2 text-sm font-medium text-white hover:bg-emerald-700 transition-colors"
+        >
+          Suggest a Bucket List Item
+        </Link>
+      </div>
 
       {/* Add to plan modal */}
       {planActivity && (
