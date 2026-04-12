@@ -6,7 +6,6 @@ import type { Activity, Vibe } from '@/lib/types'
 import ActivityCard from './ActivityCard'
 import VibeButtons from './VibeButtons'
 import FilterBar, { type Filters } from './FilterBar'
-import EventsList from './EventsList'
 import AddToPlanModal from './AddToPlanModal'
 import { useAuth } from '@/hooks/useAuth'
 import { useBucketList } from '@/hooks/useBucketList'
@@ -76,12 +75,6 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
   }, [activities])
 
   const regularActivities = filtered
-  const events = filtered.filter((a) => a.start_date !== null)
-    .sort((a, b) => {
-      if (!a.start_date) return 1
-      if (!b.start_date) return -1
-      return a.start_date.localeCompare(b.start_date)
-    })
 
   const handleAddToPlan = (activity: Activity) => {
     if (!user) {
@@ -263,9 +256,6 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
           </button>
         </div>
       )}
-
-      {/* Events */}
-      <EventsList events={events} />
 
       {/* Suggest */}
       <div className="mt-12 rounded-xl border border-dashed border-gray-300 bg-white p-8 text-center">
