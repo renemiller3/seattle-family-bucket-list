@@ -11,6 +11,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useBucketList } from '@/hooks/useBucketList'
 import DiscoverMap from './DiscoverMap'
 import FeaturedRow from './FeaturedRow'
+import SeasonalRow from './SeasonalRow'
 
 interface ActivityGridProps {
   activities: Activity[]
@@ -209,6 +210,14 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
       {/* Featured */}
       <FeaturedRow
         activities={featuredActivities}
+        onAddToPlan={handleAddToPlan}
+        onToggleBucketList={handleToggleBucketList}
+        isOnBucketList={isOnBucketList}
+      />
+
+      {/* Seasonal */}
+      <SeasonalRow
+        activities={activities}
         onAddToPlan={handleAddToPlan}
         onToggleBucketList={handleToggleBucketList}
         isOnBucketList={isOnBucketList}
