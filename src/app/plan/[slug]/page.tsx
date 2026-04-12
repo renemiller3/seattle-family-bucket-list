@@ -151,13 +151,11 @@ export default async function SharedPlanPage({ params }: { params: Promise<{ slu
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-      <h1 className="mb-2 text-2xl font-bold text-gray-900">
-        {pageTitle}
-      </h1>
       <SharedPlanView
         items={(items as any[]) ?? []}
         notes={notesContent}
         ownerName={profile?.display_name?.split(' ')[0] ?? 'Someone'}
+        outingName={outingName || sharedPlan.title || 'Family Plan'}
       />
     </div>
   )

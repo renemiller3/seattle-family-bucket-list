@@ -6,20 +6,18 @@ import Link from 'next/link'
 import type { PlanItem } from '@/lib/types'
 import { formatTime, formatDuration } from '@/lib/utils'
 
-const TYPE_STYLES: Record<string, string> = {
-  activity: 'border-l-emerald-500',
-  life_block: 'border-l-blue-400 bg-blue-50/50',
-  custom: 'border-l-purple-400 bg-purple-50/50',
-  restaurant: 'border-l-orange-400 bg-orange-50/50',
-}
-
 interface SharedPlanViewProps {
   items: PlanItem[]
   notes: string | null
   ownerName: string
+  outingName?: string | null
 }
 
-export default function SharedPlanView({ items, notes, ownerName }: SharedPlanViewProps) {
+const LIFE_BLOCK_ICONS: Record<string, string> = {
+  'Nap': '😴', 'Meal': '🍽️', 'Break': '🧃', 'Travel': '🚗',
+}
+
+export default function SharedPlanView({ items, notes, ownerName, outingName }: SharedPlanViewProps) {
   const groupedByDate = useMemo(() => {
     const groups: Record<string, PlanItem[]> = {}
     for (const item of items) {
@@ -29,92 +27,169 @@ export default function SharedPlanView({ items, notes, ownerName }: SharedPlanVi
     return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b))
   }, [items])
 
+  // Find the best hero image from activities
+  const heroImage = useMemo(() => {
+    for (const item of items) {
+      if (item.activity?.image_url) return item.activity.image_url
+    }
+    return null
+  }, [items])
+
+  // Count unique activities (not life blocks)
+  const activityCount = useMemo(() => {
+    return items.filter((i) => i.type === 'activity' && i.activity_id).length
+  }, [items])
+
+  const dayCount = groupedByDate.length
+
+  if (groupedByDate.length === 0) {
+    return (
+      <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
+        <p className="text-gray-500">No items in this plan yet.</p>
+      </div>
+    )
+  }
+
   return (
     <div>
-      <div className="mb-8 text-center">
-        <p className="text-sm text-gray-500">Shared by {ownerName}</p>
+      {/* Hero */}
+      <div className="relative mb-8 -mx-4 sm:-mx-6 overflow-hidden rounded-none sm:rounded-2xl">
+        {heroImage ? (
+          <div className="relative h-64 sm:h-80">
+            <img src={heroImage} alt="" className="h-full w-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
+              {outingName && (
+                <h1 className="text-3xl sm:text-4xl font-bold text-white drop-shadow-lg">
+                  {outingName}
+                </h1>
+              )}
+              <div className="mt-2 flex flex-wrap items-center gap-3 text-white/80 text-sm">
+                <span>Planned by {ownerName}</span>
+                <span className="text-white/50">·</span>
+                <span>{dayCount} {dayCount === 1 ? 'day' : 'days'}</span>
+                <span className="text-white/50">·</span>
+                <span>{activityCount} {activityCount === 1 ? 'activity' : 'activities'}</span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-emerald-600 p-8 sm:p-10">
+            {outingName && (
+              <h1 className="text-3xl sm:text-4xl font-bold text-white">{outingName}</h1>
+            )}
+            <div className="mt-2 flex flex-wrap items-center gap-3 text-emerald-100 text-sm">
+              <span>Planned by {ownerName}</span>
+              <span className="text-emerald-200/50">·</span>
+              <span>{dayCount} {dayCount === 1 ? 'day' : 'days'}</span>
+              <span className="text-emerald-200/50">·</span>
+              <span>{activityCount} {activityCount === 1 ? 'activity' : 'activities'}</span>
+            </div>
+          </div>
+        )}
       </div>
 
-      {groupedByDate.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
-          <p className="text-gray-500">No items in this plan yet.</p>
-        </div>
-      ) : (
-        <div className="space-y-8">
-          {groupedByDate.map(([date, dateItems]) => (
+      {/* Day sections */}
+      <div className="space-y-10">
+        {groupedByDate.map(([date, dateItems], dayIndex) => {
+          const sorted = [...dateItems].sort((a, b) => {
+            if (!a.start_time && !b.start_time) return 0
+            if (!a.start_time) return 1
+            if (!b.start_time) return -1
+            return a.start_time.localeCompare(b.start_time)
+          })
+
+          return (
             <section key={date}>
-              <h3 className="mb-3 text-sm font-semibold text-gray-500 uppercase tracking-wide">
-                {format(parseISO(date), 'EEEE, MMMM d, yyyy')}
-              </h3>
-              <div className="space-y-2">
-                {dateItems
-                  .sort((a, b) => {
-                    if (!a.start_time && !b.start_time) return 0
-                    if (!a.start_time) return 1
-                    if (!b.start_time) return -1
-                    return a.start_time.localeCompare(b.start_time)
-                  })
-                  .map((item) => {
-                    const title = item.title || item.activity?.title || 'Untitled'
-                    const lifeBlockIcons: Record<string, string> = {
-                      'Nap': '😴',
-                      'Meal': '🍽️',
-                      'Break': '🧃',
-                      'Travel': '🚗',
-                    }
-                    const icon = item.type === 'life_block' ? lifeBlockIcons[title] || '📌' : null
-                    const imageUrl = item.activity?.image_url
+              <div className="mb-4 flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-600 text-white font-bold text-sm">
+                  {dayIndex + 1}
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">
+                    {format(parseISO(date), 'EEEE')}
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    {format(parseISO(date), 'MMMM d, yyyy')}
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-3 pl-5 ml-5 border-l-2 border-gray-200">
+                {sorted.map((item) => {
+                  const title = item.title || item.activity?.title || 'Untitled'
+                  const icon = item.type === 'life_block' ? LIFE_BLOCK_ICONS[title] || '📌' : null
+                  const imageUrl = item.activity?.image_url
+                  const description = item.activity?.description
+                  const isLifeBlock = item.type === 'life_block'
+
+                  if (isLifeBlock) {
                     return (
-                      <div
-                        key={item.id}
-                        className={`rounded-lg border border-gray-200 border-l-4 p-3 ${TYPE_STYLES[item.type] || ''} ${
-                          item.is_completed ? 'opacity-60' : ''
-                        }`}
-                      >
-                        <div className="flex gap-3">
-                          {imageUrl && (
-                            <div className="shrink-0 h-16 w-16 overflow-hidden rounded-lg bg-gray-100">
-                              <img src={imageUrl} alt="" className="h-full w-full object-cover" />
-                            </div>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              {item.is_completed && <span className="text-emerald-500">&#10003;</span>}
-                              {icon && <span className="text-sm">{icon}</span>}
-                              {item.activity_id ? (
-                                <Link href={`/activities/${item.activity_id}`} className={`font-medium text-emerald-700 hover:text-emerald-800 underline decoration-emerald-300 ${item.is_completed ? 'line-through' : ''}`}>
-                                  {title}
-                                </Link>
-                              ) : (
-                                <span className={`font-medium text-gray-900 ${item.is_completed ? 'line-through' : ''}`}>
-                                  {title}
-                                </span>
-                              )}
-                            </div>
-                            {item.start_time && (
-                              <p className="mt-0.5 text-xs text-gray-500">
-                                {formatTime(item.start_time)}
-                                {item.duration_minutes && <> ({formatDuration(item.duration_minutes)})</>}
-                              </p>
+                      <div key={item.id} className="flex items-center gap-3 rounded-lg bg-gray-50 border border-gray-200 px-4 py-2.5">
+                        {icon && <span className="text-lg">{icon}</span>}
+                        <span className="text-sm font-medium text-gray-600">{title}</span>
+                        {item.start_time && (
+                          <span className="text-xs text-gray-400">
+                            {formatTime(item.start_time)}
+                            {item.duration_minutes && <> · {formatDuration(item.duration_minutes)}</>}
+                          </span>
+                        )}
+                      </div>
+                    )
+                  }
+
+                  return (
+                    <div
+                      key={item.id}
+                      className="rounded-xl border border-gray-200 bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                    >
+                      {imageUrl && (
+                        <div className="h-40 w-full overflow-hidden bg-gray-100">
+                          <img src={imageUrl} alt={title} className="h-full w-full object-cover" />
+                        </div>
+                      )}
+                      <div className="p-4">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1">
+                            {item.activity_id ? (
+                              <Link
+                                href={`/activities/${item.activity_id}`}
+                                className="text-lg font-semibold text-gray-900 hover:text-emerald-700 transition-colors"
+                              >
+                                {title}
+                              </Link>
+                            ) : (
+                              <p className="text-lg font-semibold text-gray-900">{title}</p>
                             )}
-                            {item.notes && (
-                              <p className="mt-1 text-xs text-gray-500">{item.notes}</p>
+                            {item.start_time && (
+                              <p className="mt-0.5 text-sm text-gray-500">
+                                {formatTime(item.start_time)}
+                                {item.end_time && <> – {formatTime(item.end_time)}</>}
+                                {!item.end_time && item.duration_minutes && <> · {formatDuration(item.duration_minutes)}</>}
+                              </p>
                             )}
                           </div>
                         </div>
+                        {description && (
+                          <p className="mt-2 text-sm text-gray-600 line-clamp-2">{description}</p>
+                        )}
+                        {item.notes && (
+                          <p className="mt-2 text-xs text-gray-500 italic">{item.notes}</p>
+                        )}
                       </div>
-                    )
-                  })}
+                    </div>
+                  )
+                })}
               </div>
             </section>
-          ))}
-        </div>
-      )}
+          )
+        })}
+      </div>
 
       {/* Notes */}
       {notes && (
-        <div className="mt-8 rounded-xl border border-gray-200 bg-white p-4">
-          <h3 className="mb-2 text-sm font-medium text-gray-700">Notes</h3>
+        <div className="mt-10 rounded-xl border border-gray-200 bg-gray-50 p-5">
+          <h3 className="mb-2 text-sm font-semibold text-gray-700 uppercase tracking-wide">Notes & Logistics</h3>
           <p className="whitespace-pre-wrap text-sm text-gray-600">{notes}</p>
         </div>
       )}
