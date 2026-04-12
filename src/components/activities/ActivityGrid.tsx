@@ -222,7 +222,7 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
       {/* Hero */}
       <section className="mb-8">
         <h1 className="mb-2 text-3xl font-bold text-gray-900 sm:text-4xl">
-          Find something amazing to do together
+          The ultimate PNW family bucket list
         </h1>
         <p className="mb-6 text-gray-600">
           {activities.length} adventures to explore. Pick a vibe to narrow it down.
