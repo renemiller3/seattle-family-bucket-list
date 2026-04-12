@@ -72,7 +72,19 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
   }, [activities, filters])
 
   const featuredActivities = useMemo(() => {
-    return activities.filter((a) => a.featured)
+    const seasonOrder = ['spring', 'summer', 'fall', 'winter']
+    const month = new Date().getMonth()
+    const currentSeason = month >= 2 && month <= 4 ? 'spring' : month >= 5 && month <= 7 ? 'summer' : month >= 8 && month <= 10 ? 'fall' : 'winter'
+    const currentIndex = seasonOrder.indexOf(currentSeason)
+    // Rotate so current season comes first
+    const rotated = [...seasonOrder.slice(currentIndex), ...seasonOrder.slice(0, currentIndex)]
+
+    return activities.filter((a) => a.featured).sort((a, b) => {
+      const aSeasonIndex = Math.min(...(a.seasons?.map((s) => rotated.indexOf(s)).filter((i) => i >= 0) ?? [rotated.length]))
+      const bSeasonIndex = Math.min(...(b.seasons?.map((s) => rotated.indexOf(s)).filter((i) => i >= 0) ?? [rotated.length]))
+      if (aSeasonIndex !== bSeasonIndex) return aSeasonIndex - bSeasonIndex
+      return a.title.localeCompare(b.title)
+    })
   }, [activities])
 
   const regularActivities = filtered
