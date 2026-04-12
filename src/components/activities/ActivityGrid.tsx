@@ -87,7 +87,23 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
     })
   }, [activities])
 
-  const regularActivities = filtered
+  // Shuffle the grid order using a daily seed so it feels fresh but stable within a session
+  const regularActivities = useMemo(() => {
+    const seed = new Date().toISOString().slice(0, 10) // changes daily
+    const shuffled = [...filtered]
+    let hash = 0
+    for (let i = 0; i < seed.length; i++) {
+      hash = ((hash << 5) - hash) + seed.charCodeAt(i)
+      hash |= 0
+    }
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      hash = ((hash << 5) - hash) + i
+      hash |= 0
+      const j = Math.abs(hash) % (i + 1);
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+    }
+    return shuffled
+  }, [filtered])
 
   const handleAddToPlan = (activity: Activity) => {
     if (!user) {
@@ -129,7 +145,7 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
 
         <div className="mb-3 flex items-center justify-between">
           <p className="text-sm text-gray-500">
-            {filtered.length} {filtered.length === 1 ? 'result' : 'results'}
+            {filtered.length} {filtered.length === 1 ? 'adventure' : 'adventures'} to explore
           </p>
           <button
             onClick={() => setShowMap(false)}
@@ -206,10 +222,10 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
       {/* Hero */}
       <section className="mb-8">
         <h1 className="mb-2 text-3xl font-bold text-gray-900 sm:text-4xl">
-          What kind of day do you want?
+          Your family's next adventure starts here
         </h1>
         <p className="mb-6 text-gray-600">
-          Pick a vibe and discover family activities around Seattle.
+          {activities.length} adventures to explore. Pick a vibe to narrow it down.
         </p>
         <VibeButtons selected={filters.vibes} onToggle={handleVibeToggle} />
       </section>
@@ -238,7 +254,7 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
       {/* Results count + map toggle */}
       <div className="mb-4 flex items-center justify-between">
         <p className="text-sm text-gray-500">
-          {filtered.length} {filtered.length === 1 ? 'result' : 'results'}
+          {filtered.length} {filtered.length === 1 ? 'adventure' : 'adventures'} to explore
         </p>
         <button
           onClick={() => setShowMap(true)}
@@ -268,10 +284,11 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
         </div>
       ) : (
         <div className="rounded-xl border border-gray-200 bg-white p-12 text-center">
-          <p className="text-lg text-gray-500">No activities match your filters.</p>
+          <p className="text-lg text-gray-500">Nothing yet for this combo — try loosening up your filters!</p>
+          <p className="mt-1 text-sm text-gray-400">Or check out the Must-Do picks above.</p>
           <button
             onClick={() => setFilters({ vibes: [], ageRange: null, area: null, cost: null, type: null })}
-            className="mt-2 text-emerald-600 hover:text-emerald-700 underline"
+            className="mt-3 text-emerald-600 hover:text-emerald-700 underline"
           >
             Clear all filters
           </button>
