@@ -1,13 +1,41 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useBucketList } from '@/hooks/useBucketList'
+import { createClient } from '@/lib/supabase/client'
+import type { ActivityPhoto } from '@/lib/types'
 import Link from 'next/link'
 import { getVibeEmoji, getCostDisplay } from '@/lib/utils'
+import PhotoUpload from '@/components/photos/PhotoUpload'
+import PhotoGallery from '@/components/photos/PhotoGallery'
+import { format, parseISO } from 'date-fns'
 
 export default function BucketListPage() {
   const { user, loading: authLoading } = useAuth()
-  const { items, loading: listLoading, isCompleted, removeFromBucketList } = useBucketList(user?.id)
+  const { items, loading: listLoading, isCompleted } = useBucketList(user?.id)
+  const [photos, setPhotos] = useState<ActivityPhoto[]>([])
+  const supabase = createClient()
+
+  // Fetch all user photos
+  const fetchPhotos = async () => {
+    if (!user) return
+    const { data } = await supabase
+      .from('activity_photos')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+    setPhotos(data ?? [])
+  }
+
+  useEffect(() => {
+    if (user) fetchPhotos()
+  }, [user])
+
+  const handleDeletePhoto = async (photoId: string) => {
+    await supabase.from('activity_photos').delete().eq('id', photoId)
+    fetchPhotos()
+  }
 
   if (authLoading) {
     return (
@@ -45,6 +73,9 @@ export default function BucketListPage() {
 
   const todoItems = items.filter((item) => !isCompleted(item.activity_id))
   const doneItems = items.filter((item) => isCompleted(item.activity_id))
+
+  const getPhotosForActivity = (activityId: string) =>
+    photos.filter((p) => p.activity_id === activityId)
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
@@ -104,41 +135,62 @@ export default function BucketListPage() {
             </section>
           )}
 
-          {/* Done */}
+          {/* Memories */}
           {doneItems.length > 0 && (
             <section>
               <h2 className="mb-3 text-sm font-semibold text-gray-500 uppercase tracking-wide">
                 Memories ({doneItems.length})
               </h2>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {doneItems.map(({ activity_id, activity }) => (
-                  <Link
-                    key={activity_id}
-                    href={`/activities/${activity_id}`}
-                    className="group flex gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-all hover:shadow-md hover:border-gray-300"
-                  >
-                    {activity.image_url && (
-                      <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-gray-100 opacity-75">
-                        <img src={activity.image_url} alt="" className="h-full w-full object-cover" />
+              <div className="space-y-4">
+                {doneItems.map(({ activity_id, activity }) => {
+                  const activityPhotos = getPhotosForActivity(activity_id)
+                  return (
+                    <div
+                      key={activity_id}
+                      className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm"
+                    >
+                      <div className="mb-3 flex items-start gap-4">
+                        {activity.image_url && (
+                          <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-gray-100">
+                            <img src={activity.image_url} alt="" className="h-full w-full object-cover" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-white shrink-0">
+                              <svg viewBox="0 0 16 16" fill="none" className="h-3 w-3">
+                                <path d="M3 8l3 3 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            </span>
+                            <Link
+                              href={`/activities/${activity_id}`}
+                              className="font-semibold text-gray-900 hover:text-emerald-700 truncate"
+                            >
+                              {activity.title}
+                            </Link>
+                          </div>
+                          <p className="mt-0.5 text-xs text-gray-500">
+                            {activity.area} · {getCostDisplay(activity.cost)}
+                          </p>
+                        </div>
                       </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-white">
-                          <svg viewBox="0 0 16 16" fill="none" className="h-3 w-3">
-                            <path d="M3 8l3 3 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                        </span>
-                        <h3 className="font-semibold text-gray-500 line-through truncate">
-                          {activity.title}
-                        </h3>
-                      </div>
-                      <p className="mt-0.5 text-xs text-gray-400">
-                        {activity.area} · {getCostDisplay(activity.cost)}
-                      </p>
+
+                      {/* Photos */}
+                      {activityPhotos.length > 0 && (
+                        <div className="mb-3">
+                          <PhotoGallery photos={activityPhotos} onDelete={handleDeletePhoto} />
+                        </div>
+                      )}
+
+                      {/* Upload */}
+                      <PhotoUpload
+                        activityId={activity_id}
+                        dateCompleted={format(new Date(), 'yyyy-MM-dd')}
+                        onUploaded={fetchPhotos}
+                      />
                     </div>
-                  </Link>
-                ))}
+                  )
+                })}
               </div>
             </section>
           )}
