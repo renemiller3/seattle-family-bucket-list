@@ -14,6 +14,7 @@ interface BucketListItem {
 export function useBucketList(userId: string | undefined) {
   const [items, setItems] = useState<BucketListItem[]>([])
   const [completedActivityIds, setCompletedActivityIds] = useState<Set<string>>(new Set())
+  const [activityOutingMap, setActivityOutingMap] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
 
@@ -40,10 +41,29 @@ export function useBucketList(userId: string | undefined) {
       .eq('is_completed', true)
       .not('activity_id', 'is', null)
 
+    // Fetch plan items with outings to map activity_id → outing name
+    const { data: planItemsWithOutings } = await supabase
+      .from('plan_items')
+      .select('activity_id, outing:outings(name)')
+      .eq('user_id', userId)
+      .not('activity_id', 'is', null)
+      .not('outing_id', 'is', null)
+      .order('created_at', { ascending: false })
+
+    const outingMap: Record<string, string> = {}
+    if (planItemsWithOutings) {
+      for (const item of planItemsWithOutings as any[]) {
+        if (item.activity_id && item.outing?.name && !outingMap[item.activity_id]) {
+          outingMap[item.activity_id] = item.outing.name
+        }
+      }
+    }
+
     setItems((saved as BucketListItem[]) ?? [])
     setCompletedActivityIds(
       new Set((completed ?? []).map((item: any) => item.activity_id).filter(Boolean))
     )
+    setActivityOutingMap(outingMap)
     setLoading(false)
   }, [userId, supabase])
 
@@ -64,6 +84,11 @@ export function useBucketList(userId: string | undefined) {
   const isCompleted = useCallback(
     (activityId: string) => completedActivityIds.has(activityId),
     [completedActivityIds]
+  )
+
+  const getOutingName = useCallback(
+    (activityId: string) => activityOutingMap[activityId] || null,
+    [activityOutingMap]
   )
 
   const addToBucketList = async (activityId: string) => {
@@ -92,6 +117,7 @@ export function useBucketList(userId: string | undefined) {
     bucketListIds,
     isOnBucketList,
     isCompleted,
+    getOutingName,
     addToBucketList,
     removeFromBucketList,
     toggleBucketList,

@@ -13,7 +13,7 @@ import { format, parseISO } from 'date-fns'
 
 export default function BucketListPage() {
   const { user, loading: authLoading } = useAuth()
-  const { items, loading: listLoading, isCompleted } = useBucketList(user?.id)
+  const { items, loading: listLoading, isCompleted, getOutingName } = useBucketList(user?.id)
   const [photos, setPhotos] = useState<ActivityPhoto[]>([])
   const supabase = createClient()
 
@@ -103,37 +103,38 @@ export default function BucketListPage() {
                 To Do ({todoItems.length})
               </h2>
               <div className="space-y-3">
-                {todoItems.map(({ activity_id, activity }, index) => (
-                  <Link
-                    key={activity_id}
-                    href={`/activities/${activity_id}`}
-                    className="group flex items-center gap-5 rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-all hover:shadow-md hover:border-gray-300"
-                  >
-                    <span className="shrink-0 flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-sm font-bold text-gray-400">
-                      {index + 1}
-                    </span>
-                    {activity.image_url && (
-                      <div className="h-16 w-24 shrink-0 overflow-hidden rounded-lg bg-gray-100">
-                        <img src={activity.image_url} alt="" className="h-full w-full object-cover" />
+                {todoItems.map(({ activity_id, activity }, index) => {
+                  const outingName = getOutingName(activity_id)
+                  return (
+                    <Link
+                      key={activity_id}
+                      href={`/activities/${activity_id}`}
+                      className="group flex items-center gap-5 rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-all hover:shadow-md hover:border-gray-300"
+                    >
+                      <span className="shrink-0 flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-sm font-bold text-gray-400">
+                        {index + 1}
+                      </span>
+                      {activity.image_url && (
+                        <div className="h-16 w-24 shrink-0 overflow-hidden rounded-lg bg-gray-100">
+                          <img src={activity.image_url} alt="" className="h-full w-full object-cover" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-base font-semibold text-gray-900 group-hover:text-emerald-700 transition-colors">
+                          {activity.title}
+                        </h3>
+                        <p className="mt-0.5 text-sm text-gray-500">
+                          {activity.area} · {getCostDisplay(activity.cost)}
+                        </p>
                       </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-base font-semibold text-gray-900 group-hover:text-emerald-700 transition-colors">
-                        {activity.title}
-                      </h3>
-                      <p className="mt-0.5 text-sm text-gray-500">
-                        {activity.area} · {getCostDisplay(activity.cost)}
-                      </p>
-                    </div>
-                    <div className="hidden sm:flex shrink-0 flex-wrap gap-1.5">
-                      {activity.vibes.slice(0, 2).map((vibe) => (
-                        <span key={vibe} className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs text-gray-600">
-                          {getVibeEmoji(vibe)} {vibe}
+                      {outingName && (
+                        <span className="hidden sm:inline-block shrink-0 rounded-full bg-violet-100 px-3 py-1 text-xs font-medium text-violet-700">
+                          {outingName}
                         </span>
-                      ))}
-                    </div>
-                  </Link>
-                ))}
+                      )}
+                    </Link>
+                  )
+                })}
               </div>
             </section>
           )}
