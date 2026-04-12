@@ -48,16 +48,32 @@ export default function LifeBlockPicker({ date, onAdd, onClose }: LifeBlockPicke
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto" onClick={onClose}>
       <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl my-auto max-h-[calc(100vh-6rem)] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-900">Add Life Block</h3>
+          <h3 className="text-lg font-semibold text-gray-900">Add Block</h3>
           <button onClick={onClose} className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
           </button>
         </div>
 
         <div className="space-y-4">
-          {/* Type selector */}
+          {/* Custom activity input */}
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">Type</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Activity name</label>
+            <input
+              type="text"
+              placeholder="e.g., Neighborhood park, Coffee stop..."
+              value={customTitle}
+              onChange={(e) => {
+                setCustomTitle(e.target.value)
+                setSelected(null)
+                setShowCustom(true)
+              }}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            />
+          </div>
+
+          {/* Quick presets */}
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">Or pick a quick block</label>
             <div className="grid grid-cols-4 gap-2">
               {PRESETS.map((preset) => (
                 <button
@@ -65,6 +81,7 @@ export default function LifeBlockPicker({ date, onAdd, onClose }: LifeBlockPicke
                   onClick={() => {
                     setSelected(preset.label)
                     setShowCustom(false)
+                    setCustomTitle('')
                   }}
                   className={`flex flex-col items-center gap-1 rounded-lg border p-2.5 text-sm transition-colors ${
                     selected === preset.label && !showCustom
@@ -77,26 +94,6 @@ export default function LifeBlockPicker({ date, onAdd, onClose }: LifeBlockPicke
                 </button>
               ))}
             </div>
-            {showCustom ? (
-              <input
-                type="text"
-                placeholder="Custom block name"
-                value={customTitle}
-                onChange={(e) => setCustomTitle(e.target.value)}
-                className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                autoFocus
-              />
-            ) : (
-              <button
-                onClick={() => {
-                  setShowCustom(true)
-                  setSelected(null)
-                }}
-                className="mt-2 w-full rounded-lg border border-dashed border-gray-300 py-2 text-sm text-gray-500 hover:border-gray-400 hover:text-gray-700"
-              >
-                + Custom Block
-              </button>
-            )}
           </div>
 
           {/* Date */}
