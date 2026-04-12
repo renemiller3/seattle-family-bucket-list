@@ -102,32 +102,35 @@ export default function BucketListPage() {
               <h2 className="mb-3 text-sm font-semibold text-gray-500 uppercase tracking-wide">
                 To Do ({todoItems.length})
               </h2>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {todoItems.map(({ activity_id, activity }) => (
+              <div className="space-y-3">
+                {todoItems.map(({ activity_id, activity }, index) => (
                   <Link
                     key={activity_id}
                     href={`/activities/${activity_id}`}
-                    className="group flex gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-all hover:shadow-md hover:border-gray-300"
+                    className="group flex items-center gap-5 rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-all hover:shadow-md hover:border-gray-300"
                   >
+                    <span className="shrink-0 flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-sm font-bold text-gray-400">
+                      {index + 1}
+                    </span>
                     {activity.image_url && (
-                      <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-gray-100">
+                      <div className="h-16 w-24 shrink-0 overflow-hidden rounded-lg bg-gray-100">
                         <img src={activity.image_url} alt="" className="h-full w-full object-cover" />
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900 group-hover:text-emerald-700 transition-colors truncate">
+                      <h3 className="text-base font-semibold text-gray-900 group-hover:text-emerald-700 transition-colors">
                         {activity.title}
                       </h3>
-                      <p className="mt-0.5 text-xs text-gray-500">
+                      <p className="mt-0.5 text-sm text-gray-500">
                         {activity.area} · {getCostDisplay(activity.cost)}
                       </p>
-                      <div className="mt-1 flex flex-wrap gap-1">
-                        {activity.vibes.slice(0, 2).map((vibe) => (
-                          <span key={vibe} className="text-[10px] text-gray-500">
-                            {getVibeEmoji(vibe)} {vibe}
-                          </span>
-                        ))}
-                      </div>
+                    </div>
+                    <div className="hidden sm:flex shrink-0 flex-wrap gap-1.5">
+                      {activity.vibes.slice(0, 2).map((vibe) => (
+                        <span key={vibe} className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs text-gray-600">
+                          {getVibeEmoji(vibe)} {vibe}
+                        </span>
+                      ))}
                     </div>
                   </Link>
                 ))}
