@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import type { Activity } from '@/lib/types'
-import { getVibeEmoji } from '@/lib/utils'
+import { getVibeEmoji, getCostDisplay } from '@/lib/utils'
 
 interface FeaturedRowProps {
   activities: Activity[]
@@ -15,18 +15,21 @@ export default function FeaturedRow({ activities, onAddToPlan, onToggleBucketLis
   if (activities.length === 0) return null
 
   return (
-    <section className="mb-8">
-      <h2 className="mb-3 text-lg font-bold text-gray-900">Featured</h2>
-      <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 sm:-mx-6 sm:px-6 scrollbar-hide">
+    <section className="mb-10">
+      <div className="mb-4 flex items-center gap-3">
+        <h2 className="text-xl font-bold text-gray-900">Must-Do Activities</h2>
+        <div className="h-px flex-1 bg-gray-200" />
+      </div>
+      <div className="flex gap-5 overflow-x-auto pb-4 -mx-4 px-4 sm:-mx-6 sm:px-6 scrollbar-hide">
         {activities.map((activity) => {
           const onBucket = isOnBucketList?.(activity.id) ?? false
           return (
             <div
               key={activity.id}
-              className="group flex-shrink-0 w-72 sm:w-80 rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden transition-all hover:shadow-md hover:border-gray-300"
+              className="group flex-shrink-0 w-80 sm:w-96 rounded-2xl border border-gray-200 bg-white shadow-md overflow-hidden transition-all hover:shadow-xl hover:border-gray-300"
             >
               <Link href={`/activities/${activity.id}`} target="_blank" rel="noopener noreferrer">
-                <div className="relative h-40 w-full overflow-hidden bg-gray-100">
+                <div className="relative h-52 w-full overflow-hidden bg-gray-100">
                   {activity.image_url ? (
                     <img
                       src={activity.image_url}
@@ -34,22 +37,34 @@ export default function FeaturedRow({ activities, onAddToPlan, onToggleBucketLis
                       className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                   ) : (
-                    <div className="flex h-full items-center justify-center text-4xl text-gray-300">
+                    <div className="flex h-full items-center justify-center text-5xl text-gray-300">
                       🌲
                     </div>
                   )}
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3 pt-8">
-                    <h3 className="text-base font-semibold text-white leading-tight">
+                  <div className="absolute top-3 left-3">
+                    <span className="rounded-full bg-amber-400 px-2.5 py-0.5 text-xs font-bold text-amber-900 shadow-sm">
+                      Must-Do
+                    </span>
+                  </div>
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 pt-12">
+                    <h3 className="text-lg font-bold text-white leading-tight drop-shadow-sm">
                       {activity.title}
                     </h3>
+                    <p className="mt-1 text-sm text-white/80">
+                      {activity.area} · {getCostDisplay(activity.cost)}
+                    </p>
                   </div>
                 </div>
               </Link>
 
-              <div className="p-3">
-                <div className="mb-2 flex flex-wrap gap-1">
+              <div className="p-4">
+                <p className="mb-3 text-sm text-gray-600 line-clamp-2">
+                  {activity.description}
+                </p>
+
+                <div className="mb-3 flex flex-wrap gap-1.5">
                   {activity.vibes.slice(0, 3).map((vibe) => (
-                    <span key={vibe} className="text-[11px] text-gray-500">
+                    <span key={vibe} className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-600">
                       {getVibeEmoji(vibe)} {vibe}
                     </span>
                   ))}
@@ -59,7 +74,7 @@ export default function FeaturedRow({ activities, onAddToPlan, onToggleBucketLis
                   {onToggleBucketList && (
                     <button
                       onClick={() => onToggleBucketList(activity)}
-                      className={`flex-1 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                      className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                         onBucket
                           ? 'bg-violet-100 text-violet-700 hover:bg-violet-200'
                           : 'bg-violet-600 text-white hover:bg-violet-700'
@@ -71,7 +86,7 @@ export default function FeaturedRow({ activities, onAddToPlan, onToggleBucketLis
                   {onAddToPlan && (
                     <button
                       onClick={() => onAddToPlan(activity)}
-                      className="flex-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700 transition-colors"
+                      className="flex-1 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700 transition-colors"
                     >
                       + Add to Outing
                     </button>
