@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import type { PlanItem, Outing } from '@/lib/types'
 import TimePicker from './TimePicker'
+import PlaceAutocomplete from './PlaceAutocomplete'
 
 interface EditItemModalProps {
   item: PlanItem
@@ -26,6 +27,8 @@ export default function EditItemModal({ item, onSave, onClose, outings = [] }: E
   const [title, setTitle] = useState(item.title || item.activity?.title || '')
   const [outingId, setOutingId] = useState(item.outing_id ?? '')
   const [locationUrl, setLocationUrl] = useState(item.location_url ?? '')
+  const [lat, setLat] = useState<number | null>(item.lat ?? null)
+  const [lng, setLng] = useState<number | null>(item.lng ?? null)
 
   const isLifeBlock = item.type === 'life_block'
   const isCustom = item.type === 'custom'
@@ -49,6 +52,8 @@ export default function EditItemModal({ item, onSave, onClose, outings = [] }: E
       date,
       outing_id: outingId || null,
       location_url: locationUrl.trim() || null,
+      lat,
+      lng,
       ...(isLifeBlock || isCustom ? { title } : {}),
     })
     onClose()
@@ -149,12 +154,15 @@ export default function EditItemModal({ item, onSave, onClose, outings = [] }: E
             <label className="mb-1 block text-sm font-medium text-gray-700">
               Location <span className="text-gray-400">(optional)</span>
             </label>
-            <input
-              type="text"
+            <PlaceAutocomplete
               value={locationUrl}
-              onChange={(e) => setLocationUrl(e.target.value)}
-              placeholder="Paste a Google Maps link or address"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              onChange={setLocationUrl}
+              onPlaceSelect={(place) => {
+                setLocationUrl(place.url)
+                setLat(place.lat)
+                setLng(place.lng)
+              }}
+              placeholder="Search a place or paste a Google Maps link"
             />
           </div>
 
