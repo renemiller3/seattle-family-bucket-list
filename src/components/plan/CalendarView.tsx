@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { format, addDays, subDays, addWeeks, subWeeks, addMonths, subMonths, startOfWeek } from 'date-fns'
 import type { PlanItem, Outing } from '@/lib/types'
 import ItineraryView from './ItineraryView'
@@ -54,11 +54,29 @@ export default function CalendarView({
 }: CalendarViewProps) {
   const [view, setView] = useState<ViewMode>('itinerary')
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'))
-  const [currentMonth, setCurrentMonth] = useState(new Date())
   const [showLifeBlock, setShowLifeBlock] = useState(false)
   const [lifeBlockDate, setLifeBlockDate] = useState(format(new Date(), 'yyyy-MM-dd'))
   const [showOutingManager, setShowOutingManager] = useState(false)
-  const [copiedOutingId, setCopiedOutingId] = useState<string | null | undefined>(undefined) // undefined = nothing copied, null = copied "all", string = copied outing id
+  const [copiedOutingId, setCopiedOutingId] = useState<string | null | undefined>(undefined)
+
+  // Derive month and week from selectedDate (single source of truth)
+  const currentMonth = useMemo(() => new Date(selectedDate + 'T00:00:00'), [selectedDate])
+  const weekStart = useMemo(
+    () => startOfWeek(new Date(selectedDate + 'T00:00:00')),
+    [selectedDate]
+  )
+
+  // Auto-navigate to first date with items when outing changes
+  useEffect(() => {
+    if (selectedOutingId && items.length > 0) {
+      const dates = items.map((i) => i.date).sort()
+      if (dates.length > 0) {
+        setSelectedDate(dates[0])
+      }
+    } else if (!selectedOutingId) {
+      setSelectedDate(format(new Date(), 'yyyy-MM-dd'))
+    }
+  }, [selectedOutingId, items])
 
   const handleShareOuting = async (outingId: string | null) => {
     const res = await fetch('/api/share', {
@@ -75,11 +93,6 @@ export default function CalendarView({
     }
   }
 
-  const weekStart = useMemo(
-    () => startOfWeek(new Date(selectedDate + 'T00:00:00')),
-    [selectedDate]
-  )
-
   const handleSelectDay = (date: string) => {
     setSelectedDate(date)
     setView('daily')
@@ -91,7 +104,7 @@ export default function CalendarView({
     } else if (view === 'weekly') {
       setSelectedDate(format(subWeeks(new Date(selectedDate + 'T00:00:00'), 1), 'yyyy-MM-dd'))
     } else if (view === 'monthly') {
-      setCurrentMonth(subMonths(currentMonth, 1))
+      setSelectedDate(format(subMonths(new Date(selectedDate + 'T00:00:00'), 1), 'yyyy-MM-dd'))
     }
   }
 
@@ -101,7 +114,7 @@ export default function CalendarView({
     } else if (view === 'weekly') {
       setSelectedDate(format(addWeeks(new Date(selectedDate + 'T00:00:00'), 1), 'yyyy-MM-dd'))
     } else if (view === 'monthly') {
-      setCurrentMonth(addMonths(currentMonth, 1))
+      setSelectedDate(format(addMonths(new Date(selectedDate + 'T00:00:00'), 1), 'yyyy-MM-dd'))
     }
   }
 
