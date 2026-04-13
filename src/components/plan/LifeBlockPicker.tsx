@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { format } from 'date-fns'
+import PlaceAutocomplete from './PlaceAutocomplete'
 
 const PRESETS = [
   { label: 'Nap', icon: '😴' },
@@ -57,19 +58,23 @@ export default function LifeBlockPicker({ date, onAdd, onClose }: LifeBlockPicke
         </div>
 
         <div className="space-y-4">
-          {/* Custom activity input */}
+          {/* Custom activity input with Places autocomplete */}
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">Activity name</label>
-            <input
-              type="text"
-              placeholder="e.g., Neighborhood park, Coffee stop..."
+            <PlaceAutocomplete
               value={customTitle}
-              onChange={(e) => {
-                setCustomTitle(e.target.value)
+              onChange={(val) => {
+                setCustomTitle(val)
                 setSelected(null)
                 setShowCustom(true)
               }}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              onPlaceSelect={(place) => {
+                setCustomTitle(place.name)
+                setLocationUrl(place.url)
+                setSelected(null)
+                setShowCustom(true)
+              }}
+              placeholder="Search a place or type a name..."
             />
           </div>
 
