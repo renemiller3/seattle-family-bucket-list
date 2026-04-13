@@ -15,6 +15,7 @@ export function useBucketList(userId: string | undefined) {
   const [items, setItems] = useState<BucketListItem[]>([])
   const [completedActivityIds, setCompletedActivityIds] = useState<Set<string>>(new Set())
   const [activityOutingMap, setActivityOutingMap] = useState<Record<string, string>>({})
+  const [activityCompletedDateMap, setActivityCompletedDateMap] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
 
@@ -36,10 +37,11 @@ export function useBucketList(userId: string | undefined) {
     // Fetch completed plan items to know which bucket list items are "done"
     const { data: completed } = await supabase
       .from('plan_items')
-      .select('activity_id')
+      .select('activity_id, date')
       .eq('user_id', userId)
       .eq('is_completed', true)
       .not('activity_id', 'is', null)
+      .order('date', { ascending: false })
 
     // Fetch plan items with outings to map activity_id → outing name
     const { data: planItemsWithOutings } = await supabase
@@ -59,10 +61,21 @@ export function useBucketList(userId: string | undefined) {
       }
     }
 
+    // Build completed date map (most recent date per activity)
+    const dateMap: Record<string, string> = {}
+    if (completed) {
+      for (const item of completed as any[]) {
+        if (item.activity_id && item.date && !dateMap[item.activity_id]) {
+          dateMap[item.activity_id] = item.date
+        }
+      }
+    }
+
     setItems((saved as BucketListItem[]) ?? [])
     setCompletedActivityIds(
       new Set((completed ?? []).map((item: any) => item.activity_id).filter(Boolean))
     )
+    setActivityCompletedDateMap(dateMap)
     setActivityOutingMap(outingMap)
     setLoading(false)
   }, [userId, supabase])
@@ -89,6 +102,11 @@ export function useBucketList(userId: string | undefined) {
   const getOutingName = useCallback(
     (activityId: string) => activityOutingMap[activityId] || null,
     [activityOutingMap]
+  )
+
+  const getCompletedDate = useCallback(
+    (activityId: string) => activityCompletedDateMap[activityId] || null,
+    [activityCompletedDateMap]
   )
 
   const addToBucketList = async (activityId: string) => {
@@ -148,6 +166,7 @@ export function useBucketList(userId: string | undefined) {
     isOnBucketList,
     isCompleted,
     getOutingName,
+    getCompletedDate,
     addToBucketList,
     removeFromBucketList,
     toggleBucketList,

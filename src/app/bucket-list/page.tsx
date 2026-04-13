@@ -13,7 +13,7 @@ import { format, parseISO } from 'date-fns'
 
 export default function BucketListPage() {
   const { user, loading: authLoading } = useAuth()
-  const { items, loading: listLoading, isCompleted, getOutingName, reorderBucketList } = useBucketList(user?.id)
+  const { items, loading: listLoading, isCompleted, getOutingName, getCompletedDate, reorderBucketList } = useBucketList(user?.id)
   const [photos, setPhotos] = useState<ActivityPhoto[]>([])
   const supabase = createClient()
 
@@ -171,6 +171,7 @@ export default function BucketListPage() {
               <div className="space-y-4">
                 {doneItems.map(({ activity_id, activity }) => {
                   const activityPhotos = getPhotosForActivity(activity_id)
+                  const completedDate = getCompletedDate(activity_id)
                   return (
                     <div
                       key={activity_id}
@@ -197,6 +198,7 @@ export default function BucketListPage() {
                             </Link>
                           </div>
                           <p className="mt-0.5 text-xs text-gray-500">
+                            {completedDate && <>{format(parseISO(completedDate), 'MMMM d, yyyy')} · </>}
                             {activity.area} · {getCostDisplay(activity.cost)}
                           </p>
                         </div>
