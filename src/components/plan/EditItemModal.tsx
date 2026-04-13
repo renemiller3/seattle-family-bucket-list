@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import type { PlanItem, Outing } from '@/lib/types'
+import TimePicker from './TimePicker'
 
 interface EditItemModalProps {
   item: PlanItem
@@ -139,24 +140,8 @@ export default function EditItemModal({ item, onSave, onClose, outings = [] }: E
 
           {/* Start and end time */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">Start Time</label>
-              <input
-                type="time"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">End Time</label>
-              <input
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-              />
-            </div>
+            <TimePicker label="Start Time" value={startTime} onChange={setStartTime} />
+            <TimePicker label="End Time" value={endTime} onChange={setEndTime} />
           </div>
 
           {/* Location */}

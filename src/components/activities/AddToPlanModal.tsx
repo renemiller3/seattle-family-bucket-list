@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import TimePicker from '@/components/plan/TimePicker'
 import { format } from 'date-fns'
 import type { Activity, Outing } from '@/lib/types'
 import { createClient } from '@/lib/supabase/client'
@@ -113,17 +114,7 @@ export default function AddToPlanModal({ activity, onClose, onAdded }: AddToPlan
             />
           </div>
 
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
-              Start Time <span className="text-gray-400">(optional)</span>
-            </label>
-            <input
-              type="time"
-              value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-            />
-          </div>
+          <TimePicker label="Start Time (optional)" value={startTime} onChange={setStartTime} />
 
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">
