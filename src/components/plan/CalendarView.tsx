@@ -12,7 +12,7 @@ import PlanNotes from './PlanNotes'
 import OutingManager from './OutingManager'
 import MapView from './MapView'
 
-type ViewMode = 'itinerary' | 'daily' | 'weekly' | 'monthly' | 'map'
+type ViewMode = 'itinerary' | 'daily' | 'weekly' | 'monthly'
 
 interface CalendarViewProps {
   items: PlanItem[]
@@ -57,6 +57,7 @@ export default function CalendarView({
   const [showLifeBlock, setShowLifeBlock] = useState(false)
   const [lifeBlockDate, setLifeBlockDate] = useState(format(new Date(), 'yyyy-MM-dd'))
   const [showOutingManager, setShowOutingManager] = useState(false)
+  const [showMap, setShowMap] = useState(false)
   const [copiedOutingId, setCopiedOutingId] = useState<string | null | undefined>(undefined)
 
   // Derive month and week from selectedDate (single source of truth)
@@ -127,7 +128,6 @@ export default function CalendarView({
     { key: 'daily', label: 'Day' },
     { key: 'weekly', label: 'Week' },
     { key: 'monthly', label: 'Month' },
-    { key: 'map', label: 'Map' },
   ]
 
   return (
@@ -226,7 +226,7 @@ export default function CalendarView({
         </div>
 
         <div className="flex items-center gap-2">
-          {view !== 'itinerary' && view !== 'map' && (
+          {view !== 'itinerary' && (
             <>
               <button onClick={handlePrev} className="rounded-lg border border-gray-200 bg-white px-2 py-1 hover:bg-gray-50">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -272,7 +272,25 @@ export default function CalendarView({
 
       {/* Calendar view */}
       {view === 'itinerary' && (
-        <ItineraryView items={items} onUpdate={onUpdate} onDelete={onDelete} onReorder={onReorder} outings={outings} />
+        <>
+          <button
+            onClick={() => setShowMap(!showMap)}
+            className="mb-4 flex items-center gap-1.5 rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-100 transition-colors"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z" />
+              <path d="M8 2v16" />
+              <path d="M16 6v16" />
+            </svg>
+            {showMap ? 'Hide Map' : 'View on Map'}
+          </button>
+          {showMap && (
+            <div className="mb-6">
+              <MapView items={items} />
+            </div>
+          )}
+          <ItineraryView items={items} onUpdate={onUpdate} onDelete={onDelete} onReorder={onReorder} outings={outings} />
+        </>
       )}
       {view === 'daily' && (
         <DailyView items={items} date={selectedDate} onUpdate={onUpdate} onDelete={onDelete} outings={outings} />
@@ -289,10 +307,6 @@ export default function CalendarView({
       {view === 'monthly' && (
         <MonthlyView items={items} month={currentMonth} onSelectDay={handleSelectDay} />
       )}
-      {view === 'map' && (
-        <MapView items={items} />
-      )}
-
       {/* Notes */}
       <PlanNotes userId={userId} />
 
