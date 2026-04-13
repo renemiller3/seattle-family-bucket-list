@@ -26,10 +26,10 @@ export default function MapView({ items }: MapViewProps) {
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY
 
-  // Filter to items with coordinates
+  // Filter to items with coordinates (from activity OR from plan_item itself)
   const mappableItems = useMemo(() => {
     return items.filter(
-      (item) => item.activity?.lat != null && item.activity?.lng != null
+      (item) => (item.activity?.lat != null && item.activity?.lng != null) || (item.lat != null && item.lng != null)
     )
   }, [items])
 
@@ -44,11 +44,16 @@ export default function MapView({ items }: MapViewProps) {
     return DAY_COLORS[index % DAY_COLORS.length]
   }
 
+  const getCoords = (item: PlanItem) => ({
+    lat: item.activity?.lat ?? item.lat ?? 0,
+    lng: item.activity?.lng ?? item.lng ?? 0,
+  })
+
   // Calculate center from items, default to Seattle
   const center = useMemo(() => {
     if (mappableItems.length === 0) return { lat: 47.6062, lng: -122.3321 }
-    const lats = mappableItems.map((i) => i.activity!.lat!)
-    const lngs = mappableItems.map((i) => i.activity!.lng!)
+    const lats = mappableItems.map((i) => getCoords(i).lat)
+    const lngs = mappableItems.map((i) => getCoords(i).lng)
     return {
       lat: lats.reduce((a, b) => a + b, 0) / lats.length,
       lng: lngs.reduce((a, b) => a + b, 0) / lngs.length,
@@ -107,10 +112,7 @@ export default function MapView({ items }: MapViewProps) {
               return (
                 <AdvancedMarker
                   key={item.id}
-                  position={{
-                    lat: item.activity!.lat!,
-                    lng: item.activity!.lng!,
-                  }}
+                  position={getCoords(item)}
                   onClick={() => setSelectedItem(item)}
                 >
                   <div
@@ -123,12 +125,9 @@ export default function MapView({ items }: MapViewProps) {
               )
             })}
 
-            {selectedItem && selectedItem.activity?.lat && selectedItem.activity?.lng && (
+            {selectedItem && (getCoords(selectedItem).lat !== 0) && (
               <InfoWindow
-                position={{
-                  lat: selectedItem.activity.lat,
-                  lng: selectedItem.activity.lng,
-                }}
+                position={getCoords(selectedItem)}
                 onCloseClick={() => setSelectedItem(null)}
                 pixelOffset={[0, -35]}
               >

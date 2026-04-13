@@ -6,7 +6,7 @@ import { APIProvider } from '@vis.gl/react-google-maps'
 interface PlaceAutocompleteProps {
   value: string
   onChange: (value: string) => void
-  onPlaceSelect?: (place: { name: string; url: string }) => void
+  onPlaceSelect?: (place: { name: string; url: string; lat: number | null; lng: number | null }) => void
   placeholder?: string
   className?: string
 }
@@ -36,8 +36,10 @@ function PlaceInput({
       if (place) {
         const name = place.name || place.formatted_address || ''
         const url = place.url || `https://maps.google.com/?q=${encodeURIComponent(place.formatted_address || name)}`
+        const lat = place.geometry?.location?.lat() ?? null
+        const lng = place.geometry?.location?.lng() ?? null
         onChange(name)
-        onPlaceSelectRef.current?.({ name, url })
+        onPlaceSelectRef.current?.({ name, url, lat, lng })
       }
     })
 

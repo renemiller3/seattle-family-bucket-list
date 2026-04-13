@@ -13,7 +13,7 @@ const PRESETS = [
 
 interface LifeBlockPickerProps {
   date: string
-  onAdd: (block: { title: string; duration_minutes: number; start_time: string | null; location_url: string | null; date: string }) => void
+  onAdd: (block: { title: string; duration_minutes: number; start_time: string | null; location_url: string | null; lat: number | null; lng: number | null; date: string }) => void
   onClose: () => void
 }
 
@@ -24,6 +24,8 @@ export default function LifeBlockPicker({ date, onAdd, onClose }: LifeBlockPicke
   const [selectedDate, setSelectedDate] = useState(date)
   const [startTime, setStartTime] = useState('')
   const [locationUrl, setLocationUrl] = useState('')
+  const [lat, setLat] = useState<number | null>(null)
+  const [lng, setLng] = useState<number | null>(null)
   const [endTime, setEndTime] = useState('')
 
   const activeTitle = showCustom ? customTitle : selected
@@ -45,6 +47,8 @@ export default function LifeBlockPicker({ date, onAdd, onClose }: LifeBlockPicke
       duration_minutes: durationMinutes,
       start_time: startTime || null,
       location_url: locationUrl.trim() || null,
+      lat,
+      lng,
       date: selectedDate,
     })
   }
@@ -73,6 +77,8 @@ export default function LifeBlockPicker({ date, onAdd, onClose }: LifeBlockPicke
               onPlaceSelect={(place) => {
                 setCustomTitle(place.name)
                 setLocationUrl(place.url)
+                setLat(place.lat)
+                setLng(place.lng)
                 setSelected(null)
                 setShowCustom(true)
               }}
