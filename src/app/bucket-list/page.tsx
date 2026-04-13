@@ -100,7 +100,7 @@ export default function BucketListPage() {
           {todoItems.length > 0 && (
             <section>
               <h2 className="mb-3 text-sm font-semibold text-gray-500 uppercase tracking-wide">
-                To Do ({todoItems.length})
+                Adventures Ahead ({todoItems.length})
               </h2>
               <div className="space-y-3">
                 {todoItems.map(({ activity_id, activity }, index) => {
