@@ -221,17 +221,17 @@ export default function CalendarView({
             <div className="h-6 w-px bg-gray-200" />
             <button
               onClick={() => setShowMap(!showMap)}
-              className={`rounded-lg p-1.5 transition-colors ${
+              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
                 showMap
-                  ? 'bg-emerald-100 text-emerald-700'
-                  : 'text-gray-400 hover:bg-gray-100 hover:text-gray-600'
+                  ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+                  : 'bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100'
               }`}
-              title={showMap ? 'Hide Map' : 'Show Map'}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z" />
                 <path d="M8 2v16" /><path d="M16 6v16" />
               </svg>
+              {showMap ? 'Hide Map' : 'Map'}
             </button>
           </>
         )}
