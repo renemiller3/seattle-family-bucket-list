@@ -89,9 +89,6 @@ export default function PlanPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">My Calendar</h1>
-      </div>
       {itemsLoading ? (
         <div className="animate-pulse space-y-4">
           <div className="h-10 w-64 rounded bg-gray-200" />

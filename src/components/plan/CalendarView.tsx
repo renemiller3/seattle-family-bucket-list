@@ -132,48 +132,57 @@ export default function CalendarView({
 
   return (
     <div className="space-y-4">
-      {/* Consolidated toolbar */}
-      <div className="flex flex-wrap items-center gap-3">
-        {/* Outing dropdown */}
-        <div className="flex items-center gap-1.5">
-          <select
-            value={selectedOutingId ?? ''}
-            onChange={(e) => onOutingChange(e.target.value || null)}
-            className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-          >
-            <option value="">All Items</option>
-            {outings.map((o) => (
-              <option key={o.id} value={o.id}>{o.name}</option>
-            ))}
-          </select>
-          {/* Share link */}
-          <button
-            onClick={() => handleShareOuting(selectedOutingId)}
-            className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
-            title={copiedOutingId !== undefined ? 'Copied!' : 'Copy share link'}
-          >
-            {copiedOutingId !== undefined ? (
-              <span className="text-xs text-emerald-600 font-medium px-1">Copied!</span>
-            ) : (
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-              </svg>
-            )}
-          </button>
-          {/* Manage outings */}
-          <button
-            onClick={() => setShowOutingManager(true)}
-            className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
-            title={outings.length > 0 ? 'Manage Outings' : 'New Outing'}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-            </svg>
-          </button>
-        </div>
+      {/* Row 1: Title + primary action */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-900">My Calendar</h1>
+        <button
+          onClick={() => {
+            setLifeBlockDate(selectedDate)
+            setShowLifeBlock(true)
+          }}
+          className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 transition-colors"
+        >
+          + Add Block
+        </button>
+      </div>
 
-        {/* Divider */}
+      {/* Row 2: All controls */}
+      <div className="flex flex-wrap items-center gap-2">
+        {/* Outing dropdown + icons */}
+        <select
+          value={selectedOutingId ?? ''}
+          onChange={(e) => onOutingChange(e.target.value || null)}
+          className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+        >
+          <option value="">All Items</option>
+          {outings.map((o) => (
+            <option key={o.id} value={o.id}>{o.name}</option>
+          ))}
+        </select>
+        <button
+          onClick={() => handleShareOuting(selectedOutingId)}
+          className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+          title="Copy share link"
+        >
+          {copiedOutingId !== undefined ? (
+            <span className="text-xs text-emerald-600 font-medium">Copied!</span>
+          ) : (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+            </svg>
+          )}
+        </button>
+        <button
+          onClick={() => setShowOutingManager(true)}
+          className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+          title={outings.length > 0 ? 'Manage Outings' : 'New Outing'}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          </svg>
+        </button>
+
         <div className="h-6 w-px bg-gray-200" />
 
         {/* View switcher */}
@@ -193,75 +202,61 @@ export default function CalendarView({
           ))}
         </div>
 
-        {/* Spacer */}
-        <div className="flex-1" />
+        <div className="h-6 w-px bg-gray-200" />
 
-        <div className="flex items-center gap-2">
-          {view !== 'itinerary' && (
-            <>
-              <button onClick={handlePrev} className="rounded-lg border border-gray-200 bg-white px-2 py-1 hover:bg-gray-50">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M15 18l-6-6 6-6" />
-                </svg>
-              </button>
-              <button
-                onClick={handleToday}
-                className="rounded-lg border border-gray-200 bg-white px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-50"
-              >
-                Today
-              </button>
-              <button onClick={handleNext} className="rounded-lg border border-gray-200 bg-white px-2 py-1 hover:bg-gray-50">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M9 18l6-6-6-6" />
-                </svg>
-              </button>
-            </>
-          )}
-          <button
-            onClick={() => {
-              setLifeBlockDate(selectedDate)
-              setShowLifeBlock(true)
-            }}
-            className="rounded-lg bg-blue-50 px-3 py-1.5 text-sm font-medium text-blue-700 hover:bg-blue-100 transition-colors"
-          >
-            + Add Block
-          </button>
-        </div>
+        {/* Navigation */}
+        <button onClick={handlePrev} className="rounded-lg border border-gray-200 bg-white px-2 py-1 hover:bg-gray-50">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6" /></svg>
+        </button>
+        <button onClick={handleToday} className="rounded-lg border border-gray-200 bg-white px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-50">
+          Today
+        </button>
+        <button onClick={handleNext} className="rounded-lg border border-gray-200 bg-white px-2 py-1 hover:bg-gray-50">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6" /></svg>
+        </button>
+
+        {/* Map toggle (list view only) */}
+        {view === 'itinerary' && (
+          <>
+            <div className="h-6 w-px bg-gray-200" />
+            <button
+              onClick={() => setShowMap(!showMap)}
+              className={`rounded-lg p-1.5 transition-colors ${
+                showMap
+                  ? 'bg-emerald-100 text-emerald-700'
+                  : 'text-gray-400 hover:bg-gray-100 hover:text-gray-600'
+              }`}
+              title={showMap ? 'Hide Map' : 'Show Map'}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z" />
+                <path d="M8 2v16" /><path d="M16 6v16" />
+              </svg>
+            </button>
+          </>
+        )}
       </div>
 
-      {/* View title */}
+      {/* View title (for week/month) */}
       {view === 'weekly' && (
-        <h2 className="text-xl font-bold text-gray-900">
+        <h2 className="text-lg font-semibold text-gray-900">
           {format(weekStart, 'MMMM d')} – {format(addDays(weekStart, 6), 'MMMM d, yyyy')}
         </h2>
       )}
       {view === 'monthly' && (
-        <h2 className="text-xl font-bold text-gray-900">
+        <h2 className="text-lg font-semibold text-gray-900">
           {format(currentMonth, 'MMMM yyyy')}
         </h2>
       )}
 
+      {/* Map (inline above list when toggled) */}
+      {view === 'itinerary' && showMap && (
+        <MapView items={items} />
+      )}
+
       {/* Calendar view */}
       {view === 'itinerary' && (
-        <>
-          <button
-            onClick={() => setShowMap(!showMap)}
-            className="mb-4 flex items-center gap-1.5 rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-100 transition-colors"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z" />
-              <path d="M8 2v16" />
-              <path d="M16 6v16" />
-            </svg>
-            {showMap ? 'Hide Map' : 'View on Map'}
-          </button>
-          {showMap && (
-            <div className="mb-6">
-              <MapView items={items} />
-            </div>
-          )}
-          <ItineraryView items={items} onUpdate={onUpdate} onDelete={onDelete} onReorder={onReorder} outings={outings} />
-        </>
+        <ItineraryView items={items} onUpdate={onUpdate} onDelete={onDelete} onReorder={onReorder} outings={outings} />
       )}
       {view === 'daily' && (
         <DailyView items={items} date={selectedDate} onUpdate={onUpdate} onDelete={onDelete} outings={outings} />
