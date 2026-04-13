@@ -67,7 +67,15 @@ export default function EditItemModal({ item, onSave, onClose, outings = [] }: E
           {/* Activity type / title */}
           {isLifeBlock ? (
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">Type</label>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Name</label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Activity name"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              />
+              <label className="mt-3 mb-2 block text-sm font-medium text-gray-700">Or pick a quick block</label>
               <div className="grid grid-cols-4 gap-2">
                 {LIFE_BLOCK_OPTIONS.map((opt) => (
                   <button
