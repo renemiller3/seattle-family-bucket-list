@@ -117,6 +117,7 @@ export default function MapView({ items }: MapViewProps) {
       <div className="h-[500px] w-full overflow-hidden rounded-xl border border-gray-200">
         <APIProvider apiKey={apiKey}>
           <Map
+            key={`${center.lat}-${center.lng}-${autoZoom}`}
             defaultCenter={center}
             defaultZoom={autoZoom}
             gestureHandling="greedy"
