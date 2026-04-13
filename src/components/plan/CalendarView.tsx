@@ -28,6 +28,7 @@ interface CalendarViewProps {
     location_url: string | null
     lat: number | null
     lng: number | null
+    image_url: string | null
   }) => void
   outings: Outing[]
   selectedOutingId: string | null

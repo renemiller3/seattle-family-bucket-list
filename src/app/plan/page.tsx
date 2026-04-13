@@ -60,6 +60,7 @@ export default function PlanPage() {
     location_url: string | null
     lat: number | null
     lng: number | null
+    image_url: string | null
   }) => {
     const dateItems = items.filter((i) => i.date === block.date)
     const maxOrder = dateItems.length > 0 ? Math.max(...dateItems.map((i) => i.sort_order)) + 1 : 0
@@ -81,6 +82,7 @@ export default function PlanPage() {
       location_url: block.location_url,
       lat: block.lat,
       lng: block.lng,
+      image_url: block.image_url,
       outing_id: selectedOutingId,
     })
   }

@@ -29,6 +29,7 @@ export default function EditItemModal({ item, onSave, onClose, outings = [] }: E
   const [locationUrl, setLocationUrl] = useState(item.location_url ?? '')
   const [lat, setLat] = useState<number | null>(item.lat ?? null)
   const [lng, setLng] = useState<number | null>(item.lng ?? null)
+  const [imageUrl, setImageUrl] = useState<string | null>(item.image_url ?? null)
 
   const isLifeBlock = item.type === 'life_block'
   const isCustom = item.type === 'custom'
@@ -54,6 +55,7 @@ export default function EditItemModal({ item, onSave, onClose, outings = [] }: E
       location_url: locationUrl.trim() || null,
       lat,
       lng,
+      image_url: imageUrl,
       ...(isLifeBlock || isCustom ? { title } : {}),
     })
     onClose()
@@ -161,6 +163,7 @@ export default function EditItemModal({ item, onSave, onClose, outings = [] }: E
                 setLocationUrl(place.url)
                 setLat(place.lat)
                 setLng(place.lng)
+                setImageUrl(place.imageUrl)
               }}
               placeholder="Search a place or paste a Google Maps link"
             />

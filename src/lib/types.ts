@@ -70,6 +70,7 @@ export interface PlanItem {
   notes: string | null
   is_completed: boolean
   location_url: string | null
+  image_url: string | null
   lat: number | null
   lng: number | null
   outing_id: string | null

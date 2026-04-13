@@ -6,7 +6,7 @@ import { APIProvider } from '@vis.gl/react-google-maps'
 interface PlaceAutocompleteProps {
   value: string
   onChange: (value: string) => void
-  onPlaceSelect?: (place: { name: string; url: string; lat: number | null; lng: number | null }) => void
+  onPlaceSelect?: (place: { name: string; url: string; lat: number | null; lng: number | null; imageUrl: string | null }) => void
   placeholder?: string
   className?: string
 }
@@ -28,7 +28,7 @@ function PlaceInput({
     if (!window.google?.maps?.places) return
 
     const autocomplete = new google.maps.places.Autocomplete(inputRef.current, {
-      fields: ['name', 'formatted_address', 'url', 'geometry'],
+      fields: ['name', 'formatted_address', 'url', 'geometry', 'photos'],
     })
 
     autocomplete.addListener('place_changed', () => {
@@ -38,8 +38,10 @@ function PlaceInput({
         const url = place.url || `https://maps.google.com/?q=${encodeURIComponent(place.formatted_address || name)}`
         const lat = place.geometry?.location?.lat() ?? null
         const lng = place.geometry?.location?.lng() ?? null
+        const photos = place.photos
+        const imageUrl = photos && photos.length > 0 ? photos[0].getUrl({ maxWidth: 800 }) : null
         onChange(name)
-        onPlaceSelectRef.current?.({ name, url, lat, lng })
+        onPlaceSelectRef.current?.({ name, url, lat, lng, imageUrl })
       }
     })
 

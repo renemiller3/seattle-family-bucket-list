@@ -241,7 +241,7 @@ export default function SharedPlanView({ items, notes, ownerName, outingName }: 
                 {sorted.map((item) => {
                   const title = item.title || item.activity?.title || 'Untitled'
                   const icon = item.type === 'life_block' ? LIFE_BLOCK_ICONS[title] || '📌' : null
-                  const imageUrl = item.activity?.image_url
+                  const imageUrl = item.image_url || item.activity?.image_url
                   const description = item.activity?.description
                   const isLifeBlock = item.type === 'life_block'
 

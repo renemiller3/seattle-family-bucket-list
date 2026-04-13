@@ -30,6 +30,7 @@ export default function PlanItemCard({ item, onUpdate, onDelete, dragHandleProps
   const title = item.title || item.activity?.title || 'Untitled'
   const icon = item.type === 'life_block' ? LIFE_BLOCK_ICONS[title] || '📌' : null
   const outingName = item.outing_id ? outings.find((o) => o.id === item.outing_id)?.name : null
+  const itemImage = item.image_url || item.activity?.image_url || null
 
   if (compact) {
     return (
@@ -78,6 +79,13 @@ export default function PlanItemCard({ item, onUpdate, onDelete, dragHandleProps
             </svg>
           )}
         </button>
+
+        {/* Thumbnail */}
+        {itemImage && (
+          <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-gray-100">
+            <img src={itemImage} alt="" className="h-full w-full object-cover" />
+          </div>
+        )}
 
         {/* Content */}
         <div className="flex-1 min-w-0">
