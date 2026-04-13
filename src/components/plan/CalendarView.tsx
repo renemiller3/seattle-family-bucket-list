@@ -119,9 +119,7 @@ export default function CalendarView({
   }
 
   const handleToday = () => {
-    const today = format(new Date(), 'yyyy-MM-dd')
-    setSelectedDate(today)
-    setCurrentMonth(new Date())
+    setSelectedDate(format(new Date(), 'yyyy-MM-dd'))
   }
 
   const views: { key: ViewMode; label: string }[] = [
