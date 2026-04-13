@@ -31,7 +31,7 @@ export function useBucketList(userId: string | undefined) {
       .from('saved_activities')
       .select('*, activity:activities(*)')
       .eq('user_id', userId)
-      .order('created_at', { ascending: false })
+      .order('sort_order', { ascending: true })
 
     // Fetch completed plan items to know which bucket list items are "done"
     const { data: completed } = await supabase
@@ -93,8 +93,38 @@ export function useBucketList(userId: string | undefined) {
 
   const addToBucketList = async (activityId: string) => {
     if (!userId) return
-    await supabase.from('saved_activities').insert({ user_id: userId, activity_id: activityId })
+    const maxOrder = items.length > 0 ? Math.max(...items.map((i) => (i as any).sort_order ?? 0)) + 1 : 0
+    await supabase.from('saved_activities').insert({ user_id: userId, activity_id: activityId, sort_order: maxOrder })
     fetchItems()
+  }
+
+  const reorderBucketList = async (fromIndex: number, toIndex: number) => {
+    if (!userId) return
+    const todoOnly = items.filter((i) => !completedActivityIds.has(i.activity_id))
+    const reordered = [...todoOnly]
+    const [moved] = reordered.splice(fromIndex, 1)
+    reordered.splice(toIndex, 0, moved)
+
+    // Optimistic update
+    const newItems = [...items]
+    const todoIds = new Set(todoOnly.map((i) => i.activity_id))
+    let todoIdx = 0
+    for (let i = 0; i < newItems.length; i++) {
+      if (todoIds.has(newItems[i].activity_id)) {
+        newItems[i] = { ...reordered[todoIdx], sort_order: todoIdx } as any
+        todoIdx++
+      }
+    }
+    setItems(newItems)
+
+    // Persist
+    for (let i = 0; i < reordered.length; i++) {
+      await supabase
+        .from('saved_activities')
+        .update({ sort_order: i })
+        .eq('user_id', userId)
+        .eq('activity_id', reordered[i].activity_id)
+    }
   }
 
   const removeFromBucketList = async (activityId: string) => {
@@ -121,6 +151,7 @@ export function useBucketList(userId: string | undefined) {
     addToBucketList,
     removeFromBucketList,
     toggleBucketList,
+    reorderBucketList,
     refresh: fetchItems,
   }
 }

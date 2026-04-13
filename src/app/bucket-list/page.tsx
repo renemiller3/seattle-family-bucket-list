@@ -13,7 +13,7 @@ import { format, parseISO } from 'date-fns'
 
 export default function BucketListPage() {
   const { user, loading: authLoading } = useAuth()
-  const { items, loading: listLoading, isCompleted, getOutingName } = useBucketList(user?.id)
+  const { items, loading: listLoading, isCompleted, getOutingName, reorderBucketList } = useBucketList(user?.id)
   const [photos, setPhotos] = useState<ActivityPhoto[]>([])
   const supabase = createClient()
 
@@ -106,33 +106,56 @@ export default function BucketListPage() {
                 {todoItems.map(({ activity_id, activity }, index) => {
                   const outingName = getOutingName(activity_id)
                   return (
-                    <Link
+                    <div
                       key={activity_id}
-                      href={`/activities/${activity_id}`}
-                      className="group flex items-center gap-5 rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-all hover:shadow-md hover:border-gray-300"
+                      className="group flex items-center gap-3 sm:gap-5 rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-all hover:shadow-md hover:border-gray-300"
                     >
-                      <span className="shrink-0 flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-sm font-bold text-gray-400">
-                        {index + 1}
-                      </span>
-                      {activity.image_url && (
-                        <div className="h-16 w-24 shrink-0 overflow-hidden rounded-lg bg-gray-100">
-                          <img src={activity.image_url} alt="" className="h-full w-full object-cover" />
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-base font-semibold text-gray-900 group-hover:text-emerald-700 transition-colors">
-                          {activity.title}
-                        </h3>
-                        <p className="mt-0.5 text-sm text-gray-500">
-                          {activity.area} · {getCostDisplay(activity.cost)}
-                        </p>
+                      {/* Reorder arrows */}
+                      <div className="shrink-0 flex flex-col gap-0.5">
+                        <button
+                          onClick={() => index > 0 && reorderBucketList(index, index - 1)}
+                          disabled={index === 0}
+                          className={`rounded p-0.5 transition-colors ${index === 0 ? 'text-gray-200' : 'text-gray-400 hover:bg-gray-100 hover:text-gray-600'}`}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M18 15l-6-6-6 6" />
+                          </svg>
+                        </button>
+                        <span className="flex h-6 w-6 items-center justify-center text-xs font-bold text-gray-400">
+                          {index + 1}
+                        </span>
+                        <button
+                          onClick={() => index < todoItems.length - 1 && reorderBucketList(index, index + 1)}
+                          disabled={index === todoItems.length - 1}
+                          className={`rounded p-0.5 transition-colors ${index === todoItems.length - 1 ? 'text-gray-200' : 'text-gray-400 hover:bg-gray-100 hover:text-gray-600'}`}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M6 9l6 6 6-6" />
+                          </svg>
+                        </button>
                       </div>
+
+                      <Link href={`/activities/${activity_id}`} className="flex flex-1 items-center gap-4 min-w-0">
+                        {activity.image_url && (
+                          <div className="h-16 w-24 shrink-0 overflow-hidden rounded-lg bg-gray-100">
+                            <img src={activity.image_url} alt="" className="h-full w-full object-cover" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-base font-semibold text-gray-900 group-hover:text-emerald-700 transition-colors">
+                            {activity.title}
+                          </h3>
+                          <p className="mt-0.5 text-sm text-gray-500">
+                            {activity.area} · {getCostDisplay(activity.cost)}
+                          </p>
+                        </div>
+                      </Link>
                       {outingName && (
                         <span className="hidden sm:inline-block shrink-0 rounded-full bg-violet-100 px-3 py-1 text-xs font-medium text-violet-700">
                           {outingName}
                         </span>
                       )}
-                    </Link>
+                    </div>
                   )
                 })}
               </div>
