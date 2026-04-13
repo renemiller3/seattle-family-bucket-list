@@ -20,7 +20,7 @@ function getCurrentSeason(): string {
 }
 
 const SEASON_CONFIG: Record<string, { heading: string; emoji: string }> = {
-  spring: { heading: "Spring is here! Get outside with the family", emoji: "🌸" },
+  spring: { heading: "Spring is here! Time to get outside", emoji: "🌸" },
   summer: { heading: "Make the most of summer together", emoji: "☀️" },
   fall: { heading: "Cozy fall adventures for the family", emoji: "🍂" },
   winter: { heading: "Rainy day? No problem — indoor fun awaits", emoji: "🌧️" },
