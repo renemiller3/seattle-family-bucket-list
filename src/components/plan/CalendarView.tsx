@@ -282,7 +282,7 @@ export default function CalendarView({
         <LifeBlockPicker
           date={lifeBlockDate}
           onAdd={(block) => {
-            onAddLifeBlock({ ...block, date: lifeBlockDate })
+            onAddLifeBlock(block)
             setShowLifeBlock(false)
           }}
           onClose={() => setShowLifeBlock(false)}

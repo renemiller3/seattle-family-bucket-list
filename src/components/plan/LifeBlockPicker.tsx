@@ -13,7 +13,7 @@ const PRESETS = [
 
 interface LifeBlockPickerProps {
   date: string
-  onAdd: (block: { title: string; duration_minutes: number; start_time: string | null; location_url: string | null }) => void
+  onAdd: (block: { title: string; duration_minutes: number; start_time: string | null; location_url: string | null; date: string }) => void
   onClose: () => void
 }
 
@@ -21,6 +21,7 @@ export default function LifeBlockPicker({ date, onAdd, onClose }: LifeBlockPicke
   const [selected, setSelected] = useState<string | null>(null)
   const [customTitle, setCustomTitle] = useState('')
   const [showCustom, setShowCustom] = useState(false)
+  const [selectedDate, setSelectedDate] = useState(date)
   const [startTime, setStartTime] = useState('')
   const [locationUrl, setLocationUrl] = useState('')
   const [endTime, setEndTime] = useState('')
@@ -44,6 +45,7 @@ export default function LifeBlockPicker({ date, onAdd, onClose }: LifeBlockPicke
       duration_minutes: durationMinutes,
       start_time: startTime || null,
       location_url: locationUrl.trim() || null,
+      date: selectedDate,
     })
   }
 
@@ -106,9 +108,12 @@ export default function LifeBlockPicker({ date, onAdd, onClose }: LifeBlockPicke
           {/* Date */}
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">Date</label>
-            <div className="rounded-lg bg-gray-50 border border-gray-200 px-3 py-2.5 text-sm text-gray-700">
-              {format(new Date(date + 'T00:00:00'), 'EEEE, MMMM d, yyyy')}
-            </div>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            />
           </div>
 
           {/* Start and end time */}
