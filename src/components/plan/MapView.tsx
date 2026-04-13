@@ -49,7 +49,7 @@ export default function MapView({ items }: MapViewProps) {
     lng: item.activity?.lng ?? item.lng ?? 0,
   })
 
-  // Calculate center from items, default to Seattle
+  // Calculate center and zoom from items
   const center = useMemo(() => {
     if (mappableItems.length === 0) return { lat: 47.6062, lng: -122.3321 }
     const lats = mappableItems.map((i) => getCoords(i).lat)
@@ -58,6 +58,23 @@ export default function MapView({ items }: MapViewProps) {
       lat: lats.reduce((a, b) => a + b, 0) / lats.length,
       lng: lngs.reduce((a, b) => a + b, 0) / lngs.length,
     }
+  }, [mappableItems])
+
+  const autoZoom = useMemo(() => {
+    if (mappableItems.length <= 1) return 13
+    const lats = mappableItems.map((i) => getCoords(i).lat)
+    const lngs = mappableItems.map((i) => getCoords(i).lng)
+    const latSpread = Math.max(...lats) - Math.min(...lats)
+    const lngSpread = Math.max(...lngs) - Math.min(...lngs)
+    const maxSpread = Math.max(latSpread, lngSpread)
+    // Rough zoom calculation — tighter spread = more zoomed in
+    if (maxSpread < 0.01) return 15
+    if (maxSpread < 0.05) return 13
+    if (maxSpread < 0.1) return 12
+    if (maxSpread < 0.3) return 11
+    if (maxSpread < 0.5) return 10
+    if (maxSpread < 1) return 9
+    return 8
   }, [mappableItems])
 
   if (!apiKey) {
@@ -101,7 +118,7 @@ export default function MapView({ items }: MapViewProps) {
         <APIProvider apiKey={apiKey}>
           <Map
             defaultCenter={center}
-            defaultZoom={mappableItems.length === 1 ? 13 : 10}
+            defaultZoom={autoZoom}
             gestureHandling="greedy"
             disableDefaultUI={false}
             mapId="bucket-list-map"
