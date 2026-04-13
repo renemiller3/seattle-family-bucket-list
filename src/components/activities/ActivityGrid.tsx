@@ -258,7 +258,7 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
         </p>
         <button
           onClick={() => setShowMap(true)}
-          className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          className="flex items-center gap-1.5 rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-1.5 text-sm font-medium text-emerald-700 hover:bg-emerald-100 transition-colors"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z" />
