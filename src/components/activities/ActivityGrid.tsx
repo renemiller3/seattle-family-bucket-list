@@ -220,19 +220,14 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
   return (
     <div>
       {/* Hero */}
-      <section className="mb-8">
+      <section className="mb-6">
         <h1 className="mb-2 text-3xl font-bold text-gray-900 sm:text-4xl">
           The ultimate PNW family bucket list
         </h1>
-        <p className="mb-6 text-gray-600">
-          {activities.length} adventures to explore. Pick a vibe to narrow it down.
+        <p className="mb-4 text-gray-600">
+          {activities.length} adventures to explore. Filter to find your next one.
         </p>
-        <VibeButtons selected={filters.vibes} onToggle={handleVibeToggle} />
-      </section>
-
-      {/* Filters */}
-      <section className="mb-6">
-        <FilterBar filters={filters} onChange={setFilters} />
+        <FilterBar filters={filters} onChange={setFilters} compact />
       </section>
 
       {/* Featured */}
