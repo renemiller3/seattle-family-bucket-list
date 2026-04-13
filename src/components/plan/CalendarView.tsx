@@ -132,98 +132,69 @@ export default function CalendarView({
 
   return (
     <div className="space-y-4">
-      {/* Outing filter */}
-      <div className="flex items-center gap-2">
-        <div className="flex flex-1 flex-wrap items-center gap-2">
-          {outings.length > 0 && (
-            <>
-              <div className="flex items-center">
-                <button
-                  onClick={() => onOutingChange(null)}
-                  className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
-                    selectedOutingId === null
-                      ? 'bg-emerald-600 text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  {copiedOutingId === null ? 'Link copied!' : 'All'}
-                </button>
-                {selectedOutingId === null && (
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleShareOuting(null) }}
-                    className="ml-1 rounded-full p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 transition-colors"
-                    title="Copy share link"
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                    </svg>
-                  </button>
-                )}
-              </div>
-              {outings.map((outing) => {
-                const isActive = selectedOutingId === outing.id
-                const justCopied = copiedOutingId === outing.id
-                return (
-                  <div key={outing.id} className="flex items-center">
-                    <button
-                      onClick={() => onOutingChange(outing.id)}
-                      className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
-                        isActive
-                          ? 'bg-emerald-600 text-white'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      }`}
-                    >
-                      {justCopied ? 'Link copied!' : outing.name}
-                    </button>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleShareOuting(outing.id) }}
-                      className={`ml-1 rounded-full p-1 transition-colors ${
-                        isActive
-                          ? 'text-emerald-300 hover:bg-emerald-700 hover:text-white'
-                          : 'text-gray-400 hover:bg-gray-200 hover:text-gray-600'
-                      }`}
-                      title={`Copy share link for ${outing.name}`}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                      </svg>
-                    </button>
-                  </div>
-                )
-              })}
-            </>
-          )}
-        </div>
-        <button
-          onClick={() => setShowOutingManager(true)}
-          className="shrink-0 rounded-lg border border-dashed border-gray-300 px-3 py-1 text-sm text-gray-500 hover:border-gray-400 hover:text-gray-700 transition-colors"
-        >
-          {outings.length > 0 ? 'Manage Outings' : '+ New Outing'}
-        </button>
-      </div>
-
-      {/* Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          {/* View switcher */}
-          <div className="flex rounded-lg border border-gray-200 bg-white p-0.5">
-            {views.map(({ key, label }) => (
-              <button
-                key={key}
-                onClick={() => setView(key)}
-                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                  view === key
-                    ? 'bg-emerald-600 text-white'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                {label}
-              </button>
+      {/* Consolidated toolbar */}
+      <div className="flex flex-wrap items-center gap-3">
+        {/* Outing dropdown */}
+        <div className="flex items-center gap-1.5">
+          <select
+            value={selectedOutingId ?? ''}
+            onChange={(e) => onOutingChange(e.target.value || null)}
+            className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+          >
+            <option value="">All Items</option>
+            {outings.map((o) => (
+              <option key={o.id} value={o.id}>{o.name}</option>
             ))}
-          </div>
+          </select>
+          {/* Share link */}
+          <button
+            onClick={() => handleShareOuting(selectedOutingId)}
+            className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+            title={copiedOutingId !== undefined ? 'Copied!' : 'Copy share link'}
+          >
+            {copiedOutingId !== undefined ? (
+              <span className="text-xs text-emerald-600 font-medium px-1">Copied!</span>
+            ) : (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+              </svg>
+            )}
+          </button>
+          {/* Manage outings */}
+          <button
+            onClick={() => setShowOutingManager(true)}
+            className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+            title={outings.length > 0 ? 'Manage Outings' : 'New Outing'}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+          </button>
         </div>
+
+        {/* Divider */}
+        <div className="h-6 w-px bg-gray-200" />
+
+        {/* View switcher */}
+        <div className="flex rounded-lg border border-gray-200 bg-white p-0.5">
+          {views.map(({ key, label }) => (
+            <button
+              key={key}
+              onClick={() => setView(key)}
+              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                view === key
+                  ? 'bg-emerald-600 text-white'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* Spacer */}
+        <div className="flex-1" />
 
         <div className="flex items-center gap-2">
           {view !== 'itinerary' && (
