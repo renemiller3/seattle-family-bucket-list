@@ -12,7 +12,7 @@ const PRESETS = [
 
 interface LifeBlockPickerProps {
   date: string
-  onAdd: (block: { title: string; duration_minutes: number; start_time: string | null }) => void
+  onAdd: (block: { title: string; duration_minutes: number; start_time: string | null; location_url: string | null }) => void
   onClose: () => void
 }
 
@@ -21,6 +21,7 @@ export default function LifeBlockPicker({ date, onAdd, onClose }: LifeBlockPicke
   const [customTitle, setCustomTitle] = useState('')
   const [showCustom, setShowCustom] = useState(false)
   const [startTime, setStartTime] = useState('')
+  const [locationUrl, setLocationUrl] = useState('')
   const [endTime, setEndTime] = useState('')
 
   const activeTitle = showCustom ? customTitle : selected
@@ -41,6 +42,7 @@ export default function LifeBlockPicker({ date, onAdd, onClose }: LifeBlockPicke
       title: activeTitle!.trim(),
       duration_minutes: durationMinutes,
       start_time: startTime || null,
+      location_url: locationUrl.trim() || null,
     })
   }
 
@@ -126,6 +128,20 @@ export default function LifeBlockPicker({ date, onAdd, onClose }: LifeBlockPicke
             </div>
           </div>
         </div>
+
+          {/* Location */}
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">
+              Location <span className="text-gray-400">(optional — paste a Google Maps link or address)</span>
+            </label>
+            <input
+              type="text"
+              value={locationUrl}
+              onChange={(e) => setLocationUrl(e.target.value)}
+              placeholder="e.g., https://maps.google.com/... or 123 Main St"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            />
+          </div>
 
         <div className="mt-6">
           <button

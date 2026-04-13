@@ -69,6 +69,7 @@ export interface PlanItem {
   sort_order: number
   notes: string | null
   is_completed: boolean
+  location_url: string | null
   outing_id: string | null
   created_at: string
   updated_at: string

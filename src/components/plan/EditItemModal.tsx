@@ -24,6 +24,7 @@ export default function EditItemModal({ item, onSave, onClose, outings = [] }: E
   const [date, setDate] = useState(item.date)
   const [title, setTitle] = useState(item.title || item.activity?.title || '')
   const [outingId, setOutingId] = useState(item.outing_id ?? '')
+  const [locationUrl, setLocationUrl] = useState(item.location_url ?? '')
 
   const isLifeBlock = item.type === 'life_block'
   const isCustom = item.type === 'custom'
@@ -46,6 +47,7 @@ export default function EditItemModal({ item, onSave, onClose, outings = [] }: E
       notes: notes || null,
       date,
       outing_id: outingId || null,
+      location_url: locationUrl.trim() || null,
       ...(isLifeBlock || isCustom ? { title } : {}),
     })
     onClose()
@@ -147,6 +149,20 @@ export default function EditItemModal({ item, onSave, onClose, outings = [] }: E
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
               />
             </div>
+          </div>
+
+          {/* Location */}
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">
+              Location <span className="text-gray-400">(optional)</span>
+            </label>
+            <input
+              type="text"
+              value={locationUrl}
+              onChange={(e) => setLocationUrl(e.target.value)}
+              placeholder="Paste a Google Maps link or address"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            />
           </div>
 
           {/* Notes */}

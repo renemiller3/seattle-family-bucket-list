@@ -102,6 +102,23 @@ export default function PlanItemCard({ item, onUpdate, onDelete, dragHandleProps
             </p>
           )}
 
+          {/* Location */}
+          {item.location_url && (
+            <a
+              href={item.location_url.startsWith('http') ? item.location_url : `https://maps.google.com/?q=${encodeURIComponent(item.location_url)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="mt-0.5 inline-flex items-center gap-1 text-xs text-emerald-600 hover:text-emerald-700"
+            >
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
+              Open in Maps
+            </a>
+          )}
+
           {/* Notes */}
           {item.notes && (
             <p className="mt-1 text-xs text-gray-500">

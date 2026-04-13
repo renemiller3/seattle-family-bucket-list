@@ -25,6 +25,7 @@ interface CalendarViewProps {
     date: string
     duration_minutes: number
     start_time: string | null
+    location_url: string | null
   }) => void
   outings: Outing[]
   selectedOutingId: string | null
