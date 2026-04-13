@@ -111,25 +111,25 @@ export default function BucketListPage() {
                       className="group flex items-center gap-3 sm:gap-5 rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-all hover:shadow-md hover:border-gray-300"
                     >
                       {/* Reorder arrows */}
-                      <div className="shrink-0 flex flex-col gap-0.5">
+                      <div className="shrink-0 flex flex-col items-center w-8">
                         <button
                           onClick={() => index > 0 && reorderBucketList(index, index - 1)}
                           disabled={index === 0}
-                          className={`rounded p-0.5 transition-colors ${index === 0 ? 'text-gray-200' : 'text-gray-400 hover:bg-gray-100 hover:text-gray-600'}`}
+                          className={`rounded p-1 transition-colors ${index === 0 ? 'text-gray-200' : 'text-gray-400 hover:bg-gray-100 hover:text-gray-600'}`}
                         >
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
                             <path d="M18 15l-6-6-6 6" />
                           </svg>
                         </button>
-                        <span className="flex h-6 w-6 items-center justify-center text-xs font-bold text-gray-400">
+                        <span className="text-xs font-bold text-gray-400 leading-none">
                           {index + 1}
                         </span>
                         <button
                           onClick={() => index < todoItems.length - 1 && reorderBucketList(index, index + 1)}
                           disabled={index === todoItems.length - 1}
-                          className={`rounded p-0.5 transition-colors ${index === todoItems.length - 1 ? 'text-gray-200' : 'text-gray-400 hover:bg-gray-100 hover:text-gray-600'}`}
+                          className={`rounded p-1 transition-colors ${index === todoItems.length - 1 ? 'text-gray-200' : 'text-gray-400 hover:bg-gray-100 hover:text-gray-600'}`}
                         >
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
                             <path d="M6 9l6 6 6-6" />
                           </svg>
                         </button>
