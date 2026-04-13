@@ -256,6 +256,20 @@ export default function SharedPlanView({ items, notes, ownerName, outingName }: 
                             {item.duration_minutes && <> · {formatDuration(item.duration_minutes)}</>}
                           </span>
                         )}
+                        {item.location_url && (
+                          <a
+                            href={item.location_url.startsWith('http') ? item.location_url : `https://maps.google.com/?q=${encodeURIComponent(item.location_url)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="ml-auto inline-flex items-center gap-1 text-xs text-emerald-600 hover:text-emerald-700 shrink-0"
+                          >
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                              <circle cx="12" cy="10" r="3" />
+                            </svg>
+                            Open in Maps
+                          </a>
+                        )}
                       </div>
                     )
                   }
@@ -297,6 +311,20 @@ export default function SharedPlanView({ items, notes, ownerName, outingName }: 
                         )}
                         {item.notes && (
                           <p className="mt-2 text-xs text-gray-500 italic">{item.notes}</p>
+                        )}
+                        {item.location_url && (
+                          <a
+                            href={item.location_url.startsWith('http') ? item.location_url : `https://maps.google.com/?q=${encodeURIComponent(item.location_url)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-2 inline-flex items-center gap-1 text-xs text-emerald-600 hover:text-emerald-700"
+                          >
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                              <circle cx="12" cy="10" r="3" />
+                            </svg>
+                            Open in Maps
+                          </a>
                         )}
                       </div>
                     </div>
