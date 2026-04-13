@@ -247,6 +247,11 @@ export default function CalendarView({
       </div>
 
       {/* View title */}
+      {view === 'weekly' && (
+        <h2 className="text-xl font-bold text-gray-900">
+          {format(weekStart, 'MMMM d')} – {format(addDays(weekStart, 6), 'MMMM d, yyyy')}
+        </h2>
+      )}
       {view === 'monthly' && (
         <h2 className="text-xl font-bold text-gray-900">
           {format(currentMonth, 'MMMM yyyy')}
