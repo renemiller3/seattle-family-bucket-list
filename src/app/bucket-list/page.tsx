@@ -199,7 +199,7 @@ export default function BucketListPage() {
                           </div>
                           <p className="mt-0.5 text-xs text-gray-500">
                             {completedDate && <>{format(parseISO(completedDate), 'MMMM d, yyyy')} · </>}
-                            {activity.area} · {getCostDisplay(activity.cost)}
+                            {activity.area}
                           </p>
                         </div>
                       </div>
