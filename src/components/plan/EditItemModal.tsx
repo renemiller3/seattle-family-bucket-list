@@ -4,6 +4,7 @@ import { useState } from 'react'
 import type { PlanItem, Outing } from '@/lib/types'
 import TimePicker from './TimePicker'
 import PlaceAutocomplete from './PlaceAutocomplete'
+import ImageSearch from './ImageSearch'
 
 interface EditItemModalProps {
   item: PlanItem
@@ -30,6 +31,7 @@ export default function EditItemModal({ item, onSave, onClose, outings = [] }: E
   const [lat, setLat] = useState<number | null>(item.lat ?? null)
   const [lng, setLng] = useState<number | null>(item.lng ?? null)
   const [imageUrl, setImageUrl] = useState<string | null>(item.image_url ?? null)
+  const [showImageSearch, setShowImageSearch] = useState(false)
 
   const isLifeBlock = item.type === 'life_block'
   const isCustom = item.type === 'custom'
@@ -169,6 +171,33 @@ export default function EditItemModal({ item, onSave, onClose, outings = [] }: E
             />
           </div>
 
+          {/* Image */}
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">
+              Image <span className="text-gray-400">(optional)</span>
+            </label>
+            {imageUrl ? (
+              <div className="relative">
+                <div className="h-24 w-full overflow-hidden rounded-lg bg-gray-100">
+                  <img src={imageUrl} alt="" className="h-full w-full object-cover" />
+                </div>
+                <button
+                  onClick={() => setImageUrl(null)}
+                  className="absolute top-1 right-1 rounded-full bg-black/50 p-1 text-white hover:bg-black/70"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowImageSearch(true)}
+                className="w-full rounded-lg border border-dashed border-gray-300 py-3 text-sm text-gray-500 hover:border-gray-400 hover:text-gray-700 transition-colors"
+              >
+                Find an image
+              </button>
+            )}
+          </div>
+
           {/* Notes */}
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">Notes</label>
@@ -191,6 +220,16 @@ export default function EditItemModal({ item, onSave, onClose, outings = [] }: E
           </button>
         </div>
       </div>
+
+      {showImageSearch && (
+        <ImageSearch
+          onSelect={(url) => {
+            setImageUrl(url)
+            setShowImageSearch(false)
+          }}
+          onClose={() => setShowImageSearch(false)}
+        />
+      )}
     </div>
   )
 }
