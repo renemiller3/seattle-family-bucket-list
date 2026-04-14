@@ -48,20 +48,30 @@ export default function ItineraryView({ items, onUpdate, onDelete, outings }: It
   }
 
   return (
-    <div className="space-y-8">
-      {groupedByDate.map(([date, dateItems]) => (
+    <div className="space-y-10">
+      {groupedByDate.map(([date, dateItems], dayIndex) => (
         <section key={date}>
-          <h3 className="mb-3 text-sm font-semibold text-gray-500 uppercase tracking-wide">
-            {format(parseISO(date), 'EEEE, MMMM d, yyyy')}
-          </h3>
-          <div className="space-y-1">
+          <div className="mb-4 flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white font-bold text-sm">
+              {dayIndex + 1}
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-gray-900">
+                {format(parseISO(date), 'EEEE')}
+              </h3>
+              <p className="text-sm text-gray-500">
+                {format(parseISO(date), 'MMMM d, yyyy')}
+              </p>
+            </div>
+          </div>
+          <div className="space-y-3 pl-5 ml-5 border-l-2 border-gray-200">
             {dateItems.map((item, index) => (
               <div key={item.id}>
                 {index > 0 && item.travel_time_before && (
                   <DriveTimeDisplay minutes={item.travel_time_before} />
                 )}
                 <div onClick={() => setEditingItem(item)} className="cursor-pointer">
-                  <PlanItemCard item={item} onUpdate={onUpdate} onDelete={onDelete} outings={outings} />
+                  <PlanItemCard item={item} onUpdate={onUpdate} onDelete={onDelete} outings={outings} variant="outing" />
                 </div>
                 {item.travel_time_after && index < dateItems.length - 1 && (
                   <DriveTimeDisplay minutes={item.travel_time_after} />
