@@ -11,6 +11,8 @@ interface PlanItemProps {
   compact?: boolean
   outings?: Outing[]
   variant?: 'outing'
+  activityNumber?: number
+  dayColor?: string
 }
 
 const TYPE_STYLES: Record<string, string> = {
@@ -27,7 +29,7 @@ const LIFE_BLOCK_ICONS: Record<string, string> = {
   Travel: '🚗',
 }
 
-export default function PlanItemCard({ item, onUpdate, onDelete, dragHandleProps, compact, outings = [], variant }: PlanItemProps) {
+export default function PlanItemCard({ item, onUpdate, onDelete, dragHandleProps, compact, outings = [], variant, activityNumber, dayColor }: PlanItemProps) {
   const title = item.title || item.activity?.title || 'Untitled'
   const icon = item.type === 'life_block' ? LIFE_BLOCK_ICONS[title] || '📌' : null
   const outingName = item.outing_id ? outings.find((o) => o.id === item.outing_id)?.name : null
@@ -48,6 +50,14 @@ export default function PlanItemCard({ item, onUpdate, onDelete, dragHandleProps
     if (isSimpleLifeBlock) {
       return (
         <div className={`group flex items-center gap-3 rounded-lg bg-gray-50 border border-gray-200 px-4 py-2.5 ${item.is_completed ? 'opacity-60' : ''}`}>
+          {activityNumber != null && dayColor && (
+            <div
+              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white text-[10px] font-bold"
+              style={{ backgroundColor: dayColor }}
+            >
+              {activityNumber}
+            </div>
+          )}
           <button
             onClick={(e) => { e.stopPropagation(); onUpdate(item.id, { is_completed: !item.is_completed }) }}
             className={`shrink-0 h-5 w-5 rounded border-2 transition-colors ${
@@ -107,6 +117,14 @@ export default function PlanItemCard({ item, onUpdate, onDelete, dragHandleProps
         )}
         <div className="p-4">
           <div className="flex items-start gap-2">
+            {activityNumber != null && dayColor && (
+              <div
+                className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white text-[10px] font-bold"
+                style={{ backgroundColor: dayColor }}
+              >
+                {activityNumber}
+              </div>
+            )}
             {dragHandleProps && (
               <button
                 {...dragHandleProps}

@@ -44,9 +44,9 @@ export function useOutings(userId: string | undefined) {
     return null
   }
 
-  const updateOuting = async (id: string, name: string) => {
-    await supabase.from('outings').update({ name }).eq('id', id)
-    setOutings((prev) => prev.map((o) => (o.id === id ? { ...o, name } : o)))
+  const updateOuting = async (id: string, updates: Partial<Pick<Outing, 'name' | 'lodging_name' | 'lodging_address' | 'lodging_lat' | 'lodging_lng'>>) => {
+    await supabase.from('outings').update(updates).eq('id', id)
+    setOutings((prev) => prev.map((o) => (o.id === id ? { ...o, ...updates } : o)))
   }
 
   const deleteOuting = async (id: string) => {

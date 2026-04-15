@@ -124,15 +124,24 @@ export default async function SharedPlanPage({ params }: { params: Promise<{ slu
     .order('date')
     .order('sort_order')
 
-  // Get outing name for title
+  // Get outing details (name + lodging)
   let outingName: string | null = null
+  let lodging: { name: string; lat: number; lng: number; address?: string | null } | null = null
   if (sharedPlan.outing_id) {
     const { data: outing } = await supabase
       .from('outings')
-      .select('name')
+      .select('name, lodging_name, lodging_address, lodging_lat, lodging_lng')
       .eq('id', sharedPlan.outing_id)
       .maybeSingle()
     outingName = outing?.name ?? null
+    if (outing?.lodging_name && outing?.lodging_lat && outing?.lodging_lng) {
+      lodging = {
+        name: outing.lodging_name,
+        lat: outing.lodging_lat,
+        lng: outing.lodging_lng,
+        address: outing.lodging_address,
+      }
+    }
   }
 
   // Only show notes for full calendar shares, not outing-specific ones
@@ -156,6 +165,7 @@ export default async function SharedPlanPage({ params }: { params: Promise<{ slu
         notes={notesContent}
         ownerName={profile?.display_name?.split(' ')[0] ?? 'Someone'}
         outingName={outingName || sharedPlan.title || 'Family Plan'}
+        lodging={lodging}
       />
     </div>
   )

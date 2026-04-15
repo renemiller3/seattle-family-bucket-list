@@ -34,7 +34,7 @@ interface CalendarViewProps {
   selectedOutingId: string | null
   onOutingChange: (outingId: string | null) => void
   onAddOuting: (name: string) => Promise<Outing | null>
-  onUpdateOuting: (id: string, name: string) => Promise<void>
+  onUpdateOuting: (id: string, updates: Partial<Pick<Outing, 'name' | 'lodging_name' | 'lodging_address' | 'lodging_lat' | 'lodging_lng'>>) => Promise<void>
   onDeleteOuting: (id: string) => Promise<void>
 }
 
@@ -59,6 +59,21 @@ export default function CalendarView({
   const [showOutingManager, setShowOutingManager] = useState(false)
   const [showMap, setShowMap] = useState(false)
   const [copiedOutingId, setCopiedOutingId] = useState<string | null | undefined>(undefined)
+
+  const selectedOuting = useMemo(
+    () => (selectedOutingId ? outings.find((o) => o.id === selectedOutingId) : null) ?? null,
+    [selectedOutingId, outings]
+  )
+
+  const lodgingPin = useMemo(() => {
+    if (!selectedOuting?.lodging_lat || !selectedOuting?.lodging_lng || !selectedOuting?.lodging_name) return null
+    return {
+      name: selectedOuting.lodging_name,
+      lat: selectedOuting.lodging_lat,
+      lng: selectedOuting.lodging_lng,
+      address: selectedOuting.lodging_address,
+    }
+  }, [selectedOuting])
 
   // Derive month and week from selectedDate (single source of truth)
   const currentMonth = useMemo(() => new Date(selectedDate + 'T00:00:00'), [selectedDate])
@@ -251,12 +266,12 @@ export default function CalendarView({
 
       {/* Map (inline above list when toggled) */}
       {view === 'itinerary' && showMap && (
-        <MapView items={items} />
+        <MapView items={items} lodging={lodgingPin} />
       )}
 
       {/* Calendar view */}
       {view === 'itinerary' && (
-        <ItineraryView items={items} onUpdate={onUpdate} onDelete={onDelete} onReorder={onReorder} outings={outings} />
+        <ItineraryView items={items} onUpdate={onUpdate} onDelete={onDelete} onReorder={onReorder} outings={outings} lodging={lodgingPin} />
       )}
       {view === 'daily' && (
         <DailyView items={items} date={selectedDate} onUpdate={onUpdate} onDelete={onDelete} outings={outings} />
