@@ -48,11 +48,20 @@ export default function SharedPlanView({ items, notes, ownerName, outingName }: 
 
   const dayCount = groupedByDate.length
 
-  // Items with coordinates for the map
+  // Items with coordinates for the map, sorted by date/time to match list order
   const mappableItems = useMemo(() => {
-    return items.filter(
-      (item) => (item.activity?.lat != null && item.activity?.lng != null) || (item.lat != null && item.lng != null)
-    )
+    return items
+      .filter(
+        (item) => (item.activity?.lat != null && item.activity?.lng != null) || (item.lat != null && item.lng != null)
+      )
+      .sort((a, b) => {
+        const dateCmp = a.date.localeCompare(b.date)
+        if (dateCmp !== 0) return dateCmp
+        if (!a.start_time && !b.start_time) return 0
+        if (!a.start_time) return 1
+        if (!b.start_time) return -1
+        return a.start_time.localeCompare(b.start_time)
+      })
   }, [items])
 
   const getCoords = (item: PlanItem) => ({
@@ -73,6 +82,29 @@ export default function SharedPlanView({ items, notes, ownerName, outingName }: 
       lng: lngs.reduce((a, b) => a + b, 0) / lngs.length,
     }
   }, [mappableItems])
+
+  // Compute global sequential activity numbers for mappable items (matches map marker order)
+  const activityNumberMap = useMemo(() => {
+    const map = new Map<string, number>()
+    let counter = 1
+    for (const [, dateItems] of groupedByDate) {
+      const sorted = [...dateItems].sort((a, b) => {
+        if (!a.start_time && !b.start_time) return 0
+        if (!a.start_time) return 1
+        if (!b.start_time) return -1
+        return a.start_time.localeCompare(b.start_time)
+      })
+      for (const item of sorted) {
+        const hasCoords =
+          (item.activity?.lat != null && item.activity?.lng != null) ||
+          (item.lat != null && item.lng != null)
+        if (hasCoords) {
+          map.set(item.id, counter++)
+        }
+      }
+    }
+    return map
+  }, [groupedByDate])
 
   if (groupedByDate.length === 0) {
     return (
@@ -146,9 +178,8 @@ export default function SharedPlanView({ items, notes, ownerName, outingName }: 
                   disableDefaultUI={false}
                   mapId="shared-plan-map"
                 >
-                  {mappableItems.map((item) => {
+                  {mappableItems.map((item, index) => {
                     const coords = getCoords(item)
-                    const title = item.title || item.activity?.title || 'Untitled'
                     const dayIndex = uniqueDates.indexOf(item.date)
                     const color = DAY_COLORS[dayIndex % DAY_COLORS.length]
                     return (
@@ -161,7 +192,7 @@ export default function SharedPlanView({ items, notes, ownerName, outingName }: 
                           className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white shadow-md text-white text-xs font-bold"
                           style={{ backgroundColor: color }}
                         >
-                          {dayIndex + 1}
+                          {index + 1}
                         </div>
                       </AdvancedMarker>
                     )
@@ -223,18 +254,13 @@ export default function SharedPlanView({ items, notes, ownerName, outingName }: 
 
           return (
             <section key={date}>
-              <div className="mb-4 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-600 text-white font-bold text-sm">
-                  {dayIndex + 1}
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900">
-                    {format(parseISO(date), 'EEEE')}
-                  </h3>
-                  <p className="text-sm text-gray-500">
-                    {format(parseISO(date), 'MMMM d, yyyy')}
-                  </p>
-                </div>
+              <div className="mb-4">
+                <h3 className="text-lg font-bold text-gray-900">
+                  {format(parseISO(date), 'EEEE')}
+                </h3>
+                <p className="text-sm text-gray-500">
+                  {format(parseISO(date), 'MMMM d, yyyy')}
+                </p>
               </div>
 
               <div className="space-y-3 pl-5 ml-5 border-l-2 border-gray-200">
@@ -246,9 +272,20 @@ export default function SharedPlanView({ items, notes, ownerName, outingName }: 
                   const isLifeBlock = item.type === 'life_block'
 
                   const isSimpleLifeBlock = isLifeBlock && !imageUrl
+                  const itemActivityNumber = activityNumberMap.get(item.id)
+                  const itemDayColor = DAY_COLORS[uniqueDates.indexOf(item.date) % DAY_COLORS.length]
+
                   if (isSimpleLifeBlock) {
                     return (
                       <div key={item.id} className="flex items-center gap-3 rounded-lg bg-gray-50 border border-gray-200 px-4 py-2.5">
+                        {itemActivityNumber != null && (
+                          <div
+                            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white text-[10px] font-bold"
+                            style={{ backgroundColor: itemDayColor }}
+                          >
+                            {itemActivityNumber}
+                          </div>
+                        )}
                         {icon && <span className="text-lg">{icon}</span>}
                         <span className="text-sm font-medium text-gray-600">{title}</span>
                         {item.start_time && (
@@ -286,7 +323,15 @@ export default function SharedPlanView({ items, notes, ownerName, outingName }: 
                         </div>
                       )}
                       <div className="p-4">
-                        <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-start gap-2">
+                          {itemActivityNumber != null && (
+                            <div
+                              className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white text-[10px] font-bold"
+                              style={{ backgroundColor: itemDayColor }}
+                            >
+                              {itemActivityNumber}
+                            </div>
+                          )}
                           <div className="flex-1">
                             {item.activity_id ? (
                               <Link
