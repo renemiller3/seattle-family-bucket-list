@@ -124,8 +124,7 @@ export default function MapView({ items }: MapViewProps) {
             disableDefaultUI={false}
             mapId="bucket-list-map"
           >
-            {mappableItems.map((item) => {
-              const title = item.title || item.activity?.title || 'Untitled'
+            {mappableItems.map((item, index) => {
               const color = getColorForDate(item.date)
               return (
                 <AdvancedMarker
@@ -137,7 +136,7 @@ export default function MapView({ items }: MapViewProps) {
                     className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white shadow-md text-white text-xs font-bold"
                     style={{ backgroundColor: color }}
                   >
-                    {uniqueDates.indexOf(item.date) + 1}
+                    {index + 1}
                   </div>
                 </AdvancedMarker>
               )
