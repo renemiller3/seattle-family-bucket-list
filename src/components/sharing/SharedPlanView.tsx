@@ -85,7 +85,7 @@ export default function SharedPlanView({ items, notes, ownerName, outingName }: 
 
   // Compute global sequential activity numbers for mappable items (matches map marker order)
   const activityNumberMap = useMemo(() => {
-    const map = new Map<string, number>()
+    const numbers: Record<string, number> = {}
     let counter = 1
     for (const [, dateItems] of groupedByDate) {
       const sorted = [...dateItems].sort((a, b) => {
@@ -99,11 +99,11 @@ export default function SharedPlanView({ items, notes, ownerName, outingName }: 
           (item.activity?.lat != null && item.activity?.lng != null) ||
           (item.lat != null && item.lng != null)
         if (hasCoords) {
-          map.set(item.id, counter++)
+          numbers[item.id] = counter++
         }
       }
     }
-    return map
+    return numbers
   }, [groupedByDate])
 
   if (groupedByDate.length === 0) {
@@ -272,7 +272,7 @@ export default function SharedPlanView({ items, notes, ownerName, outingName }: 
                   const isLifeBlock = item.type === 'life_block'
 
                   const isSimpleLifeBlock = isLifeBlock && !imageUrl
-                  const itemActivityNumber = activityNumberMap.get(item.id)
+                  const itemActivityNumber = activityNumberMap[item.id]
                   const itemDayColor = DAY_COLORS[uniqueDates.indexOf(item.date) % DAY_COLORS.length]
 
                   if (isSimpleLifeBlock) {
