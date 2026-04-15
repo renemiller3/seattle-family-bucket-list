@@ -27,45 +27,58 @@ export default function WeeklyView({ items, weekStart, onUpdate, onDelete, onSel
   const isToday = (day: Date) => isSameDay(day, new Date())
 
   return (
-    <div className="grid grid-cols-7 gap-px rounded-xl border border-gray-200 bg-gray-200 overflow-hidden">
-      {days.map((day) => {
-        const dayItems = getItemsForDay(day)
-        const dateStr = format(day, 'yyyy-MM-dd')
-        return (
-          <div key={dateStr} className="bg-white p-2 min-h-[8rem]">
-            <button
-              onClick={() => onSelectDay(dateStr)}
-              className={`mb-2 flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium transition-colors ${
-                isToday(day)
-                  ? 'bg-emerald-600 text-white'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              {format(day, 'd')}
-            </button>
-            <p className="mb-1 text-xs text-gray-400">{format(day, 'EEE')}</p>
-            <div className="space-y-1">
-              {dayItems.slice(0, 3).map((item) => (
-                <PlanItemCard
-                  key={item.id}
-                  item={item}
-                  onUpdate={onUpdate}
-                  onDelete={onDelete}
-                  compact
-                />
-              ))}
-              {dayItems.length > 3 && (
-                <button
-                  onClick={() => onSelectDay(dateStr)}
-                  className="text-xs text-gray-400 hover:text-gray-600"
-                >
-                  +{dayItems.length - 3} more
-                </button>
-              )}
+    <div className="rounded-xl border border-gray-200 bg-gray-200 overflow-hidden">
+      {/* Day headers */}
+      <div className="grid grid-cols-7 gap-px">
+        {days.map((day) => {
+          const dateStr = format(day, 'yyyy-MM-dd')
+          return (
+            <div key={dateStr} className="bg-gray-50 px-2 py-2 text-center">
+              <p className="text-xs font-medium text-gray-500 uppercase">{format(day, 'EEE')}</p>
             </div>
-          </div>
-        )
-      })}
+          )
+        })}
+      </div>
+      {/* Day cells */}
+      <div className="grid grid-cols-7 gap-px">
+        {days.map((day) => {
+          const dayItems = getItemsForDay(day)
+          const dateStr = format(day, 'yyyy-MM-dd')
+          return (
+            <div key={dateStr} className="bg-white p-2 min-h-[10rem]">
+              <button
+                onClick={() => onSelectDay(dateStr)}
+                className={`mb-2 flex h-7 w-7 items-center justify-center rounded-full text-sm font-medium transition-colors ${
+                  isToday(day)
+                    ? 'bg-emerald-600 text-white'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                {format(day, 'd')}
+              </button>
+              <div className="space-y-1">
+                {dayItems.slice(0, 4).map((item) => (
+                  <PlanItemCard
+                    key={item.id}
+                    item={item}
+                    onUpdate={onUpdate}
+                    onDelete={onDelete}
+                    compact
+                  />
+                ))}
+                {dayItems.length > 4 && (
+                  <button
+                    onClick={() => onSelectDay(dateStr)}
+                    className="text-xs font-medium text-gray-500 hover:text-gray-700"
+                  >
+                    +{dayItems.length - 4} more
+                  </button>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
