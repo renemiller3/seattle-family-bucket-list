@@ -45,7 +45,7 @@ export default function WeeklyView({ items, weekStart, onUpdate, onDelete, onSel
           const dayItems = getItemsForDay(day)
           const dateStr = format(day, 'yyyy-MM-dd')
           return (
-            <div key={dateStr} className="bg-white p-2 min-h-[10rem]">
+            <div key={dateStr} className="bg-white p-2 min-h-[14rem]">
               <button
                 onClick={() => onSelectDay(dateStr)}
                 className={`mb-2 flex h-7 w-7 items-center justify-center rounded-full text-sm font-medium transition-colors ${
