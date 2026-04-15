@@ -47,6 +47,7 @@ export default function EditItemModal({ item, onSave, onClose, outings = [] }: E
       if (durationMinutes < 0) durationMinutes = null
     }
 
+    const hasLocation = !!locationUrl.trim()
     onSave(item.id, {
       start_time: startTime || null,
       end_time: endTime || null,
@@ -55,8 +56,8 @@ export default function EditItemModal({ item, onSave, onClose, outings = [] }: E
       date,
       outing_id: outingId || null,
       location_url: locationUrl.trim() || null,
-      lat,
-      lng,
+      lat: hasLocation ? lat : null,
+      lng: hasLocation ? lng : null,
       image_url: imageUrl,
       ...(isLifeBlock || isCustom ? { title } : {}),
     })
