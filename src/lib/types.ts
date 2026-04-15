@@ -55,6 +55,9 @@ export interface Profile {
   id: string
   display_name: string
   avatar_url: string | null
+  home_address: string | null
+  home_lat: number | null
+  home_lng: number | null
   created_at: string
 }
 

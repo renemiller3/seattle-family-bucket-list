@@ -14,9 +14,16 @@ interface LodgingPin {
   address?: string | null
 }
 
+interface HomeLocation {
+  lat: number
+  lng: number
+  address: string
+}
+
 interface MapViewProps {
   items: PlanItem[]
   lodging?: LodgingPin | null
+  homeLocation?: HomeLocation | null
 }
 
 const DAY_COLORS = [
@@ -29,7 +36,7 @@ const DAY_COLORS = [
   '#14b8a6', // teal
 ]
 
-export default function MapView({ items, lodging }: MapViewProps) {
+export default function MapView({ items, lodging, homeLocation }: MapViewProps) {
   const [selectedItem, setSelectedItem] = useState<PlanItem | null>(null)
   const [showLodgingInfo, setShowLodgingInfo] = useState(false)
 
@@ -67,7 +74,7 @@ export default function MapView({ items, lodging }: MapViewProps) {
     lng: item.activity?.lng ?? item.lng ?? 0,
   })
 
-  // Calculate center and zoom from items + lodging
+  // Calculate center and zoom from items + lodging + home
   const center = useMemo(() => {
     const allLats = mappableItems.map((i) => getCoords(i).lat)
     const allLngs = mappableItems.map((i) => getCoords(i).lng)
@@ -83,6 +90,7 @@ export default function MapView({ items, lodging }: MapViewProps) {
     const allLats = mappableItems.map((i) => getCoords(i).lat)
     const allLngs = mappableItems.map((i) => getCoords(i).lng)
     if (lodging) { allLats.push(lodging.lat); allLngs.push(lodging.lng) }
+    // Note: home pin intentionally excluded from zoom calc so it doesn't shrink the view
     if (allLats.length <= 1) return 13
     const lats = allLats
     const lngs = allLngs
@@ -119,7 +127,7 @@ export default function MapView({ items, lodging }: MapViewProps) {
   return (
     <div className="space-y-3">
       {/* Legend */}
-      {(uniqueDates.length > 1 || lodging) && (
+      {(uniqueDates.length > 1 || lodging || homeLocation) && (
         <div className="flex flex-wrap gap-3 text-xs">
           {uniqueDates.map((date) => (
             <div key={date} className="flex items-center gap-1.5">
@@ -140,6 +148,14 @@ export default function MapView({ items, lodging }: MapViewProps) {
                 </svg>
               </div>
               <span className="text-gray-600">{lodging.name}</span>
+            </div>
+          )}
+          {homeLocation && (
+            <div className="flex items-center gap-1.5">
+              <div className="flex h-3 w-3 items-center justify-center rounded-full bg-blue-500 text-[8px]">
+                🏠
+              </div>
+              <span className="text-gray-600">Home</span>
             </div>
           )}
         </div>
@@ -238,6 +254,18 @@ export default function MapView({ items, lodging }: MapViewProps) {
                   )}
                 </div>
               </InfoWindow>
+            )}
+
+            {/* Home pin */}
+            {homeLocation && (
+              <AdvancedMarker
+                position={{ lat: homeLocation.lat, lng: homeLocation.lng }}
+                zIndex={20}
+              >
+                <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-blue-500 shadow-lg text-lg">
+                  🏠
+                </div>
+              </AdvancedMarker>
             )}
           </Map>
         </APIProvider>

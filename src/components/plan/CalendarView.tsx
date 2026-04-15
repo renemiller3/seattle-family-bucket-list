@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { format, addDays, subDays, addWeeks, subWeeks, addMonths, subMonths, startOfWeek } from 'date-fns'
 import type { PlanItem, Outing } from '@/lib/types'
+import { useProfile } from '@/hooks/useProfile'
 import ItineraryView from './ItineraryView'
 import DailyView from './DailyView'
 import WeeklyView from './WeeklyView'
@@ -64,6 +65,13 @@ export default function CalendarView({
     () => (selectedOutingId ? outings.find((o) => o.id === selectedOutingId) : null) ?? null,
     [selectedOutingId, outings]
   )
+
+  const { profile } = useProfile(userId)
+
+  const homeLocation = useMemo(() => {
+    if (!profile?.home_lat || !profile?.home_lng || !profile?.home_address) return null
+    return { lat: profile.home_lat, lng: profile.home_lng, address: profile.home_address }
+  }, [profile])
 
   const lodgingPin = useMemo(() => {
     if (!selectedOuting?.lodging_lat || !selectedOuting?.lodging_lng || !selectedOuting?.lodging_name) return null
@@ -266,7 +274,7 @@ export default function CalendarView({
 
       {/* Map (inline above list when toggled) */}
       {view === 'itinerary' && showMap && (
-        <MapView items={items} lodging={lodgingPin} />
+        <MapView items={items} lodging={lodgingPin} homeLocation={homeLocation} />
       )}
 
       {/* Calendar view */}

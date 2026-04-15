@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { Activity } from '@/lib/types'
 import { getVibeEmoji, getCostDisplay } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
 import { useBucketList } from '@/hooks/useBucketList'
+import { useProfile } from '@/hooks/useProfile'
 import AddToPlanModal from './AddToPlanModal'
 
 interface ActivityDetailProps {
@@ -13,12 +14,33 @@ interface ActivityDetailProps {
 
 export default function ActivityDetail({ activity }: ActivityDetailProps) {
   const { user } = useAuth()
+  const { profile } = useProfile(user?.id)
   const { isOnBucketList, toggleBucketList } = useBucketList(user?.id)
   const [showAddModal, setShowAddModal] = useState(false)
   const [showAddedToast, setShowAddedToast] = useState(false)
   const [bucketListToast, setBucketListToast] = useState<string | null>(null)
+  const [driveInfo, setDriveInfo] = useState<{ distanceText: string; durationText: string } | null>(null)
+  const [loadingDrive, setLoadingDrive] = useState(false)
   const isEvent = activity.type === 'event'
   const onBucketList = isOnBucketList(activity.id)
+
+  useEffect(() => {
+    if (!profile?.home_lat || !profile?.home_lng || !activity.lat || !activity.lng) return
+    setLoadingDrive(true)
+    fetch('/api/distance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        originLat: profile.home_lat,
+        originLng: profile.home_lng,
+        destLat: activity.lat,
+        destLng: activity.lng,
+      }),
+    })
+      .then((r) => r.json())
+      .then((data) => { if (data.durationText) setDriveInfo(data) })
+      .finally(() => setLoadingDrive(false))
+  }, [profile?.home_lat, profile?.home_lng, activity.lat, activity.lng])
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
@@ -121,6 +143,19 @@ export default function ActivityDetail({ activity }: ActivityDetailProps) {
             </a>
           )}
         </div>
+        {/* Drive time from home */}
+        {profile?.home_lat && activity.lat && (
+          <div className="mt-3 border-t border-gray-200 pt-3">
+            {loadingDrive ? (
+              <p className="text-sm text-gray-400">Calculating drive time…</p>
+            ) : driveInfo ? (
+              <p className="text-sm text-gray-700">
+                🚗 <span className="font-medium">{driveInfo.durationText}</span>
+                <span className="text-gray-500"> · {driveInfo.distanceText} from home</span>
+              </p>
+            ) : null}
+          </div>
+        )}
       </div>
 
       {/* Why it's worth it */}

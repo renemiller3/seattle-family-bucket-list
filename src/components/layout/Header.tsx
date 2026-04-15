@@ -52,6 +52,12 @@ export default function Header() {
               {user.user_metadata?.avatar_url && (
                 <img src={user.user_metadata.avatar_url} alt="" className="h-8 w-8 rounded-full" />
               )}
+              <Link
+                href="/settings"
+                className="rounded-lg bg-gray-100 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-200 transition-colors"
+              >
+                Settings
+              </Link>
               <button
                 onClick={signOut}
                 className="rounded-lg bg-gray-100 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-200 transition-colors"
@@ -110,6 +116,13 @@ export default function Header() {
                     className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
                   >
                     My Calendar
+                  </Link>
+                  <Link
+                    href="/settings"
+                    onClick={() => setMenuOpen(false)}
+                    className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                  >
+                    Settings
                   </Link>
                 </>
               )}

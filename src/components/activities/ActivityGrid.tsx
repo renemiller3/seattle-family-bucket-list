@@ -9,6 +9,7 @@ import FilterBar, { type Filters } from './FilterBar'
 import AddToPlanModal from './AddToPlanModal'
 import { useAuth } from '@/hooks/useAuth'
 import { useBucketList } from '@/hooks/useBucketList'
+import { useProfile } from '@/hooks/useProfile'
 import DiscoverMap from './DiscoverMap'
 import FeaturedRow from './FeaturedRow'
 import SeasonalRow from './SeasonalRow'
@@ -19,7 +20,13 @@ interface ActivityGridProps {
 
 export default function ActivityGrid({ activities }: ActivityGridProps) {
   const { user } = useAuth()
+  const { profile } = useProfile(user?.id)
   const { isOnBucketList, toggleBucketList } = useBucketList(user?.id)
+
+  const homeLocation =
+    profile?.home_lat && profile?.home_lng && profile?.home_address
+      ? { lat: profile.home_lat, lng: profile.home_lng, address: profile.home_address }
+      : null
   const [filters, setFilters] = useState<Filters>({
     vibes: [],
     ageRange: null,
@@ -162,6 +169,7 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
         <div className="md:hidden">
           <DiscoverMap
             activities={filtered}
+            homeLocation={homeLocation}
             selectedActivityId={selectedMapActivity}
             onSelectActivity={setSelectedMapActivity}
             className="h-[calc(100vh-14rem)] w-full overflow-hidden rounded-xl border border-gray-200"
@@ -174,6 +182,7 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
           <div className="fixed right-0 bottom-0 w-1/2 pb-3 pr-3" style={{ top: mapTop > 0 ? `${mapTop}px` : '11.5rem' }}>
             <DiscoverMap
               activities={filtered}
+              homeLocation={homeLocation}
               selectedActivityId={selectedMapActivity}
               onSelectActivity={handleMapSelectActivity}
               className="h-full w-full overflow-hidden rounded-xl border border-gray-200"
