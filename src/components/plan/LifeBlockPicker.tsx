@@ -143,7 +143,13 @@ export default function LifeBlockPicker({ date, onAdd, onClose }: LifeBlockPicke
             <input
               type="text"
               value={locationUrl}
-              onChange={(e) => setLocationUrl(e.target.value)}
+              onChange={(e) => {
+                setLocationUrl(e.target.value)
+                if (!e.target.value.trim()) {
+                  setLat(null)
+                  setLng(null)
+                }
+              }}
               placeholder="e.g., https://maps.google.com/... or 123 Main St"
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
             />

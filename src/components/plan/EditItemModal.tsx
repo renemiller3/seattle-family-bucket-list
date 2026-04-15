@@ -160,7 +160,13 @@ export default function EditItemModal({ item, onSave, onClose, outings = [] }: E
             </label>
             <PlaceAutocomplete
               value={locationUrl}
-              onChange={setLocationUrl}
+              onChange={(val) => {
+                setLocationUrl(val)
+                if (!val.trim()) {
+                  setLat(null)
+                  setLng(null)
+                }
+              }}
               onPlaceSelect={(place) => {
                 setLocationUrl(place.url)
                 setLat(place.lat)
