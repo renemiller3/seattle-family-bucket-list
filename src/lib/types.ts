@@ -44,6 +44,10 @@ export interface Outing {
   id: string
   user_id: string
   name: string
+  lodging_name: string | null
+  lodging_address: string | null
+  lodging_lat: number | null
+  lodging_lng: number | null
   created_at: string
 }
 
@@ -125,6 +129,11 @@ export interface Database {
         Row: Profile
         Insert: Omit<Profile, 'created_at'>
         Update: Partial<Omit<Profile, 'id' | 'created_at'>>
+      }
+      outings: {
+        Row: Outing
+        Insert: Omit<Outing, 'id' | 'created_at'>
+        Update: Partial<Omit<Outing, 'id' | 'created_at'>>
       }
       plan_items: {
         Row: PlanItem

@@ -50,6 +50,14 @@ export default function PlanItemCard({ item, onUpdate, onDelete, dragHandleProps
     if (isSimpleLifeBlock) {
       return (
         <div className={`group flex items-center gap-3 rounded-lg bg-gray-50 border border-gray-200 px-4 py-2.5 ${item.is_completed ? 'opacity-60' : ''}`}>
+          {activityNumber != null && dayColor && (
+            <div
+              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white text-[10px] font-bold"
+              style={{ backgroundColor: dayColor }}
+            >
+              {activityNumber}
+            </div>
+          )}
           <button
             onClick={(e) => { e.stopPropagation(); onUpdate(item.id, { is_completed: !item.is_completed }) }}
             className={`shrink-0 h-5 w-5 rounded border-2 transition-colors ${
@@ -64,14 +72,6 @@ export default function PlanItemCard({ item, onUpdate, onDelete, dragHandleProps
               </svg>
             )}
           </button>
-          {activityNumber != null && (
-            <div
-              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white text-[10px] font-bold"
-              style={{ backgroundColor: dayColor || '#10b981' }}
-            >
-              {activityNumber}
-            </div>
-          )}
           {icon && <span className="text-lg">{icon}</span>}
           <span className={`text-sm font-medium text-gray-600 ${item.is_completed ? 'line-through' : ''}`}>{title}</span>
           {item.start_time && (
@@ -117,6 +117,14 @@ export default function PlanItemCard({ item, onUpdate, onDelete, dragHandleProps
         )}
         <div className="p-4">
           <div className="flex items-start gap-2">
+            {activityNumber != null && dayColor && (
+              <div
+                className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white text-[10px] font-bold"
+                style={{ backgroundColor: dayColor }}
+              >
+                {activityNumber}
+              </div>
+            )}
             {dragHandleProps && (
               <button
                 {...dragHandleProps}
@@ -146,14 +154,6 @@ export default function PlanItemCard({ item, onUpdate, onDelete, dragHandleProps
                 </svg>
               )}
             </button>
-            {activityNumber != null && (
-              <div
-                className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white text-[10px] font-bold"
-                style={{ backgroundColor: dayColor || '#10b981' }}
-              >
-                {activityNumber}
-              </div>
-            )}
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between gap-2">
                 <p className={`text-lg font-semibold text-gray-900 leading-tight ${item.is_completed ? 'line-through' : ''}`}>

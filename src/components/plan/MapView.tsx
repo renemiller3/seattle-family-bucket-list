@@ -7,8 +7,16 @@ import type { PlanItem } from '@/lib/types'
 import { formatTime } from '@/lib/utils'
 import Link from 'next/link'
 
+interface LodgingPin {
+  name: string
+  lat: number
+  lng: number
+  address?: string | null
+}
+
 interface MapViewProps {
   items: PlanItem[]
+  lodging?: LodgingPin | null
 }
 
 const DAY_COLORS = [
@@ -21,8 +29,9 @@ const DAY_COLORS = [
   '#14b8a6', // teal
 ]
 
-export default function MapView({ items }: MapViewProps) {
+export default function MapView({ items, lodging }: MapViewProps) {
   const [selectedItem, setSelectedItem] = useState<PlanItem | null>(null)
+  const [showLodgingInfo, setShowLodgingInfo] = useState(false)
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY
 
@@ -58,21 +67,25 @@ export default function MapView({ items }: MapViewProps) {
     lng: item.activity?.lng ?? item.lng ?? 0,
   })
 
-  // Calculate center and zoom from items
+  // Calculate center and zoom from items + lodging
   const center = useMemo(() => {
-    if (mappableItems.length === 0) return { lat: 47.6062, lng: -122.3321 }
-    const lats = mappableItems.map((i) => getCoords(i).lat)
-    const lngs = mappableItems.map((i) => getCoords(i).lng)
+    const allLats = mappableItems.map((i) => getCoords(i).lat)
+    const allLngs = mappableItems.map((i) => getCoords(i).lng)
+    if (lodging) { allLats.push(lodging.lat); allLngs.push(lodging.lng) }
+    if (allLats.length === 0) return { lat: 47.6062, lng: -122.3321 }
     return {
-      lat: lats.reduce((a, b) => a + b, 0) / lats.length,
-      lng: lngs.reduce((a, b) => a + b, 0) / lngs.length,
+      lat: allLats.reduce((a, b) => a + b, 0) / allLats.length,
+      lng: allLngs.reduce((a, b) => a + b, 0) / allLngs.length,
     }
-  }, [mappableItems])
+  }, [mappableItems, lodging])
 
   const autoZoom = useMemo(() => {
-    if (mappableItems.length <= 1) return 13
-    const lats = mappableItems.map((i) => getCoords(i).lat)
-    const lngs = mappableItems.map((i) => getCoords(i).lng)
+    const allLats = mappableItems.map((i) => getCoords(i).lat)
+    const allLngs = mappableItems.map((i) => getCoords(i).lng)
+    if (lodging) { allLats.push(lodging.lat); allLngs.push(lodging.lng) }
+    if (allLats.length <= 1) return 13
+    const lats = allLats
+    const lngs = allLngs
     const latSpread = Math.max(...lats) - Math.min(...lats)
     const lngSpread = Math.max(...lngs) - Math.min(...lngs)
     const maxSpread = Math.max(latSpread, lngSpread)
@@ -94,7 +107,7 @@ export default function MapView({ items }: MapViewProps) {
     )
   }
 
-  if (mappableItems.length === 0) {
+  if (mappableItems.length === 0 && !lodging) {
     return (
       <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
         <p className="text-lg text-gray-500">No activities with locations on your calendar.</p>
@@ -106,7 +119,7 @@ export default function MapView({ items }: MapViewProps) {
   return (
     <div className="space-y-3">
       {/* Legend */}
-      {uniqueDates.length > 1 && (
+      {(uniqueDates.length > 1 || lodging) && (
         <div className="flex flex-wrap gap-3 text-xs">
           {uniqueDates.map((date) => (
             <div key={date} className="flex items-center gap-1.5">
@@ -119,6 +132,16 @@ export default function MapView({ items }: MapViewProps) {
               </span>
             </div>
           ))}
+          {lodging && (
+            <div className="flex items-center gap-1.5">
+              <div className="flex h-3 w-3 items-center justify-center rounded-sm bg-gray-700">
+                <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                </svg>
+              </div>
+              <span className="text-gray-600">{lodging.name}</span>
+            </div>
+          )}
         </div>
       )}
 
@@ -172,6 +195,46 @@ export default function MapView({ items }: MapViewProps) {
                     >
                       View details →
                     </Link>
+                  )}
+                </div>
+              </InfoWindow>
+            )}
+
+            {/* Lodging marker */}
+            {lodging && (
+              <AdvancedMarker
+                position={{ lat: lodging.lat, lng: lodging.lng }}
+                onClick={() => { setShowLodgingInfo(true); setSelectedItem(null) }}
+              >
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg border-2 border-white bg-gray-700 shadow-md">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                    <polyline points="9 22 9 12 15 12 15 22" />
+                  </svg>
+                </div>
+              </AdvancedMarker>
+            )}
+
+            {lodging && showLodgingInfo && (
+              <InfoWindow
+                position={{ lat: lodging.lat, lng: lodging.lng }}
+                onCloseClick={() => setShowLodgingInfo(false)}
+                pixelOffset={[0, -40]}
+              >
+                <div style={{ width: 180, fontFamily: 'system-ui, sans-serif' }}>
+                  <p style={{ fontWeight: 600, color: '#111827', fontSize: 14, lineHeight: 1.3, margin: 0 }}>
+                    {lodging.name}
+                  </p>
+                  <p style={{ fontSize: 12, color: '#6b7280', marginTop: 2, marginBottom: 0 }}>Lodging</p>
+                  {lodging.address && (
+                    <a
+                      href={lodging.address.startsWith('http') ? lodging.address : `https://maps.google.com/?q=${encodeURIComponent(lodging.address)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ display: 'inline-block', marginTop: 4, fontSize: 12, fontWeight: 500, color: '#059669', textDecoration: 'none' }}
+                    >
+                      Open in Maps →
+                    </a>
                   )}
                 </div>
               </InfoWindow>
