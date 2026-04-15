@@ -88,14 +88,14 @@ export default function DiscoverMap({ activities, selectedActivityId, onSelectAc
               onCloseClick={handleCloseInfoWindow}
               pixelOffset={[0, -30]}
             >
-              <div className="w-[200px] pr-4 -mt-2">
-                <p className="font-semibold text-gray-900 text-sm leading-tight">{selectedActivity.title}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{selectedActivity.area} · {selectedActivity.cost}</p>
+              <div style={{ width: 200, paddingRight: 16, marginTop: -4, fontFamily: 'system-ui, sans-serif' }}>
+                <p style={{ fontWeight: 600, color: '#111827', fontSize: 14, lineHeight: 1.3, margin: 0 }}>{selectedActivity.title}</p>
+                <p style={{ fontSize: 12, color: '#6b7280', marginTop: 2, marginBottom: 0 }}>{selectedActivity.area} · {selectedActivity.cost}</p>
                 <Link
                   href={`/activities/${selectedActivity.id}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-1.5 inline-block text-xs font-medium text-emerald-600 hover:text-emerald-700"
+                  style={{ display: 'inline-block', marginTop: 6, fontSize: 12, fontWeight: 500, color: '#059669', textDecoration: 'none' }}
                 >
                   View details →
                 </Link>
