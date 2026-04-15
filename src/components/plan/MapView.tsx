@@ -26,11 +26,20 @@ export default function MapView({ items }: MapViewProps) {
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY
 
-  // Filter to items with coordinates (from activity OR from plan_item itself)
+  // Filter to items with coordinates, sorted by date then start_time (matches list view order)
   const mappableItems = useMemo(() => {
-    return items.filter(
-      (item) => (item.activity?.lat != null && item.activity?.lng != null) || (item.lat != null && item.lng != null)
-    )
+    return items
+      .filter(
+        (item) => (item.activity?.lat != null && item.activity?.lng != null) || (item.lat != null && item.lng != null)
+      )
+      .sort((a, b) => {
+        const dateCmp = a.date.localeCompare(b.date)
+        if (dateCmp !== 0) return dateCmp
+        if (!a.start_time && !b.start_time) return 0
+        if (!a.start_time) return 1
+        if (!b.start_time) return -1
+        return a.start_time.localeCompare(b.start_time)
+      })
   }, [items])
 
   // Get unique dates for color coding

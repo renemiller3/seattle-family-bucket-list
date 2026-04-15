@@ -11,6 +11,8 @@ interface PlanItemProps {
   compact?: boolean
   outings?: Outing[]
   variant?: 'outing'
+  activityNumber?: number
+  dayColor?: string
 }
 
 const TYPE_STYLES: Record<string, string> = {
@@ -27,7 +29,7 @@ const LIFE_BLOCK_ICONS: Record<string, string> = {
   Travel: '🚗',
 }
 
-export default function PlanItemCard({ item, onUpdate, onDelete, dragHandleProps, compact, outings = [], variant }: PlanItemProps) {
+export default function PlanItemCard({ item, onUpdate, onDelete, dragHandleProps, compact, outings = [], variant, activityNumber, dayColor }: PlanItemProps) {
   const title = item.title || item.activity?.title || 'Untitled'
   const icon = item.type === 'life_block' ? LIFE_BLOCK_ICONS[title] || '📌' : null
   const outingName = item.outing_id ? outings.find((o) => o.id === item.outing_id)?.name : null
@@ -62,6 +64,14 @@ export default function PlanItemCard({ item, onUpdate, onDelete, dragHandleProps
               </svg>
             )}
           </button>
+          {activityNumber != null && (
+            <div
+              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white text-[10px] font-bold"
+              style={{ backgroundColor: dayColor || '#10b981' }}
+            >
+              {activityNumber}
+            </div>
+          )}
           {icon && <span className="text-lg">{icon}</span>}
           <span className={`text-sm font-medium text-gray-600 ${item.is_completed ? 'line-through' : ''}`}>{title}</span>
           {item.start_time && (
@@ -136,6 +146,14 @@ export default function PlanItemCard({ item, onUpdate, onDelete, dragHandleProps
                 </svg>
               )}
             </button>
+            {activityNumber != null && (
+              <div
+                className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white text-[10px] font-bold"
+                style={{ backgroundColor: dayColor || '#10b981' }}
+              >
+                {activityNumber}
+              </div>
+            )}
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between gap-2">
                 <p className={`text-lg font-semibold text-gray-900 leading-tight ${item.is_completed ? 'line-through' : ''}`}>

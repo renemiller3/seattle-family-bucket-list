@@ -15,6 +15,8 @@ interface ItineraryViewProps {
   outings?: Outing[]
 }
 
+const DAY_COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6']
+
 export default function ItineraryView({ items, onUpdate, onDelete, outings }: ItineraryViewProps) {
   const [editingItem, setEditingItem] = useState<PlanItem | null>(null)
 
@@ -35,6 +37,25 @@ export default function ItineraryView({ items, onUpdate, onDelete, outings }: It
     }
     return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b))
   }, [items])
+
+  // Compute global sequential activity numbers for mappable items (matches map marker order)
+  const activityNumberMap = useMemo(() => {
+    const map = new Map<string, number>()
+    let counter = 1
+    for (const [, dateItems] of groupedByDate) {
+      for (const item of dateItems) {
+        const hasCoords =
+          (item.activity?.lat != null && item.activity?.lng != null) ||
+          (item.lat != null && item.lng != null)
+        if (hasCoords) {
+          map.set(item.id, counter++)
+        }
+      }
+    }
+    return map
+  }, [groupedByDate])
+
+  const uniqueDates = useMemo(() => groupedByDate.map(([date]) => date), [groupedByDate])
 
   if (items.length === 0) {
     return (
@@ -71,7 +92,15 @@ export default function ItineraryView({ items, onUpdate, onDelete, outings }: It
                   <DriveTimeDisplay minutes={item.travel_time_before} />
                 )}
                 <div onClick={() => setEditingItem(item)} className="cursor-pointer">
-                  <PlanItemCard item={item} onUpdate={onUpdate} onDelete={onDelete} outings={outings} variant="outing" />
+                  <PlanItemCard
+                    item={item}
+                    onUpdate={onUpdate}
+                    onDelete={onDelete}
+                    outings={outings}
+                    variant="outing"
+                    activityNumber={activityNumberMap.get(item.id)}
+                    dayColor={DAY_COLORS[uniqueDates.indexOf(item.date) % DAY_COLORS.length]}
+                  />
                 </div>
                 {item.travel_time_after && index < dateItems.length - 1 && (
                   <DriveTimeDisplay minutes={item.travel_time_after} />
