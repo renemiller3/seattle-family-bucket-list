@@ -30,7 +30,9 @@ export function usePlanItems(userId: string | undefined) {
     fetchItems()
   }, [fetchItems])
 
-  const addItem = async (item: Omit<PlanItem, 'id' | 'created_at' | 'updated_at' | 'activity'>) => {
+  const addItem = async (
+    item: Omit<PlanItem, 'id' | 'created_at' | 'updated_at' | 'activity' | 'user_activity' | 'user_activity_id'> & { user_activity_id?: string | null }
+  ) => {
     const { data } = await supabase.from('plan_items').insert(item).select('*, activity:activities(*)').single()
     if (data) {
       setItems((prev) => [...prev, data as PlanItem].sort((a, b) => {

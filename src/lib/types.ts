@@ -65,6 +65,7 @@ export interface PlanItem {
   id: string
   user_id: string
   activity_id: string | null
+  user_activity_id: string | null
   type: PlanItemType
   title: string | null
   date: string
@@ -84,6 +85,20 @@ export interface PlanItem {
   created_at: string
   updated_at: string
   activity?: Activity
+  user_activity?: UserActivity
+}
+
+export interface UserActivity {
+  id: string
+  user_id: string
+  title: string
+  location_text: string | null
+  lat: number | null
+  lng: number | null
+  emoji: string | null
+  notes: string | null
+  created_at: string
+  updated_at: string
 }
 
 export interface PlanNote {
@@ -106,7 +121,8 @@ export interface SharedPlan {
 export interface ActivityPhoto {
   id: string
   user_id: string
-  activity_id: string
+  activity_id: string | null
+  user_activity_id: string | null
   plan_item_id: string | null
   photo_url: string
   date_completed: string
@@ -114,8 +130,11 @@ export interface ActivityPhoto {
 }
 
 export interface SavedActivity {
+  id: string
   user_id: string
-  activity_id: string
+  activity_id: string | null
+  user_activity_id: string | null
+  sort_order: number
   created_at: string
 }
 
@@ -140,8 +159,8 @@ export interface Database {
       }
       plan_items: {
         Row: PlanItem
-        Insert: Omit<PlanItem, 'id' | 'created_at' | 'updated_at' | 'activity'>
-        Update: Partial<Omit<PlanItem, 'id' | 'created_at' | 'updated_at' | 'activity'>>
+        Insert: Omit<PlanItem, 'id' | 'created_at' | 'updated_at' | 'activity' | 'user_activity' | 'user_activity_id'> & { user_activity_id?: string | null }
+        Update: Partial<Omit<PlanItem, 'id' | 'created_at' | 'updated_at' | 'activity' | 'user_activity'>>
       }
       plan_notes: {
         Row: PlanNote
@@ -160,8 +179,13 @@ export interface Database {
       }
       saved_activities: {
         Row: SavedActivity
-        Insert: Omit<SavedActivity, 'created_at'>
-        Update: never
+        Insert: Omit<SavedActivity, 'id' | 'created_at'>
+        Update: Partial<Omit<SavedActivity, 'id' | 'user_id' | 'created_at'>>
+      }
+      user_activities: {
+        Row: UserActivity
+        Insert: Omit<UserActivity, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<UserActivity, 'id' | 'user_id' | 'created_at' | 'updated_at'>>
       }
     }
   }

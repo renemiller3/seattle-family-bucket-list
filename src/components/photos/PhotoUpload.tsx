@@ -3,17 +3,25 @@
 import { useState, useRef } from 'react'
 
 interface PhotoUploadProps {
-  activityId: string
+  activityId?: string
+  userActivityId?: string
   planItemId?: string
   dateCompleted: string
   onUploaded: () => void
   compact?: boolean
 }
 
-export default function PhotoUpload({ activityId, planItemId, dateCompleted, onUploaded, compact }: PhotoUploadProps) {
+export default function PhotoUpload({
+  activityId,
+  userActivityId,
+  planItemId,
+  dateCompleted,
+  onUploaded,
+  compact,
+}: PhotoUploadProps) {
   const [uploading, setUploading] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
-  const inputId = `photo-upload-${activityId}`
+  const inputId = `photo-upload-${activityId ?? userActivityId ?? 'unknown'}`
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
@@ -24,7 +32,8 @@ export default function PhotoUpload({ activityId, planItemId, dateCompleted, onU
     for (const file of Array.from(files)) {
       const formData = new FormData()
       formData.append('file', file)
-      formData.append('activity_id', activityId)
+      if (activityId) formData.append('activity_id', activityId)
+      if (userActivityId) formData.append('user_activity_id', userActivityId)
       if (planItemId) formData.append('plan_item_id', planItemId)
       formData.append('date_completed', dateCompleted)
 
