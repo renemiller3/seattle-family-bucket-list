@@ -289,33 +289,34 @@ export default function BucketListPage() {
                           </label>
                         )}
 
-                        <div className="flex items-start justify-between gap-3 p-4">
-                          <div className="min-w-0">
-                            {completedDate && (
-                              <p className="mb-0.5 text-xs font-semibold uppercase tracking-widest text-amber-500">
-                                {format(parseISO(completedDate), 'MMMM d, yyyy')}
-                              </p>
-                            )}
+                        <div className="p-4">
+                          {completedDate && (
+                            <p className="mb-0.5 text-xs font-semibold uppercase tracking-widest text-amber-500">
+                              {format(parseISO(completedDate), 'MMMM d, yyyy')}
+                            </p>
+                          )}
+                          <div className="flex items-baseline gap-1.5">
                             {detailHref ? (
                               <Link
                                 href={detailHref}
-                                className="block truncate font-semibold text-gray-900 hover:text-emerald-700 transition-colors"
+                                className="flex-1 truncate font-semibold text-gray-900 hover:text-emerald-700 transition-colors"
                               >
                                 {title}
                               </Link>
                             ) : (
-                              <div className="flex items-center gap-1.5">
-                                <p className="truncate font-semibold text-gray-900">{title}</p>
+                              <>
+                                <p className="flex-1 truncate font-semibold text-gray-900">{title}</p>
                                 <span className="shrink-0 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-amber-700">
                                   Dream
                                 </span>
-                              </div>
-                            )}
-                            {locationText && (
-                              <p className="mt-0.5 text-xs text-gray-500">{locationText}</p>
+                              </>
                             )}
                           </div>
-                          <div className="shrink-0 pt-0.5">
+                          {locationText && (
+                            <p className="mt-0.5 text-xs text-gray-500">{locationText}</p>
+                          )}
+                          <div className="mt-2.5 flex items-center justify-between">
+                            <div />
                             <PhotoUpload
                               activityId={item.activity_id ?? undefined}
                               userActivityId={item.user_activity_id ?? undefined}
