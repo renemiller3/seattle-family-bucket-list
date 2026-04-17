@@ -237,6 +237,40 @@ export function useBucketList(userId: string | undefined) {
     await fetchItems()
   }
 
+  const markIncomplete = async (item: Pick<BucketListItem, 'activity_id' | 'user_activity_id'>) => {
+    if (!userId) return
+    // Fetch all completed plan_items for this target. Synthetic completion-only rows
+    // (created by the "Did it ✓" button) have no scheduling info → delete them outright.
+    // Real calendar entries have an outing, time, or notes → just flip is_completed off.
+    const targetCol = item.activity_id ? 'activity_id' : 'user_activity_id'
+    const targetId = item.activity_id ?? item.user_activity_id
+    if (!targetId) return
+
+    const { data: rows } = await supabase
+      .from('plan_items')
+      .select('id, outing_id, start_time, end_time, notes')
+      .eq('user_id', userId)
+      .eq('is_completed', true)
+      .eq(targetCol, targetId)
+
+    if (rows && rows.length > 0) {
+      const toDelete: string[] = []
+      const toUncomplete: string[] = []
+      for (const row of rows as any[]) {
+        const isSynthetic = !row.outing_id && !row.start_time && !row.end_time && !row.notes
+        if (isSynthetic) toDelete.push(row.id)
+        else toUncomplete.push(row.id)
+      }
+      if (toDelete.length > 0) {
+        await supabase.from('plan_items').delete().in('id', toDelete)
+      }
+      if (toUncomplete.length > 0) {
+        await supabase.from('plan_items').update({ is_completed: false }).in('id', toUncomplete)
+      }
+    }
+    await fetchItems()
+  }
+
   return {
     items,
     loading,
@@ -252,6 +286,7 @@ export function useBucketList(userId: string | undefined) {
     addDream,
     removeDream,
     markComplete,
+    markIncomplete,
     refresh: fetchItems,
   }
 }
