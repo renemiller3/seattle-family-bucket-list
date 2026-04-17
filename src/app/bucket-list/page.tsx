@@ -259,8 +259,7 @@ export default function BucketListPage() {
               <h2 className="mb-5 text-sm font-semibold text-gray-500 uppercase tracking-wide">
                 Memories ({doneItems.length})
               </h2>
-              <div className="relative space-y-8 pl-8">
-                <div className="absolute left-[7px] top-3 bottom-3 w-0.5 bg-amber-200" />
+              <div className="space-y-6">
                 {doneItems.map((item) => {
                   const activityPhotos = getPhotosForItem(item)
                   const completedDate = getCompletedDate(item)
@@ -270,9 +269,7 @@ export default function BucketListPage() {
                   const title = getItemTitle(item)
                   const locationText = item.user_activity?.location_text ?? item.activity?.area ?? null
                   return (
-                    <div key={item.id} className="relative">
-                      <div className="absolute -left-[25px] top-6 h-3.5 w-3.5 rounded-full border-2 border-amber-300 bg-white" />
-
+                    <div key={item.id}>
                       <div className="overflow-hidden rounded-2xl border border-amber-100 bg-amber-50 shadow-sm">
                         {activityPhotos.length > 0 ? (
                           <div className="p-4 pb-2">

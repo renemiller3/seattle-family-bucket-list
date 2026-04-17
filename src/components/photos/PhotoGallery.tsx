@@ -19,7 +19,7 @@ export default function PhotoGallery({ photos, onDelete }: PhotoGalleryProps) {
     <>
       {/* Hero */}
       <div
-        className="group relative aspect-video w-full overflow-hidden rounded-xl bg-gray-100 cursor-pointer"
+        className="group relative aspect-[5/2] w-full overflow-hidden rounded-xl bg-gray-100 cursor-pointer"
         onClick={() => setLightboxIndex(0)}
       >
         <img
