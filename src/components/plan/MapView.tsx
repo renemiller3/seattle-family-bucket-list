@@ -50,9 +50,16 @@ export default function MapView({ items, lodging, homeLocation }: MapViewProps) 
   // Hide home pin when this outing has a lodging pin — home is far away and not useful here
   const showHomePin = Boolean(homeLocation && !lodging)
 
+  // When the outing has lodging, drive times are relative to lodging; otherwise relative to home
+  const driveOrigin = lodging
+    ? { lat: lodging.lat, lng: lodging.lng }
+    : homeLocation
+      ? { lat: homeLocation.lat, lng: homeLocation.lng }
+      : null
+
   const fetchDrive = useCallback(async (item: PlanItem) => {
     const coords = { lat: item.activity?.lat ?? item.lat, lng: item.activity?.lng ?? item.lng }
-    if (!homeLocation || !coords.lat || !coords.lng) return
+    if (!driveOrigin || !coords.lat || !coords.lng) return
     const key = item.id
     if (driveCache[key]) return
     setLoadingDrive(true)
@@ -61,8 +68,8 @@ export default function MapView({ items, lodging, homeLocation }: MapViewProps) 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          originLat: homeLocation.lat,
-          originLng: homeLocation.lng,
+          originLat: driveOrigin.lat,
+          originLng: driveOrigin.lng,
           destLat: coords.lat,
           destLng: coords.lng,
         }),
@@ -72,7 +79,7 @@ export default function MapView({ items, lodging, homeLocation }: MapViewProps) 
     } finally {
       setLoadingDrive(false)
     }
-  }, [homeLocation, driveCache])
+  }, [driveOrigin, driveCache])
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY
 
@@ -238,10 +245,10 @@ export default function MapView({ items, lodging, homeLocation }: MapViewProps) 
                     {format(parseISO(selectedItem.date), 'EEE, MMM d')}
                     {selectedItem.start_time && <> at {formatTime(selectedItem.start_time)}</>}
                   </p>
-                  {homeLocation && (
+                  {driveOrigin && (
                     <p style={{ fontSize: 12, color: '#2563eb', marginTop: 4, marginBottom: 0 }}>
                       {driveCache[selectedItem.id]
-                        ? `🚗 ${driveCache[selectedItem.id].durationText} · ${driveCache[selectedItem.id].distanceText}`
+                        ? `🚗 ${driveCache[selectedItem.id].durationText} · ${driveCache[selectedItem.id].distanceText} from ${lodging ? 'lodging' : 'home'}`
                         : loadingDrive
                         ? 'Calculating drive time…'
                         : ''}
