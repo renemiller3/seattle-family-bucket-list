@@ -228,10 +228,10 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
       {/* Hero */}
       <section className="mb-6">
         <h1 className="mb-2 text-3xl font-bold text-gray-900 sm:text-4xl">
-          The ultimate PNW family bucket list
+          The ultimate PNW family bucket list <em className="italic">tool</em>.
         </h1>
         <p className="mb-4 text-gray-600">
-          {activities.length} adventures to explore. Filter to find your next one.
+          Discover adventures, plan outings, and save the memories you make along the way.
         </p>
         <FilterBar filters={filters} onChange={setFilters} compact />
       </section>
