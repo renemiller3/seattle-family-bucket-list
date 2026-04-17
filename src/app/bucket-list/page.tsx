@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useBucketList, type BucketListItem } from '@/hooks/useBucketList'
 import { createClient } from '@/lib/supabase/client'
-import type { ActivityPhoto } from '@/lib/types'
+import type { ActivityPhoto, UserActivity } from '@/lib/types'
 import Link from 'next/link'
 import { getCostDisplay } from '@/lib/utils'
 import PhotoUpload from '@/components/photos/PhotoUpload'
@@ -22,12 +22,14 @@ export default function BucketListPage() {
     getCompletedDate,
     reorderBucketList,
     addDream,
+    updateDream,
     removeDream,
     markComplete,
     markIncomplete,
   } = useBucketList(user?.id)
   const [photos, setPhotos] = useState<ActivityPhoto[]>([])
   const [showAddDream, setShowAddDream] = useState(false)
+  const [editingDream, setEditingDream] = useState<UserActivity | null>(null)
   const supabase = createClient()
 
   const fetchPhotos = async () => {
@@ -195,9 +197,19 @@ export default function BucketListPage() {
                         </Link>
                       ) : (
                         <div className="flex flex-1 items-center gap-4 min-w-0">
-                          <div className="flex h-16 w-24 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-amber-100 to-amber-200 text-3xl">
-                            {item.user_activity?.emoji ?? '🗺️'}
-                          </div>
+                          {item.user_activity?.image_url ? (
+                            <div className="h-16 w-24 shrink-0 overflow-hidden rounded-lg bg-gray-100">
+                              <img
+                                src={item.user_activity.image_url}
+                                alt=""
+                                className="h-full w-full object-cover"
+                              />
+                            </div>
+                          ) : (
+                            <div className="flex h-16 w-24 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-amber-100 to-amber-200 text-3xl">
+                              {item.user_activity?.emoji ?? '🗺️'}
+                            </div>
+                          )}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-1.5">
                               <h3 className="text-base font-semibold text-gray-900 truncate">
@@ -230,6 +242,16 @@ export default function BucketListPage() {
                             title="Mark complete"
                           >
                             ✓ Did it
+                          </button>
+                          <button
+                            onClick={() => item.user_activity && setEditingDream(item.user_activity)}
+                            className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-amber-600 transition-colors"
+                            title="Edit"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M12 20h9" />
+                              <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4 12.5-12.5z" />
+                            </svg>
                           </button>
                           <button
                             onClick={() => {
@@ -274,6 +296,14 @@ export default function BucketListPage() {
                         {activityPhotos.length > 0 ? (
                           <div className="p-4 pb-2">
                             <PhotoGallery photos={activityPhotos} onDelete={handleDeletePhoto} />
+                          </div>
+                        ) : isDream && item.user_activity?.image_url ? (
+                          <div className="aspect-[5/2] w-full overflow-hidden bg-gray-100">
+                            <img
+                              src={item.user_activity.image_url}
+                              alt=""
+                              className="h-full w-full object-cover"
+                            />
                           </div>
                         ) : (
                           <label
@@ -346,10 +376,23 @@ export default function BucketListPage() {
 
       {showAddDream && (
         <AddDreamModal
+          mode="create"
           onClose={() => setShowAddDream(false)}
           onSubmit={async (input) => {
             await addDream(input)
             setShowAddDream(false)
+          }}
+        />
+      )}
+
+      {editingDream && (
+        <AddDreamModal
+          mode="edit"
+          initial={editingDream}
+          onClose={() => setEditingDream(null)}
+          onSubmit={async (input) => {
+            await updateDream(editingDream.id, input)
+            setEditingDream(null)
           }}
         />
       )}

@@ -22,7 +22,10 @@ export interface CreateDreamInput {
   lng?: number | null
   emoji?: string | null
   notes?: string | null
+  image_url?: string | null
 }
+
+export type UpdateDreamInput = Partial<CreateDreamInput>
 
 export function useBucketList(userId: string | undefined) {
   const [items, setItems] = useState<BucketListItem[]>([])
@@ -202,6 +205,7 @@ export function useBucketList(userId: string | undefined) {
         lng: input.lng ?? null,
         emoji: input.emoji ?? null,
         notes: input.notes ?? null,
+        image_url: input.image_url ?? null,
       })
       .select()
       .single()
@@ -215,6 +219,27 @@ export function useBucketList(userId: string | undefined) {
     })
     await fetchItems()
     return dream as UserActivity
+  }
+
+  const updateDream = async (userActivityId: string, input: UpdateDreamInput): Promise<UserActivity | null> => {
+    if (!userId) return null
+    const patch: Record<string, unknown> = {}
+    if (input.title !== undefined) patch.title = input.title
+    if (input.location_text !== undefined) patch.location_text = input.location_text
+    if (input.lat !== undefined) patch.lat = input.lat
+    if (input.lng !== undefined) patch.lng = input.lng
+    if (input.emoji !== undefined) patch.emoji = input.emoji
+    if (input.notes !== undefined) patch.notes = input.notes
+    if (input.image_url !== undefined) patch.image_url = input.image_url
+    const { data, error } = await supabase
+      .from('user_activities')
+      .update(patch)
+      .eq('id', userActivityId)
+      .select()
+      .single()
+    if (error || !data) return null
+    await fetchItems()
+    return data as UserActivity
   }
 
   const removeDream = async (userActivityId: string) => {
@@ -284,6 +309,7 @@ export function useBucketList(userId: string | undefined) {
     toggleBucketList,
     reorderBucketList,
     addDream,
+    updateDream,
     removeDream,
     markComplete,
     markIncomplete,
