@@ -165,58 +165,63 @@ export default function BucketListPage() {
           {/* Memories */}
           {doneItems.length > 0 && (
             <section>
-              <h2 className="mb-3 text-sm font-semibold text-gray-500 uppercase tracking-wide">
+              <h2 className="mb-5 text-sm font-semibold text-gray-500 uppercase tracking-wide">
                 Memories ({doneItems.length})
               </h2>
-              <div className="space-y-4">
+              {/* Timeline */}
+              <div className="relative space-y-8 pl-8">
+                <div className="absolute left-[7px] top-3 bottom-3 w-0.5 bg-amber-200" />
                 {doneItems.map(({ activity_id, activity }) => {
                   const activityPhotos = getPhotosForActivity(activity_id)
                   const completedDate = getCompletedDate(activity_id)
+                  const uploadDate = completedDate ?? format(new Date(), 'yyyy-MM-dd')
                   return (
-                    <div
-                      key={activity_id}
-                      className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm"
-                    >
-                      <div className="mb-3 flex items-start gap-4">
-                        {activity.image_url && (
-                          <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-gray-100">
-                            <img src={activity.image_url} alt="" className="h-full w-full object-cover" />
+                    <div key={activity_id} className="relative">
+                      {/* Timeline dot */}
+                      <div className="absolute -left-[25px] top-6 h-3.5 w-3.5 rounded-full border-2 border-amber-300 bg-white" />
+
+                      <div className="overflow-hidden rounded-2xl border border-amber-100 bg-amber-50 shadow-sm">
+                        {/* Photo area */}
+                        {activityPhotos.length > 0 ? (
+                          <div className="p-4 pb-2">
+                            <PhotoGallery photos={activityPhotos} onDelete={handleDeletePhoto} />
                           </div>
+                        ) : (
+                          <label
+                            htmlFor={`photo-upload-${activity_id}`}
+                            className="block cursor-pointer border-b border-amber-100 bg-white/40 px-6 py-8 text-center hover:bg-amber-100/40 transition-colors"
+                          >
+                            <p className="text-2xl mb-1.5">📷</p>
+                            <p className="text-sm text-amber-700/60">Add your first photo from this trip</p>
+                          </label>
                         )}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-white shrink-0">
-                              <svg viewBox="0 0 16 16" fill="none" className="h-3 w-3">
-                                <path d="M3 8l3 3 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                              </svg>
-                            </span>
+
+                        {/* Footer */}
+                        <div className="flex items-start justify-between gap-3 p-4">
+                          <div className="min-w-0">
+                            {completedDate && (
+                              <p className="mb-0.5 text-xs font-semibold uppercase tracking-widest text-amber-500">
+                                {format(parseISO(completedDate), 'MMMM d, yyyy')}
+                              </p>
+                            )}
                             <Link
                               href={`/activities/${activity_id}`}
-                              className="font-semibold text-gray-900 hover:text-emerald-700 truncate"
+                              className="block truncate font-semibold text-gray-900 hover:text-emerald-700 transition-colors"
                             >
                               {activity.title}
                             </Link>
+                            <p className="mt-0.5 text-xs text-gray-500">{activity.area}</p>
                           </div>
-                          <p className="mt-0.5 text-xs text-gray-500">
-                            {completedDate && <>{format(parseISO(completedDate), 'MMMM d, yyyy')} · </>}
-                            {activity.area}
-                          </p>
+                          <div className="shrink-0 pt-0.5">
+                            <PhotoUpload
+                              activityId={activity_id}
+                              dateCompleted={uploadDate}
+                              onUploaded={fetchPhotos}
+                              compact={activityPhotos.length > 0}
+                            />
+                          </div>
                         </div>
                       </div>
-
-                      {/* Photos */}
-                      {activityPhotos.length > 0 && (
-                        <div className="mb-3">
-                          <PhotoGallery photos={activityPhotos} onDelete={handleDeletePhoto} />
-                        </div>
-                      )}
-
-                      {/* Upload */}
-                      <PhotoUpload
-                        activityId={activity_id}
-                        dateCompleted={format(new Date(), 'yyyy-MM-dd')}
-                        onUploaded={fetchPhotos}
-                      />
                     </div>
                   )
                 })}
