@@ -231,7 +231,7 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
           The ultimate PNW family bucket list
         </h1>
         <p className="mb-4 text-gray-600">
-          Discover adventures, plan outings, and save the memories you make along the way.
+          Build your bucket list, plan outings, and keep track of the memories you make along the way.
         </p>
         <FilterBar filters={filters} onChange={setFilters} compact />
       </section>
