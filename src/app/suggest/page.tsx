@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 
 export default function SuggestPage() {
@@ -16,16 +15,19 @@ export default function SuggestPage() {
     if (!name.trim()) return
 
     setStatus('submitting')
-    const supabase = createClient()
 
-    const { error } = await supabase.from('activity_suggestions').insert({
-      name: name.trim(),
-      description: description.trim() || null,
-      location: location.trim() || null,
-      submitted_by: submittedBy.trim() || null,
+    const res = await fetch('/api/suggestions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: name.trim(),
+        description: description.trim() || null,
+        location: location.trim() || null,
+        submitted_by: submittedBy.trim() || null,
+      }),
     })
 
-    if (error) {
+    if (!res.ok) {
       setStatus('error')
     } else {
       setStatus('success')

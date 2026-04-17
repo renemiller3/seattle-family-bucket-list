@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 
 export default function FeedbackPage() {
@@ -14,15 +13,18 @@ export default function FeedbackPage() {
     if (!message.trim()) return
 
     setStatus('submitting')
-    const supabase = createClient()
 
-    const { error } = await supabase.from('feedback').insert({
-      message: message.trim(),
-      submitted_by: name.trim() || null,
-      page_url: document.referrer || null,
+    const res = await fetch('/api/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: message.trim(),
+        submitted_by: name.trim() || null,
+        page_url: document.referrer || null,
+      }),
     })
 
-    if (error) {
+    if (!res.ok) {
       setStatus('error')
     } else {
       setStatus('success')
