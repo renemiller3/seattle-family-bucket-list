@@ -40,6 +40,9 @@ export default function MapView({ items, lodging, homeLocation }: MapViewProps) 
   const [selectedItem, setSelectedItem] = useState<PlanItem | null>(null)
   const [showLodgingInfo, setShowLodgingInfo] = useState(false)
 
+  // Hide home pin when this outing has a lodging pin — home is far away and not useful here
+  const showHomePin = Boolean(homeLocation && !lodging)
+
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY
 
   // Filter to items with coordinates, sorted by date then start_time (matches list view order)
@@ -127,7 +130,7 @@ export default function MapView({ items, lodging, homeLocation }: MapViewProps) 
   return (
     <div className="space-y-3">
       {/* Legend */}
-      {(uniqueDates.length > 1 || lodging || homeLocation) && (
+      {(uniqueDates.length > 1 || lodging || showHomePin) && (
         <div className="flex flex-wrap gap-3 text-xs">
           {uniqueDates.map((date) => (
             <div key={date} className="flex items-center gap-1.5">
@@ -150,7 +153,7 @@ export default function MapView({ items, lodging, homeLocation }: MapViewProps) 
               <span className="text-gray-600">{lodging.name}</span>
             </div>
           )}
-          {homeLocation && (
+          {showHomePin && (
             <div className="flex items-center gap-1.5">
               <div className="flex h-3 w-3 items-center justify-center rounded-full bg-blue-500 text-[8px]">
                 🏠
@@ -256,8 +259,8 @@ export default function MapView({ items, lodging, homeLocation }: MapViewProps) 
               </InfoWindow>
             )}
 
-            {/* Home pin */}
-            {homeLocation && (
+            {/* Home pin — hidden when this outing has lodging */}
+            {showHomePin && homeLocation && (
               <AdvancedMarker
                 position={{ lat: homeLocation.lat, lng: homeLocation.lng }}
                 zIndex={20}
