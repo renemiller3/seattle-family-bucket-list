@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { APIProvider } from '@vis.gl/react-google-maps'
 import type { UserActivity } from '@/lib/types'
+import ImageSearch from '@/components/plan/ImageSearch'
 
 export interface DreamFormInput {
   title: string
@@ -16,10 +17,6 @@ export interface DreamFormInput {
 
 interface AddDreamModalProps {
   onClose: () => void
-  // Called with the final form values. For create flows the dream is created
-  // first with a null image_url; the modal then uploads the chosen file (if
-  // any) and reports back the URL via onSubmit's second argument so the
-  // caller can persist it.
   onSubmit: (input: DreamFormInput) => Promise<void>
   initial?: UserActivity | null
   mode?: 'create' | 'edit'
@@ -76,16 +73,6 @@ function LocationInput({
   )
 }
 
-async function uploadDreamCover(file: File, userActivityId: string | null): Promise<string | null> {
-  const formData = new FormData()
-  formData.append('file', file)
-  if (userActivityId) formData.append('user_activity_id', userActivityId)
-  const res = await fetch('/api/dreams/cover', { method: 'POST', body: formData })
-  if (!res.ok) return null
-  const json = await res.json()
-  return (json.url as string) ?? null
-}
-
 export default function AddDreamModal({ onClose, onSubmit, initial, mode = 'create' }: AddDreamModalProps) {
   const [title, setTitle] = useState(initial?.title ?? '')
   const [locationText, setLocationText] = useState(initial?.location_text ?? '')
@@ -95,49 +82,16 @@ export default function AddDreamModal({ onClose, onSubmit, initial, mode = 'crea
   const [emoji, setEmoji] = useState<string>(initial?.emoji ?? '🗺️')
   const [notes, setNotes] = useState(initial?.notes ?? '')
   const [imageUrl, setImageUrl] = useState<string | null>(initial?.image_url ?? null)
-  const [pendingFile, setPendingFile] = useState<File | null>(null)
-  const [pendingPreview, setPendingPreview] = useState<string | null>(null)
-  const [uploading, setUploading] = useState(false)
+  const [showImageSearch, setShowImageSearch] = useState(false)
   const [saving, setSaving] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY
-
-  useEffect(() => {
-    return () => {
-      if (pendingPreview) URL.revokeObjectURL(pendingPreview)
-    }
-  }, [pendingPreview])
-
-  const handleFilePick = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    if (pendingPreview) URL.revokeObjectURL(pendingPreview)
-    setPendingFile(file)
-    setPendingPreview(URL.createObjectURL(file))
-  }
-
-  const clearImage = () => {
-    if (pendingPreview) URL.revokeObjectURL(pendingPreview)
-    setPendingFile(null)
-    setPendingPreview(null)
-    setImageUrl(null)
-    if (fileInputRef.current) fileInputRef.current.value = ''
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const trimmed = title.trim()
     if (!trimmed) return
     setSaving(true)
-
-    let finalImageUrl: string | null = imageUrl
-    if (pendingFile) {
-      setUploading(true)
-      const uploaded = await uploadDreamCover(pendingFile, mode === 'edit' ? initial?.id ?? null : null)
-      setUploading(false)
-      if (uploaded) finalImageUrl = uploaded
-    }
 
     await onSubmit({
       title: trimmed,
@@ -146,12 +100,11 @@ export default function AddDreamModal({ onClose, onSubmit, initial, mode = 'crea
       lng: coords?.lng ?? null,
       emoji,
       notes: notes.trim() ? notes.trim() : null,
-      image_url: finalImageUrl,
+      image_url: imageUrl,
     })
     setSaving(false)
   }
 
-  const previewSrc = pendingPreview ?? imageUrl
   const isEdit = mode === 'edit'
 
   return (
@@ -204,41 +157,42 @@ export default function AddDreamModal({ onClose, onSubmit, initial, mode = 'crea
             <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">
               Photo or GIF <span className="font-normal normal-case text-gray-400">(optional)</span>
             </label>
-            {previewSrc ? (
+            {imageUrl ? (
               <div className="relative overflow-hidden rounded-lg border border-gray-200 bg-gray-100">
-                <img src={previewSrc} alt="" className="aspect-[5/2] w-full object-cover" />
-                <button
-                  type="button"
-                  onClick={clearImage}
-                  className="absolute right-2 top-2 rounded-full bg-black/50 p-1.5 text-white hover:bg-black/70 transition-colors"
-                  aria-label="Remove photo"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M18 6L6 18M6 6l12 12" />
-                  </svg>
-                </button>
+                <img src={imageUrl} alt="" className="aspect-[5/2] w-full object-cover" />
+                <div className="absolute right-2 top-2 flex gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowImageSearch(true)}
+                    className="rounded-full bg-black/50 px-2.5 py-1 text-xs font-medium text-white hover:bg-black/70 transition-colors"
+                  >
+                    Change
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setImageUrl(null)}
+                    className="rounded-full bg-black/50 p-1.5 text-white hover:bg-black/70 transition-colors"
+                    aria-label="Remove photo"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M18 6L6 18M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             ) : (
-              <label
-                htmlFor="dream-image-input"
-                className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 px-4 py-6 text-sm text-gray-500 hover:border-amber-400 hover:bg-amber-50 transition-colors"
+              <button
+                type="button"
+                onClick={() => setShowImageSearch(true)}
+                className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 px-4 py-6 text-sm text-gray-500 hover:border-amber-400 hover:bg-amber-50 transition-colors"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                  <circle cx="8.5" cy="8.5" r="1.5" />
-                  <path d="M21 15l-5-5L5 21" />
+                  <circle cx="11" cy="11" r="7" />
+                  <path d="M21 21l-4.3-4.3" />
                 </svg>
-                Add a photo or GIF
-              </label>
+                Search for a photo or GIF
+              </button>
             )}
-            <input
-              ref={fileInputRef}
-              id="dream-image-input"
-              type="file"
-              accept="image/*,image/gif"
-              onChange={handleFilePick}
-              className="hidden"
-            />
           </div>
 
           {/* Location */}
@@ -322,11 +276,21 @@ export default function AddDreamModal({ onClose, onSubmit, initial, mode = 'crea
               disabled={!title.trim() || saving}
               className="flex-1 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {uploading ? 'Uploading…' : saving ? (isEdit ? 'Saving…' : 'Adding…') : isEdit ? 'Save Changes' : 'Add to Bucket List'}
+              {saving ? (isEdit ? 'Saving…' : 'Adding…') : isEdit ? 'Save Changes' : 'Add to Bucket List'}
             </button>
           </div>
         </form>
       </div>
+
+      {showImageSearch && (
+        <ImageSearch
+          onSelect={(url) => {
+            setImageUrl(url)
+            setShowImageSearch(false)
+          }}
+          onClose={() => setShowImageSearch(false)}
+        />
+      )}
     </div>
   )
 }
