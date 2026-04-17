@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { APIProvider, Map, AdvancedMarker, InfoWindow } from '@vis.gl/react-google-maps'
 import { format, parseISO } from 'date-fns'
 import type { PlanItem } from '@/lib/types'
@@ -36,12 +36,43 @@ const DAY_COLORS = [
   '#14b8a6', // teal
 ]
 
+interface DriveInfo {
+  distanceText: string
+  durationText: string
+}
+
 export default function MapView({ items, lodging, homeLocation }: MapViewProps) {
   const [selectedItem, setSelectedItem] = useState<PlanItem | null>(null)
   const [showLodgingInfo, setShowLodgingInfo] = useState(false)
+  const [driveCache, setDriveCache] = useState<Record<string, DriveInfo>>({})
+  const [loadingDrive, setLoadingDrive] = useState(false)
 
   // Hide home pin when this outing has a lodging pin — home is far away and not useful here
   const showHomePin = Boolean(homeLocation && !lodging)
+
+  const fetchDrive = useCallback(async (item: PlanItem) => {
+    const coords = { lat: item.activity?.lat ?? item.lat, lng: item.activity?.lng ?? item.lng }
+    if (!homeLocation || !coords.lat || !coords.lng) return
+    const key = item.id
+    if (driveCache[key]) return
+    setLoadingDrive(true)
+    try {
+      const res = await fetch('/api/distance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          originLat: homeLocation.lat,
+          originLng: homeLocation.lng,
+          destLat: coords.lat,
+          destLng: coords.lng,
+        }),
+      })
+      const data = await res.json()
+      if (data.durationText) setDriveCache((prev) => ({ ...prev, [key]: data }))
+    } finally {
+      setLoadingDrive(false)
+    }
+  }, [homeLocation, driveCache])
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY
 
@@ -181,7 +212,7 @@ export default function MapView({ items, lodging, homeLocation }: MapViewProps) 
                 <AdvancedMarker
                   key={item.id}
                   position={getCoords(item)}
-                  onClick={() => setSelectedItem(item)}
+                  onClick={() => { setSelectedItem(item); fetchDrive(item) }}
                 >
                   <div
                     className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white shadow-md text-white text-xs font-bold"
@@ -199,18 +230,27 @@ export default function MapView({ items, lodging, homeLocation }: MapViewProps) 
                 onCloseClick={() => setSelectedItem(null)}
                 pixelOffset={[0, -35]}
               >
-                <div className="max-w-[200px] p-1">
-                  <p className="font-semibold text-gray-900 text-sm">
+                <div style={{ width: 200, paddingRight: 16, fontFamily: 'system-ui, sans-serif' }}>
+                  <p style={{ fontWeight: 600, color: '#111827', fontSize: 14, lineHeight: 1.3, margin: 0 }}>
                     {selectedItem.title || selectedItem.activity?.title}
                   </p>
-                  <p className="text-xs text-gray-500 mt-0.5">
+                  <p style={{ fontSize: 12, color: '#6b7280', marginTop: 2, marginBottom: 0 }}>
                     {format(parseISO(selectedItem.date), 'EEE, MMM d')}
                     {selectedItem.start_time && <> at {formatTime(selectedItem.start_time)}</>}
                   </p>
+                  {homeLocation && (
+                    <p style={{ fontSize: 12, color: '#2563eb', marginTop: 4, marginBottom: 0 }}>
+                      {driveCache[selectedItem.id]
+                        ? `🚗 ${driveCache[selectedItem.id].durationText} · ${driveCache[selectedItem.id].distanceText}`
+                        : loadingDrive
+                        ? 'Calculating drive time…'
+                        : ''}
+                    </p>
+                  )}
                   {selectedItem.activity_id && (
                     <Link
                       href={`/activities/${selectedItem.activity_id}`}
-                      className="mt-1 inline-block text-xs text-emerald-600 hover:text-emerald-700"
+                      style={{ display: 'inline-block', marginTop: 6, fontSize: 12, fontWeight: 500, color: '#059669', textDecoration: 'none' }}
                     >
                       View details →
                     </Link>
