@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useBucketList } from '@/hooks/useBucketList'
 import { useProfile } from '@/hooks/useProfile'
 import AddToPlanModal from './AddToPlanModal'
+import SignInPromptModal from '@/components/SignInPromptModal'
 
 interface ActivityDetailProps {
   activity: Activity
@@ -17,6 +18,7 @@ export default function ActivityDetail({ activity }: ActivityDetailProps) {
   const { profile } = useProfile(user?.id)
   const { isOnBucketList, toggleBucketList } = useBucketList(user?.id)
   const [showAddModal, setShowAddModal] = useState(false)
+  const [showSignInPrompt, setShowSignInPrompt] = useState(false)
   const [showAddedToast, setShowAddedToast] = useState(false)
   const [bucketListToast, setBucketListToast] = useState<string | null>(null)
   const [driveInfo, setDriveInfo] = useState<{ distanceText: string; durationText: string } | null>(null)
@@ -217,7 +219,7 @@ export default function ActivityDetail({ activity }: ActivityDetailProps) {
         <button
           onClick={() => {
             if (!user) {
-              alert('Please sign in to add to your bucket list.')
+              setShowSignInPrompt(true)
               return
             }
             toggleBucketList(activity.id)
@@ -235,7 +237,7 @@ export default function ActivityDetail({ activity }: ActivityDetailProps) {
         <button
           onClick={() => {
             if (!user) {
-              alert('Please sign in to add activities to your plan.')
+              setShowSignInPrompt(true)
               return
             }
             setShowAddModal(true)
@@ -245,6 +247,8 @@ export default function ActivityDetail({ activity }: ActivityDetailProps) {
           Add to Outing
         </button>
       </div>
+
+      {showSignInPrompt && <SignInPromptModal onClose={() => setShowSignInPrompt(false)} />}
 
       {/* Modal */}
       {showAddModal && (

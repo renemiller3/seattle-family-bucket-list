@@ -11,6 +11,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useBucketList } from '@/hooks/useBucketList'
 import { useProfile } from '@/hooks/useProfile'
 import DiscoverMap from './DiscoverMap'
+import SignInPromptModal from '@/components/SignInPromptModal'
 import FeaturedRow from './FeaturedRow'
 import SeasonalRow from './SeasonalRow'
 
@@ -35,6 +36,7 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
     type: null,
   })
   const [planActivity, setPlanActivity] = useState<Activity | null>(null)
+  const [showSignInPrompt, setShowSignInPrompt] = useState(false)
   const [showAddedToast, setShowAddedToast] = useState(false)
   const [showMap, setShowMap] = useState(false)
   const [selectedMapActivity, setSelectedMapActivity] = useState<string | null>(null)
@@ -113,18 +115,12 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
   }, [filtered])
 
   const handleAddToPlan = (activity: Activity) => {
-    if (!user) {
-      alert('Please sign in to add activities to your plan.')
-      return
-    }
+    if (!user) { setShowSignInPrompt(true); return }
     setPlanActivity(activity)
   }
 
   const handleToggleBucketList = (activity: Activity) => {
-    if (!user) {
-      alert('Please sign in to add to your bucket list.')
-      return
-    }
+    if (!user) { setShowSignInPrompt(true); return }
     toggleBucketList(activity.id)
   }
 
@@ -213,6 +209,7 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
         </div>
 
         {/* Modals and toasts */}
+        {showSignInPrompt && <SignInPromptModal onClose={() => setShowSignInPrompt(false)} />}
         {planActivity && (
           <AddToPlanModal activity={planActivity} onClose={() => setPlanActivity(null)} onAdded={handleAdded} />
         )}
@@ -310,6 +307,7 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
         </Link>
       </div>
 
+      {showSignInPrompt && <SignInPromptModal onClose={() => setShowSignInPrompt(false)} />}
       {/* Add to plan modal */}
       {planActivity && (
         <AddToPlanModal activity={planActivity} onClose={() => setPlanActivity(null)} onAdded={handleAdded} />
