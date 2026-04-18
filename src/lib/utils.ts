@@ -35,7 +35,7 @@ export function getVibeEmoji(vibe: string): string {
     'Outdoor / Nature': '🌲',
     'Rainy Day': '🌧️',
     'Special / Treat': '✨',
-    'Animals': '🐾',
+    'Animals': '🐐',
     'Transportation': '🚂',
   }
   return map[vibe] || '📌'
