@@ -3,8 +3,10 @@ export type PlanItemType = 'activity' | 'life_block' | 'custom' | 'restaurant'
 export type AgeRange = 'All Ages' | 'Toddler' | '3-5' | '5+' | '8+' | '12+'
 export type Area = 'Seattle' | 'Eastside' | 'North' | 'South' | 'Tacoma' | 'Wider PNW'
 export type Cost = 'Free' | '$' | '$$' | '$$$'
-export type Vibe = 'Chill / Easy' | 'Burn Energy' | 'Outdoor / Nature' | 'Rainy Day' | 'Special / Treat' | 'Quick Outing'
+export type Vibe = 'Chill / Easy' | 'Burn Energy' | 'Outdoor / Nature' | 'Rainy Day' | 'Special / Treat' | 'Animals' | 'Transportation'
 export type Recurrence = 'one-time' | 'seasonal' | 'annual'
+export type PregnancyFriendly = '1st trimester' | '2nd trimester' | '3rd trimester'
+export type CrowdLevel = 'Usually quiet' | 'Gets busy' | 'Very busy'
 
 export interface NearbyFood {
   name: string
@@ -24,6 +26,8 @@ export interface Activity {
   area: Area
   cost: Cost
   vibes: Vibe[]
+  pregnancy_friendly: PregnancyFriendly[]
+  crowd_level: CrowdLevel | null
   why_its_worth_it: string
   what_to_watch_out_for: string[]
   tips: string | null

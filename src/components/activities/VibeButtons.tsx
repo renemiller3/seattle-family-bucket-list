@@ -9,7 +9,8 @@ const ALL_VIBES: Vibe[] = [
   'Outdoor / Nature',
   'Rainy Day',
   'Special / Treat',
-  'Quick Outing',
+  'Animals',
+  'Transportation',
 ]
 
 interface VibeButtonsProps {

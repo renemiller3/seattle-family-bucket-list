@@ -34,6 +34,8 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
     area: null,
     cost: null,
     type: null,
+    pregnancyFriendly: null,
+    crowdLevel: null,
   })
   const [planActivity, setPlanActivity] = useState<Activity | null>(null)
   const [showSignInPrompt, setShowSignInPrompt] = useState(false)
@@ -76,6 +78,8 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
       if (filters.area && a.area !== filters.area) return false
       if (filters.cost && a.cost !== filters.cost) return false
       if (filters.type && a.type !== filters.type) return false
+      if (filters.pregnancyFriendly && !a.pregnancy_friendly.includes(filters.pregnancyFriendly)) return false
+      if (filters.crowdLevel && a.crowd_level !== filters.crowdLevel) return false
       return true
     })
   }, [activities, filters])
@@ -288,7 +292,7 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
           <p className="text-lg text-gray-500">Nothing yet for this combo — try loosening up your filters!</p>
           <p className="mt-1 text-sm text-gray-400">Or check out the Must-Do picks above.</p>
           <button
-            onClick={() => setFilters({ vibes: [], ageRange: null, area: null, cost: null, type: null })}
+            onClick={() => setFilters({ vibes: [], ageRange: null, area: null, cost: null, type: null, pregnancyFriendly: null, crowdLevel: null })}
             className="mt-3 text-emerald-600 hover:text-emerald-700 underline"
           >
             Clear all filters

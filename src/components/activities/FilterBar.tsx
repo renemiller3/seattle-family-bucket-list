@@ -1,6 +1,6 @@
 'use client'
 
-import type { AgeRange, Area, Cost, Vibe, ActivityType } from '@/lib/types'
+import type { AgeRange, Area, Cost, Vibe, ActivityType, PregnancyFriendly, CrowdLevel } from '@/lib/types'
 import { getVibeEmoji } from '@/lib/utils'
 
 export interface Filters {
@@ -9,6 +9,8 @@ export interface Filters {
   area: Area | null
   cost: Cost | null
   type: ActivityType | null
+  pregnancyFriendly: PregnancyFriendly | null
+  crowdLevel: CrowdLevel | null
 }
 
 interface FilterBarProps {
@@ -17,10 +19,12 @@ interface FilterBarProps {
   compact?: boolean
 }
 
-const ALL_VIBES: Vibe[] = ['Chill / Easy', 'Burn Energy', 'Outdoor / Nature', 'Rainy Day', 'Special / Treat', 'Quick Outing']
+const ALL_VIBES: Vibe[] = ['Chill / Easy', 'Burn Energy', 'Outdoor / Nature', 'Rainy Day', 'Special / Treat', 'Animals', 'Transportation']
 const AGE_RANGES: AgeRange[] = ['All Ages', 'Toddler', '3-5', '5+', '8+', '12+']
 const AREAS: Area[] = ['Seattle', 'Eastside', 'North', 'South', 'Tacoma', 'Wider PNW']
 const COSTS: Cost[] = ['Free', '$', '$$', '$$$']
+const PREGNANCY_OPTIONS: PregnancyFriendly[] = ['1st trimester', '2nd trimester', '3rd trimester']
+const CROWD_OPTIONS: CrowdLevel[] = ['Usually quiet', 'Gets busy', 'Very busy']
 
 function SelectFilter<T extends string>({
   label,
@@ -49,8 +53,20 @@ function SelectFilter<T extends string>({
   )
 }
 
+const EMPTY_FILTERS: Filters = {
+  vibes: [],
+  ageRange: null,
+  area: null,
+  cost: null,
+  type: null,
+  pregnancyFriendly: null,
+  crowdLevel: null,
+}
+
 export default function FilterBar({ filters, onChange, compact }: FilterBarProps) {
-  const hasFilters = filters.ageRange || filters.area || filters.cost || filters.type || filters.vibes.length > 0
+  const hasFilters =
+    filters.ageRange || filters.area || filters.cost || filters.type ||
+    filters.vibes.length > 0 || filters.pregnancyFriendly || filters.crowdLevel
 
   return (
     <div className="flex flex-wrap items-center gap-3">
@@ -90,11 +106,21 @@ export default function FilterBar({ filters, onChange, compact }: FilterBarProps
         options={['activity', 'event'] as ActivityType[]}
         onChange={(val) => onChange({ ...filters, type: val })}
       />
+      <SelectFilter
+        label="Pregnancy Friendly"
+        value={filters.pregnancyFriendly}
+        options={PREGNANCY_OPTIONS}
+        onChange={(val) => onChange({ ...filters, pregnancyFriendly: val })}
+      />
+      <SelectFilter
+        label="Crowd Level"
+        value={filters.crowdLevel}
+        options={CROWD_OPTIONS}
+        onChange={(val) => onChange({ ...filters, crowdLevel: val })}
+      />
       {hasFilters && (
         <button
-          onClick={() =>
-            onChange({ vibes: [], ageRange: null, area: null, cost: null, type: null })
-          }
+          onClick={() => onChange(EMPTY_FILTERS)}
           className="text-sm text-gray-500 hover:text-gray-700 underline"
         >
           Clear all
