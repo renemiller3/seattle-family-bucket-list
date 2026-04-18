@@ -65,7 +65,7 @@ export default function BucketListPage() {
   if (!user) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-16 text-center sm:px-6">
-        <h1 className="mb-2 text-2xl font-bold text-gray-900">My Bucket List</h1>
+        <h1 className="mb-2 text-2xl font-bold text-gray-900">Bucket List</h1>
         <p className="mb-6 text-gray-600">Sign in to start building your family bucket list.</p>
         <Link href="/" className="text-emerald-600 hover:text-emerald-700 underline">
           Browse activities
@@ -103,7 +103,7 @@ export default function BucketListPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
       <div className="mb-6 flex items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold text-gray-900">My Bucket List</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Bucket List</h1>
         <button
           onClick={() => setShowAddDream(true)}
           className="inline-flex items-center gap-1.5 rounded-lg bg-amber-100 px-3.5 py-2 text-sm font-medium text-amber-800 hover:bg-amber-200 transition-colors"

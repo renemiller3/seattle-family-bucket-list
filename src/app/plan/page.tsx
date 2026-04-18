@@ -43,7 +43,7 @@ export default function PlanPage() {
   if (!user) {
     return (
       <div className="mx-auto max-w-5xl px-4 py-16 text-center sm:px-6">
-        <h1 className="mb-2 text-2xl font-bold text-gray-900">My Calendar</h1>
+        <h1 className="mb-2 text-2xl font-bold text-gray-900">Outings</h1>
         <p className="mb-6 text-gray-600">Sign in to start planning family outings.</p>
         <Link href="/" className="text-emerald-600 hover:text-emerald-700 underline">
           Browse activities

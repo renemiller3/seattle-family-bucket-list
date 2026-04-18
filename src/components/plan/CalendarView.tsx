@@ -157,7 +157,7 @@ export default function CalendarView({
     <div className="space-y-4">
       {/* Row 1: Title + primary action */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">My Calendar</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Outings</h1>
         <button
           onClick={() => {
             setLifeBlockDate(selectedDate)

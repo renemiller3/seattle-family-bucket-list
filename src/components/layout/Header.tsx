@@ -38,10 +38,10 @@ export default function Header() {
           {user && (
             <>
               <Link href="/bucket-list" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
-                My Bucket List
+                Bucket List
               </Link>
               <Link href="/plan" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
-                My Calendar
+                Outings
               </Link>
             </>
           )}
@@ -108,14 +108,14 @@ export default function Header() {
                     onClick={() => setMenuOpen(false)}
                     className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
                   >
-                    My Bucket List
+                    Bucket List
                   </Link>
                   <Link
                     href="/plan"
                     onClick={() => setMenuOpen(false)}
                     className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
                   >
-                    My Calendar
+                    Outings
                   </Link>
                   <Link
                     href="/settings"
