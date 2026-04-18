@@ -50,7 +50,6 @@ export default function ActivityCard({ activity, onAddToPlan, onToggleBucketList
 
         {activity.start_date && (
           <p className={`mb-3 text-sm font-medium ${isEvent ? 'text-amber-700' : 'text-emerald-700'}`}>
-            {!isEvent && 'Best '}
             {new Date(activity.start_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
             {activity.end_date && (
               <> &ndash; {new Date(activity.end_date + 'T00:00:00').toLocaleDateString('en-US', isEvent ? { month: 'short', day: 'numeric', year: 'numeric' } : { month: 'short', day: 'numeric' })}</>

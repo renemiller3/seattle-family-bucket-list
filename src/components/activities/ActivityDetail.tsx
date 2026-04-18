@@ -97,7 +97,6 @@ export default function ActivityDetail({ activity }: ActivityDetailProps) {
       {activity.start_date && (
         <div className={`mb-6 rounded-lg border p-4 ${isEvent ? 'bg-amber-50 border-amber-200' : 'bg-emerald-50 border-emerald-200'}`}>
           <p className={`font-medium ${isEvent ? 'text-amber-800' : 'text-emerald-800'}`}>
-            {!isEvent && <span className="mr-1">Best time:</span>}
             {new Date(activity.start_date + 'T00:00:00').toLocaleDateString('en-US', isEvent
               ? { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }
               : { month: 'long', day: 'numeric' })}
