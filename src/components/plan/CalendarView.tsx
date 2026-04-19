@@ -10,7 +10,6 @@ import WeeklyView from './WeeklyView'
 import MonthlyView from './MonthlyView'
 import LifeBlockPicker from './LifeBlockPicker'
 import PlanNotes from './PlanNotes'
-import OutingManager from './OutingManager'
 import MapView from './MapView'
 
 type ViewMode = 'itinerary' | 'daily' | 'weekly' | 'monthly'
@@ -34,9 +33,7 @@ interface CalendarViewProps {
   outings: Outing[]
   selectedOutingId: string | null
   onOutingChange: (outingId: string | null) => void
-  onAddOuting: (name: string) => Promise<Outing | null>
-  onUpdateOuting: (id: string, updates: Partial<Pick<Outing, 'name' | 'lodging_name' | 'lodging_address' | 'lodging_lat' | 'lodging_lng'>>) => Promise<void>
-  onDeleteOuting: (id: string) => Promise<void>
+  onOpenOutingManager: () => void
 }
 
 export default function CalendarView({
@@ -49,15 +46,12 @@ export default function CalendarView({
   outings,
   selectedOutingId,
   onOutingChange,
-  onAddOuting,
-  onUpdateOuting,
-  onDeleteOuting,
+  onOpenOutingManager,
 }: CalendarViewProps) {
   const [view, setView] = useState<ViewMode>('itinerary')
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'))
   const [showLifeBlock, setShowLifeBlock] = useState(false)
   const [lifeBlockDate, setLifeBlockDate] = useState(format(new Date(), 'yyyy-MM-dd'))
-  const [showOutingManager, setShowOutingManager] = useState(false)
   const [showMap, setShowMap] = useState(false)
   const [copiedOutingId, setCopiedOutingId] = useState<string | null | undefined>(undefined)
   const [pickerOpen, setPickerOpen] = useState(false)
@@ -242,7 +236,7 @@ export default function CalendarView({
               ))}
               <div className="my-1 border-t border-gray-100" />
               <button
-                onClick={() => { setPickerOpen(false); setShowOutingManager(true) }}
+                onClick={() => { setPickerOpen(false); onOpenOutingManager() }}
                 className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-emerald-700 hover:bg-emerald-50"
               >
                 <span className="w-4">+</span>
@@ -250,7 +244,7 @@ export default function CalendarView({
               </button>
               {outings.length > 0 && (
                 <button
-                  onClick={() => { setPickerOpen(false); setShowOutingManager(true) }}
+                  onClick={() => { setPickerOpen(false); onOpenOutingManager() }}
                   className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="ml-0.5">
@@ -382,16 +376,6 @@ export default function CalendarView({
         />
       )}
 
-      {/* Outing manager modal */}
-      {showOutingManager && (
-        <OutingManager
-          outings={outings}
-          onAdd={onAddOuting}
-          onUpdate={onUpdateOuting}
-          onDelete={onDeleteOuting}
-          onClose={() => setShowOutingManager(false)}
-        />
-      )}
     </div>
   )
 }

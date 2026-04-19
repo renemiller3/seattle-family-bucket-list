@@ -9,6 +9,8 @@ import { useActivities } from '@/hooks/useActivities'
 import { useBucketList } from '@/hooks/useBucketList'
 import CalendarView from '@/components/plan/CalendarView'
 import NearbyIdeas from '@/components/plan/NearbyIdeas'
+import OutingSummary from '@/components/plan/OutingSummary'
+import OutingManager from '@/components/plan/OutingManager'
 import type { Activity } from '@/lib/types'
 import Link from 'next/link'
 
@@ -19,6 +21,7 @@ export default function PlanPage() {
   const { activities: allActivities } = useActivities()
   const { bucketListIds } = useBucketList(user?.id)
   const [selectedOutingId, setSelectedOutingId] = useState<string | null>(null)
+  const [outingManagerOpen, setOutingManagerOpen] = useState(false)
 
   const sortedOutings = useMemo(() => {
     const earliestDate = new Map<string, string>()
@@ -152,6 +155,17 @@ export default function PlanPage() {
         </div>
       ) : (
         <>
+          {selectedOuting && (
+            <div className="mb-4">
+              <OutingSummary
+                outingItems={filteredItems}
+                lodgingName={selectedOuting.lodging_name}
+                lodgingAddress={selectedOuting.lodging_address}
+                variant="interactive"
+                onAddLodging={() => setOutingManagerOpen(true)}
+              />
+            </div>
+          )}
           <CalendarView
             items={filteredItems}
             userId={user.id}
@@ -162,9 +176,7 @@ export default function PlanPage() {
             outings={sortedOutings}
             selectedOutingId={selectedOutingId}
             onOutingChange={setSelectedOutingId}
-            onAddOuting={addOuting}
-            onUpdateOuting={updateOuting}
-            onDeleteOuting={deleteOuting}
+            onOpenOutingManager={() => setOutingManagerOpen(true)}
           />
           {selectedOuting && (
             <NearbyIdeas
@@ -173,6 +185,15 @@ export default function PlanPage() {
               allActivities={allActivities}
               bucketListIds={bucketListIds}
               onAdd={handleAddSuggestion}
+            />
+          )}
+          {outingManagerOpen && (
+            <OutingManager
+              outings={sortedOutings}
+              onAdd={addOuting}
+              onUpdate={updateOuting}
+              onDelete={deleteOuting}
+              onClose={() => setOutingManagerOpen(false)}
             />
           )}
         </>

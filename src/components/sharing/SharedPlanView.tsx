@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { APIProvider, Map, AdvancedMarker, InfoWindow } from '@vis.gl/react-google-maps'
 import type { PlanItem } from '@/lib/types'
 import { formatTime, formatDuration } from '@/lib/utils'
+import OutingSummary from '@/components/plan/OutingSummary'
 
 interface LodgingPin {
   name: string
@@ -49,12 +50,6 @@ export default function SharedPlanView({ items, notes, ownerName, outingName, lo
     }
     return null
   }, [items])
-
-  const activityCount = useMemo(() => {
-    return items.filter((i) => i.type !== 'life_block').length
-  }, [items])
-
-  const dayCount = groupedByDate.length
 
   // Items with coordinates for the map, sorted by date/time to match list order
   const mappableItems = useMemo(() => {
@@ -126,7 +121,7 @@ export default function SharedPlanView({ items, notes, ownerName, outingName, lo
   return (
     <div>
       {/* Hero */}
-      <div className="relative mb-8 -mx-4 sm:-mx-6 overflow-hidden rounded-none sm:rounded-2xl">
+      <div className="relative mb-6 -mx-4 sm:-mx-6 overflow-hidden rounded-none sm:rounded-2xl">
         {heroImage ? (
           <div className="relative h-64 sm:h-80">
             <img src={heroImage} alt="" className="h-full w-full object-cover" />
@@ -137,13 +132,7 @@ export default function SharedPlanView({ items, notes, ownerName, outingName, lo
                   {outingName}
                 </h1>
               )}
-              <div className="mt-2 flex flex-wrap items-center gap-3 text-white/80 text-sm">
-                <span>Planned by {ownerName}</span>
-                <span className="text-white/50">·</span>
-                <span>{dayCount} {dayCount === 1 ? 'day' : 'days'}</span>
-                <span className="text-white/50">·</span>
-                <span>{activityCount} {activityCount === 1 ? 'activity' : 'activities'}</span>
-              </div>
+              <p className="mt-2 text-sm text-white/80">Planned by {ownerName}</p>
             </div>
           </div>
         ) : (
@@ -151,15 +140,19 @@ export default function SharedPlanView({ items, notes, ownerName, outingName, lo
             {outingName && (
               <h1 className="text-3xl sm:text-4xl font-bold text-white">{outingName}</h1>
             )}
-            <div className="mt-2 flex flex-wrap items-center gap-3 text-emerald-100 text-sm">
-              <span>Planned by {ownerName}</span>
-              <span className="text-emerald-200/50">·</span>
-              <span>{dayCount} {dayCount === 1 ? 'day' : 'days'}</span>
-              <span className="text-emerald-200/50">·</span>
-              <span>{activityCount} {activityCount === 1 ? 'activity' : 'activities'}</span>
-            </div>
+            <p className="mt-2 text-sm text-emerald-100">Planned by {ownerName}</p>
           </div>
         )}
+      </div>
+
+      {/* Logistics at a glance */}
+      <div className="mb-6">
+        <OutingSummary
+          outingItems={items}
+          lodgingName={lodging?.name ?? null}
+          lodgingAddress={lodging?.address ?? null}
+          variant="readonly"
+        />
       </div>
 
       {/* Map toggle */}
@@ -303,33 +296,6 @@ export default function SharedPlanView({ items, notes, ownerName, outingName, lo
 
       {/* Day sections */}
       <div className="space-y-10">
-        {lodging && (
-          <div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gray-700">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                <polyline points="9 22 9 12 15 12 15 22" />
-              </svg>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900">{lodging.name}</p>
-              {lodging.address && (
-                <a
-                  href={lodging.address.startsWith('http') ? lodging.address : `https://maps.google.com/?q=${encodeURIComponent(lodging.address)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs text-emerald-600 hover:text-emerald-700"
-                >
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                    <circle cx="12" cy="10" r="3" />
-                  </svg>
-                  Open in Maps
-                </a>
-              )}
-            </div>
-          </div>
-        )}
         {groupedByDate.map(([date, dateItems], dayIndex) => {
           const sorted = [...dateItems].sort((a, b) => {
             if (!a.start_time && !b.start_time) return 0
