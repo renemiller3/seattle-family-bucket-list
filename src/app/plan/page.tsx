@@ -14,6 +14,24 @@ export default function PlanPage() {
   const { outings, addOuting, updateOuting, deleteOuting } = useOutings(user?.id)
   const [selectedOutingId, setSelectedOutingId] = useState<string | null>(null)
 
+  const sortedOutings = useMemo(() => {
+    const earliestDate = new Map<string, string>()
+    for (const item of items) {
+      if (item.outing_id) {
+        const cur = earliestDate.get(item.outing_id)
+        if (!cur || item.date < cur) earliestDate.set(item.outing_id, item.date)
+      }
+    }
+    return [...outings].sort((a, b) => {
+      const da = earliestDate.get(a.id) ?? ''
+      const db = earliestDate.get(b.id) ?? ''
+      if (!da && !db) return 0
+      if (!da) return 1
+      if (!db) return -1
+      return da.localeCompare(db)
+    })
+  }, [outings, items])
+
   const filteredItems = useMemo(() => {
     let result = items
 
@@ -102,7 +120,7 @@ export default function PlanPage() {
           onDelete={deleteItem}
           onReorder={reorderItems}
           onAddLifeBlock={handleAddLifeBlock}
-          outings={outings}
+          outings={sortedOutings}
           selectedOutingId={selectedOutingId}
           onOutingChange={setSelectedOutingId}
           onAddOuting={addOuting}
