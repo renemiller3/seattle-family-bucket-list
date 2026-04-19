@@ -5,13 +5,19 @@ import { format } from 'date-fns'
 import { useAuth } from '@/hooks/useAuth'
 import { usePlanItems } from '@/hooks/usePlanItems'
 import { useOutings } from '@/hooks/useOutings'
+import { useActivities } from '@/hooks/useActivities'
+import { useBucketList } from '@/hooks/useBucketList'
 import CalendarView from '@/components/plan/CalendarView'
+import NearbyIdeas from '@/components/plan/NearbyIdeas'
+import type { Activity } from '@/lib/types'
 import Link from 'next/link'
 
 export default function PlanPage() {
   const { user, loading: authLoading } = useAuth()
   const { items, loading: itemsLoading, updateItem, deleteItem, reorderItems, addItem } = usePlanItems(user?.id)
   const { outings, addOuting, updateOuting, deleteOuting } = useOutings(user?.id)
+  const { activities: allActivities } = useActivities()
+  const { bucketListIds } = useBucketList(user?.id)
   const [selectedOutingId, setSelectedOutingId] = useState<string | null>(null)
 
   const sortedOutings = useMemo(() => {
@@ -70,6 +76,38 @@ export default function PlanPage() {
     )
   }
 
+  const selectedOuting = useMemo(
+    () => outings.find((o) => o.id === selectedOutingId) ?? null,
+    [outings, selectedOutingId]
+  )
+
+  const handleAddSuggestion = async (activity: Activity, date: string) => {
+    if (!user) return
+    const dateItems = items.filter((i) => i.date === date)
+    const maxOrder = dateItems.length > 0 ? Math.max(...dateItems.map((i) => i.sort_order)) + 1 : 0
+
+    await addItem({
+      user_id: user.id,
+      activity_id: activity.id,
+      type: 'activity',
+      title: null,
+      date,
+      start_time: null,
+      end_time: null,
+      duration_minutes: null,
+      travel_time_before: null,
+      travel_time_after: null,
+      sort_order: maxOrder,
+      notes: null,
+      is_completed: false,
+      location_url: null,
+      lat: null,
+      lng: null,
+      image_url: null,
+      outing_id: selectedOutingId,
+    })
+  }
+
   const handleAddLifeBlock = async (block: {
     title: string
     date: string
@@ -113,20 +151,31 @@ export default function PlanPage() {
           <div className="h-64 rounded-xl bg-gray-200" />
         </div>
       ) : (
-        <CalendarView
-          items={filteredItems}
-          userId={user.id}
-          onUpdate={updateItem}
-          onDelete={deleteItem}
-          onReorder={reorderItems}
-          onAddLifeBlock={handleAddLifeBlock}
-          outings={sortedOutings}
-          selectedOutingId={selectedOutingId}
-          onOutingChange={setSelectedOutingId}
-          onAddOuting={addOuting}
-          onUpdateOuting={updateOuting}
-          onDeleteOuting={deleteOuting}
-        />
+        <>
+          <CalendarView
+            items={filteredItems}
+            userId={user.id}
+            onUpdate={updateItem}
+            onDelete={deleteItem}
+            onReorder={reorderItems}
+            onAddLifeBlock={handleAddLifeBlock}
+            outings={sortedOutings}
+            selectedOutingId={selectedOutingId}
+            onOutingChange={setSelectedOutingId}
+            onAddOuting={addOuting}
+            onUpdateOuting={updateOuting}
+            onDeleteOuting={deleteOuting}
+          />
+          {selectedOuting && (
+            <NearbyIdeas
+              outing={selectedOuting}
+              outingItems={filteredItems}
+              allActivities={allActivities}
+              bucketListIds={bucketListIds}
+              onAdd={handleAddSuggestion}
+            />
+          )}
+        </>
       )}
     </div>
   )
