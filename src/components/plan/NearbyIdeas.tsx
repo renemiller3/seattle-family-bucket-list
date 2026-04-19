@@ -40,19 +40,7 @@ export default function NearbyIdeas({
     }
   }, [outing, outingItems])
 
-  const radius = useMemo(() => {
-    if (!anchor) return 15
-    const distances = outingItems
-      .map((it) => {
-        const lat = it.activity?.lat ?? it.lat
-        const lng = it.activity?.lng ?? it.lng
-        if (lat == null || lng == null) return null
-        return distanceMiles(anchor.lat, anchor.lng, lat, lng)
-      })
-      .filter((d): d is number => d != null)
-    const max = distances.length ? Math.max(...distances) : 0
-    return Math.min(75, Math.max(15, max * 1.5))
-  }, [anchor, outingItems])
+  const radius = 10
 
   const outingSeasons = useMemo(() => {
     const seasons = new Set<string>()
