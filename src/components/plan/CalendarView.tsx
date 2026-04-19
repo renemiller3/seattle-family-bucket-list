@@ -128,18 +128,14 @@ export default function CalendarView({
       if (!data.slug) return
       url = `${window.location.origin}/plan/${data.slug}`
 
-      if (typeof navigator.share === 'function') {
-        // Native share sheet on mobile — works reliably on iOS Safari after await
-        try {
-          await navigator.share({ url, title: 'My Seattle outing' })
-        } catch (e) {
-          if ((e as Error).name !== 'AbortError') throw e
-        }
-        return
-      }
-
-      // Desktop: clipboard copy
-      await navigator.clipboard.writeText(url)
+      // execCommand works on iOS Safari after await; clipboard API loses gesture context
+      const el = document.createElement('textarea')
+      el.value = url
+      el.style.cssText = 'position:fixed;opacity:0;pointer-events:none'
+      document.body.appendChild(el)
+      el.select()
+      document.execCommand('copy')
+      document.body.removeChild(el)
       setCopiedOutingId(outingId)
       setTimeout(() => setCopiedOutingId(undefined), 2000)
     } catch {
