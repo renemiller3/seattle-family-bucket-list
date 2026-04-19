@@ -50,9 +50,8 @@ export default function SharedPlanView({ items, notes, ownerName, outingName, lo
     return null
   }, [items])
 
-  // Count unique activities (not life blocks)
   const activityCount = useMemo(() => {
-    return items.filter((i) => i.type === 'activity' && i.activity_id).length
+    return items.filter((i) => i.type !== 'life_block').length
   }, [items])
 
   const dayCount = groupedByDate.length
