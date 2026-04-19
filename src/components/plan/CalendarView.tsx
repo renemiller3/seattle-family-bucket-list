@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { format, addDays, subDays, addWeeks, subWeeks, addMonths, subMonths, startOfWeek } from 'date-fns'
 import type { PlanItem, Outing } from '@/lib/types'
 import { useProfile } from '@/hooks/useProfile'
@@ -60,6 +60,26 @@ export default function CalendarView({
   const [showOutingManager, setShowOutingManager] = useState(false)
   const [showMap, setShowMap] = useState(false)
   const [copiedOutingId, setCopiedOutingId] = useState<string | null | undefined>(undefined)
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const pickerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!pickerOpen) return
+    function handleClick(e: MouseEvent) {
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
+        setPickerOpen(false)
+      }
+    }
+    function handleEsc(e: KeyboardEvent) {
+      if (e.key === 'Escape') setPickerOpen(false)
+    }
+    document.addEventListener('mousedown', handleClick)
+    document.addEventListener('keydown', handleEsc)
+    return () => {
+      document.removeEventListener('mousedown', handleClick)
+      document.removeEventListener('keydown', handleEsc)
+    }
+  }, [pickerOpen])
 
   const selectedOuting = useMemo(
     () => (selectedOutingId ? outings.find((o) => o.id === selectedOutingId) : null) ?? null,
@@ -173,8 +193,10 @@ export default function CalendarView({
   return (
     <div className="space-y-4">
       {/* Row 1: Title + primary action */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Outings</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-bold text-gray-900">
+          {selectedOuting?.name ?? 'All Outings'}
+        </h1>
         <button
           onClick={() => {
             setLifeBlockDate(selectedDate)
@@ -188,17 +210,58 @@ export default function CalendarView({
 
       {/* Row 2: All controls */}
       <div className="flex flex-wrap items-center gap-2">
-        {/* Outing dropdown + icons */}
-        <select
-          value={selectedOutingId ?? ''}
-          onChange={(e) => onOutingChange(e.target.value || null)}
-          className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-        >
-          <option value="">All Outings</option>
-          {outings.map((o) => (
-            <option key={o.id} value={o.id}>{o.name}</option>
-          ))}
-        </select>
+        {/* Outing picker */}
+        <div className="relative" ref={pickerRef}>
+          <button
+            onClick={() => setPickerOpen((v) => !v)}
+            className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+          >
+            <span>{selectedOuting?.name ?? 'All Outings'}</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </button>
+          {pickerOpen && (
+            <div className="absolute left-0 top-full z-40 mt-1 w-56 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
+              <button
+                onClick={() => { onOutingChange(null); setPickerOpen(false) }}
+                className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-gray-50 ${selectedOutingId === null ? 'font-medium text-emerald-700' : 'text-gray-700'}`}
+              >
+                <span className="w-4 text-emerald-600">{selectedOutingId === null ? '✓' : ''}</span>
+                <span>All Outings</span>
+              </button>
+              {outings.map((o) => (
+                <button
+                  key={o.id}
+                  onClick={() => { onOutingChange(o.id); setPickerOpen(false) }}
+                  className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-gray-50 ${selectedOutingId === o.id ? 'font-medium text-emerald-700' : 'text-gray-700'}`}
+                >
+                  <span className="w-4 text-emerald-600">{selectedOutingId === o.id ? '✓' : ''}</span>
+                  <span className="truncate">{o.name}</span>
+                </button>
+              ))}
+              <div className="my-1 border-t border-gray-100" />
+              <button
+                onClick={() => { setPickerOpen(false); setShowOutingManager(true) }}
+                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-emerald-700 hover:bg-emerald-50"
+              >
+                <span className="w-4">+</span>
+                <span>New Outing</span>
+              </button>
+              {outings.length > 0 && (
+                <button
+                  onClick={() => { setPickerOpen(false); setShowOutingManager(true) }}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="ml-0.5">
+                    <circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                  </svg>
+                  <span>Manage Outings</span>
+                </button>
+              )}
+            </div>
+          )}
+        </div>
         <button
           onClick={() => handleShareOuting(selectedOutingId)}
           className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
@@ -212,15 +275,6 @@ export default function CalendarView({
               <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
             </svg>
           )}
-        </button>
-        <button
-          onClick={() => setShowOutingManager(true)}
-          className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
-          title={outings.length > 0 ? 'Manage Outings' : 'New Outing'}
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-          </svg>
         </button>
 
         <div className="h-6 w-px bg-gray-200" />
