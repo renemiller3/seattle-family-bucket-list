@@ -103,17 +103,34 @@ export default function CalendarView({
   }, [selectedOutingId, items])
 
   const handleShareOuting = async (outingId: string | null) => {
-    const res = await fetch('/api/share', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ outing_id: outingId }),
-    })
-    const data = await res.json()
-    if (data.slug) {
-      const url = `${window.location.origin}/plan/${data.slug}`
+    let url: string | undefined
+    try {
+      const res = await fetch('/api/share', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ outing_id: outingId }),
+      })
+      const data = await res.json()
+      if (!data.slug) return
+      url = `${window.location.origin}/plan/${data.slug}`
+
+      if (typeof navigator.share === 'function') {
+        // Native share sheet on mobile — works reliably on iOS Safari after await
+        try {
+          await navigator.share({ url, title: 'My Seattle outing' })
+        } catch (e) {
+          if ((e as Error).name !== 'AbortError') throw e
+        }
+        return
+      }
+
+      // Desktop: clipboard copy
       await navigator.clipboard.writeText(url)
       setCopiedOutingId(outingId)
       setTimeout(() => setCopiedOutingId(undefined), 2000)
+    } catch {
+      // Last resort: prompt so the user can copy manually
+      if (url) prompt('Copy this link:', url)
     }
   }
 
@@ -185,7 +202,7 @@ export default function CalendarView({
         <button
           onClick={() => handleShareOuting(selectedOutingId)}
           className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
-          title="Copy share link"
+          title="Share outing"
         >
           {copiedOutingId !== undefined ? (
             <span className="text-xs text-emerald-600 font-medium">Copied!</span>
