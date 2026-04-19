@@ -53,6 +53,11 @@ export default function PlanPage() {
     return result
   }, [items, selectedOutingId])
 
+  const selectedOuting = useMemo(
+    () => outings.find((o) => o.id === selectedOutingId) ?? null,
+    [outings, selectedOutingId]
+  )
+
   if (authLoading) {
     return (
       <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
@@ -75,11 +80,6 @@ export default function PlanPage() {
       </div>
     )
   }
-
-  const selectedOuting = useMemo(
-    () => outings.find((o) => o.id === selectedOutingId) ?? null,
-    [outings, selectedOutingId]
-  )
 
   const handleAddSuggestion = async (activity: Activity, date: string) => {
     if (!user) return
