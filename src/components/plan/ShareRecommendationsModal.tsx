@@ -13,6 +13,7 @@ interface ShareRecommendationsModalProps {
   date: string
   weather: DailyWeather | null
   options: RecommendationOption[]
+  existingShareUrl?: string
   onClose: () => void
 }
 
@@ -22,19 +23,21 @@ export default function ShareRecommendationsModal({
   date,
   weather,
   options,
+  existingShareUrl,
   onClose,
 }: ShareRecommendationsModalProps) {
   const { user } = useAuth()
   const { crew, loading: crewLoading } = useCrew(user?.id)
   const [creating, setCreating] = useState(false)
-  const [shareUrl, setShareUrl] = useState<string | null>(null)
+  const [shareUrl, setShareUrl] = useState<string | null>(existingShareUrl ?? null)
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [sending, setSending] = useState<string | null>(null) // member id
   const [sentTo, setSentTo] = useState<Set<string>>(new Set())
 
-  // Lazily create the shared link when the modal opens (one snapshot per modal session).
+  // Create a new share snapshot only if one doesn't already exist.
   useEffect(() => {
+    if (existingShareUrl) return
     let cancelled = false
     setCreating(true)
     createSharedRecommendation(date, weather, options).then((res) => {
