@@ -63,6 +63,8 @@ export interface Profile {
   home_lat: number | null
   home_lng: number | null
   kids_ages: number[] | null
+  nap_start_time: string | null
+  nap_end_time: string | null
   created_at: string
 }
 

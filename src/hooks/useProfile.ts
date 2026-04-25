@@ -60,5 +60,16 @@ export function useProfile(userId: string | undefined) {
     if (data) setProfile(data)
   }
 
-  return { profile, loading, updateHomeAddress, clearHomeAddress, updateKidsAges }
+  const updateNapTime = async (startTime: string | null, endTime: string | null) => {
+    if (!userId) return
+    const { data } = await supabase
+      .from('profiles')
+      .update({ nap_start_time: startTime, nap_end_time: endTime })
+      .eq('id', userId)
+      .select()
+      .single()
+    if (data) setProfile(data)
+  }
+
+  return { profile, loading, updateHomeAddress, clearHomeAddress, updateKidsAges, updateNapTime }
 }

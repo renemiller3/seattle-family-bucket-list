@@ -101,15 +101,24 @@ function toCompact(a: Activity, homeLat: number | null, homeLng: number | null):
   }
 }
 
+function formatTime12h(hhmm: string): string {
+  const [h, m] = hhmm.split(':').map(Number)
+  const ampm = h < 12 ? 'AM' : 'PM'
+  const h12 = h % 12 === 0 ? 12 : h % 12
+  return `${h12}:${String(m).padStart(2, '0')} ${ampm}`
+}
+
 function buildPrompt(args: {
   date: string
   weather: DailyWeather | null
   season: string
   kidsAges: number[]
   homeAddress: string | null
+  napStartTime: string | null
+  napEndTime: string | null
   candidates: CompactActivity[]
 }): string {
-  const { date, weather, season, kidsAges, homeAddress, candidates } = args
+  const { date, weather, season, kidsAges, homeAddress, napStartTime, napEndTime, candidates } = args
   const weatherLine = weather
     ? `Weather: ${weather.conditions}, high ${weather.temp_high_f}°F / low ${weather.temp_low_f}°F, ${weather.precipitation_chance}% chance of precipitation. ${weather.is_wet ? 'Lean indoor or covered.' : ''}`
     : `Weather: forecast not available; rely on the season (${season}).`
@@ -117,6 +126,9 @@ function buildPrompt(args: {
     ? `Kids' ages: ${kidsAges.join(', ')}. All picks must work for every kid.`
     : `Family ages unspecified.`
   const homeLine = homeAddress ? `Home base: ${homeAddress}.` : `Home base unknown.`
+  const napLine = napStartTime && napEndTime
+    ? `NAP WINDOW: ${formatTime12h(napStartTime)}–${formatTime12h(napEndTime)}. Do NOT schedule activities during this window. Plan to be home or wrapping up by ${formatTime12h(napStartTime)}, then resume (if relevant) after ${formatTime12h(napEndTime)}.`
+    : ''
 
   return `You are a Seattle family-outing concierge. Plan ONE outing for each of three vibes — "Chill / Easy", "Burn Energy", and "Special / Treat" — for the date below.
 
@@ -124,6 +136,7 @@ Date: ${date} (${season})
 ${weatherLine}
 ${familyLine}
 ${homeLine}
+${napLine}
 
 You MUST select anchor and secondary activities by id from the candidate list below. Do not invent activities that aren't on the list. The "food_stop" field is the one place you may suggest a real restaurant by name (use the activity's nearby_food hints when available, otherwise pick something plausible near the anchor's location_text).
 
@@ -284,15 +297,24 @@ export async function generateDayRecommendations(date: string): Promise<Recommen
   }
 
   const admin = createAdminClient()
-  const [profileRes, activitiesRes] = await Promise.all([
+  const [profileRes, activitiesRes, completedRes] = await Promise.all([
     admin.from('profiles').select('*').eq('id', user.id).single(),
     admin.from('activities').select('*'),
+    admin
+      .from('plan_items')
+      .select('activity_id')
+      .eq('user_id', user.id)
+      .eq('is_completed', true)
+      .not('activity_id', 'is', null),
   ])
   if (profileRes.error || activitiesRes.error) {
     return { ok: false, error: "Couldn't load your profile or the activity list. Please try again." }
   }
   const profile = profileRes.data
   const allActivities = (activitiesRes.data ?? []) as Activity[]
+  const completedActivityIds = new Set(
+    ((completedRes.data ?? []) as { activity_id: string }[]).map((r) => r.activity_id)
+  )
 
   const season = seasonFromDate(date)
   const homeLat = profile?.home_lat ?? null
@@ -300,6 +322,7 @@ export async function generateDayRecommendations(date: string): Promise<Recommen
   const kidsAges: number[] = profile?.kids_ages ?? []
 
   const candidates = allActivities.filter((a) => {
+    if (completedActivityIds.has(a.id)) return false
     if (a.seasons && a.seasons.length > 0 && !a.seasons.includes(season)) return false
     if (a.start_date && date < a.start_date) return false
     if (a.end_date && date > a.end_date) return false
@@ -341,6 +364,8 @@ export async function generateDayRecommendations(date: string): Promise<Recommen
     season,
     kidsAges,
     homeAddress: profile?.home_address ?? null,
+    napStartTime: profile?.nap_start_time ?? null,
+    napEndTime: profile?.nap_end_time ?? null,
     candidates: compact,
   })
 

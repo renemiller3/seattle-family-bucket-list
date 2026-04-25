@@ -172,6 +172,14 @@ function ResultsHeader({ result }: { result: RecommendationResult }) {
   )
 }
 
+function formatDriveTime(minutes: number): string {
+  if (minutes < 60) return `${minutes} min driving`
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  if (m === 0) return `${h} hr driving`
+  return `${h} hr ${m} min driving`
+}
+
 function OptionCard({
   option,
   onCommit,
@@ -189,8 +197,18 @@ function OptionCard({
     'Special / Treat': 'bg-violet-50 text-violet-700 border-violet-200',
   }[option.vibe_label] ?? 'bg-gray-50 text-gray-700 border-gray-200'
 
+  const imageUrl = option.anchor_activity.image_url
+
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-4">
+    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+      {imageUrl && (
+        <img
+          src={imageUrl}
+          alt={option.anchor_activity.title}
+          className="h-40 w-full object-cover"
+        />
+      )}
+      <div className="p-4">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
           <span className={`inline-block rounded-full border px-2 py-0.5 text-xs font-medium ${vibeColor}`}>
@@ -201,7 +219,7 @@ function OptionCard({
         </div>
         <div className="text-right text-xs text-gray-500">
           <div>{option.cost_band}</div>
-          <div>{option.total_drive_time_minutes} min driving</div>
+          <div>{formatDriveTime(option.total_drive_time_minutes)}</div>
         </div>
       </div>
 
@@ -236,6 +254,7 @@ function OptionCard({
         >
           {isCommitting ? 'Creating outing…' : 'Make this my day'}
         </button>
+      </div>
       </div>
     </div>
   )
