@@ -58,10 +58,9 @@ export default function PlanPage() {
     let result = items
 
     // When viewing a specific outing, show all items (past + future)
-    // When viewing "All", hide past items
+    // When viewing "All", hide past items and already-completed items
     if (!selectedOutingId) {
-      const today = format(new Date(), 'yyyy-MM-dd')
-      result = result.filter((item) => item.date >= today)
+      result = result.filter((item) => item.date >= today && !item.is_completed)
     } else {
       result = result.filter((item) => item.outing_id === selectedOutingId)
     }
