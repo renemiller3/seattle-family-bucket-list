@@ -363,7 +363,7 @@ export default function BucketListPage() {
                                 <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
                                 <path d="M3 3v5h5" />
                               </svg>
-                              Undo
+                              Not yet
                             </button>
                             <PhotoUpload
                               activityId={item.activity_id ?? undefined}
