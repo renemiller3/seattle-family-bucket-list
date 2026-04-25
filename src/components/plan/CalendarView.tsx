@@ -246,22 +246,6 @@ export default function CalendarView({
                   <span className="truncate">{o.name}</span>
                 </button>
               ))}
-              {pastOutings.length > 0 && (
-                <>
-                  <div className="my-1 border-t border-gray-100" />
-                  <div className="px-3 py-1 text-xs font-medium uppercase tracking-wide text-gray-400">Past</div>
-                  {pastOutings.map((o) => (
-                    <button
-                      key={o.id}
-                      onClick={() => { onOutingChange(o.id); setPickerOpen(false) }}
-                      className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-gray-50 ${selectedOutingId === o.id ? 'font-medium text-emerald-600' : 'text-gray-400'}`}
-                    >
-                      <span className="w-4 text-emerald-600">{selectedOutingId === o.id ? '✓' : ''}</span>
-                      <span className="truncate">{o.name}</span>
-                    </button>
-                  ))}
-                </>
-              )}
               <div className="my-1 border-t border-gray-100" />
               <button
                 onClick={() => { setPickerOpen(false); onOpenOutingManager() }}
