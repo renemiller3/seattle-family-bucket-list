@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import type { Activity } from '@/lib/types'
 import { deleteActivity } from '@/app/admin/actions'
+import FilterBar, { type Filters } from '@/components/activities/FilterBar'
 
 type SortKey = 'title' | 'area' | 'cost' | 'type'
 
@@ -21,14 +22,31 @@ export default function ActivityAdminList({ activities }: { activities: Activity
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
   const [confirmId, setConfirmId] = useState<string | null>(null)
   const [deletedTitle, setDeletedTitle] = useState<string | null>(null)
+  const [filters, setFilters] = useState<Filters>({
+    vibes: [],
+    ageRange: null,
+    area: null,
+    cost: null,
+    type: null,
+    pregnancyFriendly: null,
+    crowdLevel: null,
+  })
   const [, startTransition] = useTransition()
   const router = useRouter()
 
   const visible = useMemo(() => {
     const q = search.trim().toLowerCase()
-    const filtered = q
-      ? activities.filter((a) => a.title.toLowerCase().includes(q))
-      : activities
+    const filtered = activities.filter((a) => {
+      if (q && !a.title.toLowerCase().includes(q)) return false
+      if (filters.vibes.length > 0 && !filters.vibes.some((v) => a.vibes.includes(v))) return false
+      if (filters.ageRange && !a.age_range.includes(filters.ageRange)) return false
+      if (filters.area && a.area !== filters.area) return false
+      if (filters.cost && a.cost !== filters.cost) return false
+      if (filters.type && a.type !== filters.type) return false
+      if (filters.pregnancyFriendly && !a.pregnancy_friendly?.includes(filters.pregnancyFriendly)) return false
+      if (filters.crowdLevel && a.crowd_level !== filters.crowdLevel) return false
+      return true
+    })
     const sorted = [...filtered].sort((a, b) => {
       const av = String(a[sortKey] ?? '').toLowerCase()
       const bv = String(b[sortKey] ?? '').toLowerCase()
@@ -37,7 +55,7 @@ export default function ActivityAdminList({ activities }: { activities: Activity
       return 0
     })
     return sorted
-  }, [activities, search, sortKey, sortDir])
+  }, [activities, search, sortKey, sortDir, filters])
 
   const toggleSort = (k: SortKey) => {
     if (sortKey === k) setSortDir(sortDir === 'asc' ? 'desc' : 'asc')
@@ -72,7 +90,7 @@ export default function ActivityAdminList({ activities }: { activities: Activity
         </Link>
       </div>
 
-      <div className="mb-4">
+      <div className="mb-4 space-y-3">
         <input
           type="text"
           value={search}
@@ -80,7 +98,8 @@ export default function ActivityAdminList({ activities }: { activities: Activity
           placeholder="Search by title..."
           className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 sm:max-w-sm"
         />
-        <div className="mt-2 text-xs text-gray-500">{visible.length} of {activities.length}</div>
+        <FilterBar filters={filters} onChange={setFilters} compact />
+        <div className="text-xs text-gray-500">{visible.length} of {activities.length}</div>
       </div>
 
       {deletedTitle && (
