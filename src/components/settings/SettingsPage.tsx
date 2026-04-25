@@ -111,9 +111,76 @@ function HomeAddressInput({
   )
 }
 
+function KidsAgesInput({
+  currentAges,
+  onSave,
+}: {
+  currentAges: number[] | null
+  onSave: (ages: number[]) => Promise<void>
+}) {
+  const canonical = (currentAges ?? []).join(', ')
+  const [value, setValue] = useState(canonical)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const parsed = value
+    .split(',')
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0)
+    .map((s) => parseInt(s, 10))
+
+  const isValid = parsed.every((n) => Number.isInteger(n) && n >= 0 && n <= 18)
+  const dirty = value.trim() !== canonical.trim()
+
+  const handleSave = async () => {
+    if (!isValid) {
+      setError('Use whole numbers 0–18, separated by commas.')
+      return
+    }
+    setError(null)
+    setSaving(true)
+    await onSave(parsed)
+    setSaving(false)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2000)
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => {
+            setValue(e.target.value)
+            setError(null)
+          }}
+          placeholder="e.g. 3, 6"
+          inputMode="numeric"
+          className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+        />
+        {dirty && (
+          <button
+            onClick={handleSave}
+            disabled={saving || !isValid}
+            className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+          >
+            {saving ? 'Saving…' : saved ? 'Saved!' : 'Save'}
+          </button>
+        )}
+      </div>
+      {error && <p className="text-xs text-red-500">{error}</p>}
+      <p className="text-xs text-gray-400">
+        Used by Plan-my-day to recommend age-appropriate outings. Leave empty to skip age filtering.
+      </p>
+    </div>
+  )
+}
+
 export default function SettingsPage() {
   const { user, loading: authLoading } = useAuth()
-  const { profile, loading: profileLoading, updateHomeAddress, clearHomeAddress } = useProfile(user?.id)
+  const { profile, loading: profileLoading, updateHomeAddress, clearHomeAddress, updateKidsAges } = useProfile(user?.id)
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY
 
@@ -161,6 +228,17 @@ export default function SettingsPage() {
         ) : (
           <p className="text-sm text-red-500">Google Maps API key not configured.</p>
         )}
+      </section>
+
+      <section className="mt-6 rounded-xl border border-gray-200 bg-white p-6">
+        <h2 className="mb-1 text-base font-semibold text-gray-900">👧 Kids&rsquo; Ages</h2>
+        <p className="mb-4 text-sm text-gray-500">
+          Comma-separated ages of the kids who&rsquo;ll be on outings.
+        </p>
+        <KidsAgesInput
+          currentAges={profile?.kids_ages ?? null}
+          onSave={updateKidsAges}
+        />
       </section>
     </div>
   )

@@ -62,6 +62,7 @@ export interface Profile {
   home_address: string | null
   home_lat: number | null
   home_lng: number | null
+  kids_ages: number[] | null
   created_at: string
 }
 

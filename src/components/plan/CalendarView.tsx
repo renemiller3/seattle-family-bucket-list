@@ -34,6 +34,7 @@ interface CalendarViewProps {
   selectedOutingId: string | null
   onOutingChange: (outingId: string | null) => void
   onOpenOutingManager: () => void
+  onOpenPlanMyDay: () => void
 }
 
 export default function CalendarView({
@@ -47,6 +48,7 @@ export default function CalendarView({
   selectedOutingId,
   onOutingChange,
   onOpenOutingManager,
+  onOpenPlanMyDay,
 }: CalendarViewProps) {
   const [view, setView] = useState<ViewMode>('itinerary')
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'))
@@ -187,15 +189,23 @@ export default function CalendarView({
         <h1 className="text-2xl font-bold text-gray-900">
           {selectedOuting?.name ?? 'All Outings'}
         </h1>
-        <button
-          onClick={() => {
-            setLifeBlockDate(selectedDate)
-            setShowLifeBlock(true)
-          }}
-          className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 transition-colors"
-        >
-          + Add Activity
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={onOpenPlanMyDay}
+            className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700 transition-colors"
+          >
+            ✨ Plan my day
+          </button>
+          <button
+            onClick={() => {
+              setLifeBlockDate(selectedDate)
+              setShowLifeBlock(true)
+            }}
+            className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 transition-colors"
+          >
+            + Add Activity
+          </button>
+        </div>
       </div>
 
       {/* Row 2: All controls */}

@@ -49,5 +49,16 @@ export function useProfile(userId: string | undefined) {
     if (data) setProfile(data)
   }
 
-  return { profile, loading, updateHomeAddress, clearHomeAddress }
+  const updateKidsAges = async (ages: number[]) => {
+    if (!userId) return
+    const { data } = await supabase
+      .from('profiles')
+      .update({ kids_ages: ages.length > 0 ? ages : null })
+      .eq('id', userId)
+      .select()
+      .single()
+    if (data) setProfile(data)
+  }
+
+  return { profile, loading, updateHomeAddress, clearHomeAddress, updateKidsAges }
 }

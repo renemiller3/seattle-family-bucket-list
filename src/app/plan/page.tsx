@@ -11,17 +11,19 @@ import CalendarView from '@/components/plan/CalendarView'
 import NearbyIdeas from '@/components/plan/NearbyIdeas'
 import OutingSummary from '@/components/plan/OutingSummary'
 import OutingManager from '@/components/plan/OutingManager'
+import PlanMyDayModal from '@/components/plan/PlanMyDayModal'
 import type { Activity } from '@/lib/types'
 import Link from 'next/link'
 
 export default function PlanPage() {
   const { user, loading: authLoading } = useAuth()
-  const { items, loading: itemsLoading, updateItem, deleteItem, reorderItems, addItem } = usePlanItems(user?.id)
-  const { outings, addOuting, updateOuting, deleteOuting } = useOutings(user?.id)
+  const { items, loading: itemsLoading, updateItem, deleteItem, reorderItems, addItem, refresh: refreshItems } = usePlanItems(user?.id)
+  const { outings, addOuting, updateOuting, deleteOuting, refresh: refreshOutings } = useOutings(user?.id)
   const { activities: allActivities } = useActivities()
   const { bucketListIds } = useBucketList(user?.id)
   const [selectedOutingId, setSelectedOutingId] = useState<string | null>(null)
   const [outingManagerOpen, setOutingManagerOpen] = useState(false)
+  const [planMyDayOpen, setPlanMyDayOpen] = useState(false)
 
   const sortedOutings = useMemo(() => {
     const earliestDate = new Map<string, string>()
@@ -177,6 +179,7 @@ export default function PlanPage() {
             selectedOutingId={selectedOutingId}
             onOutingChange={setSelectedOutingId}
             onOpenOutingManager={() => setOutingManagerOpen(true)}
+            onOpenPlanMyDay={() => setPlanMyDayOpen(true)}
           />
           {selectedOuting && (
             <NearbyIdeas
@@ -194,6 +197,17 @@ export default function PlanPage() {
               onUpdate={updateOuting}
               onDelete={deleteOuting}
               onClose={() => setOutingManagerOpen(false)}
+            />
+          )}
+          {planMyDayOpen && (
+            <PlanMyDayModal
+              initialDate={format(new Date(), 'yyyy-MM-dd')}
+              onClose={() => setPlanMyDayOpen(false)}
+              onCommitted={async (outingId) => {
+                await Promise.all([refreshOutings(), refreshItems()])
+                setSelectedOutingId(outingId)
+                setPlanMyDayOpen(false)
+              }}
             />
           )}
         </>
