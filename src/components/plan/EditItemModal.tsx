@@ -35,6 +35,7 @@ export default function EditItemModal({ item, onSave, onClose, outings = [] }: E
 
   const isLifeBlock = item.type === 'life_block'
   const isCustom = item.type === 'custom'
+  const isRestaurant = item.type === 'restaurant'
   const displayTitle = title || item.activity?.title || 'Untitled'
 
   const handleSave = () => {
@@ -59,7 +60,7 @@ export default function EditItemModal({ item, onSave, onClose, outings = [] }: E
       lat: hasLocation ? lat : null,
       lng: hasLocation ? lng : null,
       image_url: imageUrl,
-      ...(isLifeBlock || isCustom ? { title } : {}),
+      ...(isLifeBlock || isCustom || isRestaurant ? { title } : {}),
     })
     onClose()
   }
@@ -104,7 +105,7 @@ export default function EditItemModal({ item, onSave, onClose, outings = [] }: E
                 ))}
               </div>
             </div>
-          ) : isCustom ? (
+          ) : isCustom || isRestaurant ? (
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">Title</label>
               <input
