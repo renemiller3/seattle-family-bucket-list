@@ -27,28 +27,43 @@ export default function PlanMyDayModal({ initialDate, onClose, onCommitted }: Pl
   const handleGenerate = async () => {
     setError(null)
     setStep('loading')
+    let response
     try {
-      const r = await generateDayRecommendations(date)
-      setResult(r)
-      setStep('results')
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Something went wrong')
+      response = await generateDayRecommendations(date)
+    } catch {
+      setError("Something went wrong reaching the server. Please try again.")
       setStep('pick')
+      return
     }
+    if (!response.ok) {
+      setError(response.error)
+      setStep('pick')
+      return
+    }
+    setResult(response.data)
+    setStep('results')
   }
 
   const handleCommit = async (option: RecommendationOption, idx: number) => {
     setError(null)
     setCommittingIdx(idx)
     setStep('committing')
+    let response
     try {
-      const { outing_id } = await commitRecommendation(option, date)
-      onCommitted(outing_id)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to create outing')
+      response = await commitRecommendation(option, date)
+    } catch {
+      setError("Something went wrong reaching the server. Please try again.")
       setStep('results')
       setCommittingIdx(null)
+      return
     }
+    if (!response.ok) {
+      setError(response.error)
+      setStep('results')
+      setCommittingIdx(null)
+      return
+    }
+    onCommitted(response.outing_id)
   }
 
   return (

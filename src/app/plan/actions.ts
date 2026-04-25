@@ -43,6 +43,14 @@ export interface RecommendationResult {
   options: RecommendationOption[]
 }
 
+export type RecommendationResponse =
+  | { ok: true; data: RecommendationResult }
+  | { ok: false; error: string }
+
+export type CommitResponse =
+  | { ok: true; outing_id: string }
+  | { ok: false; error: string }
+
 function ageRangeFits(range: AgeRange, kidAge: number): boolean {
   switch (range) {
     case 'All Ages': return true
@@ -202,51 +210,87 @@ interface GeminiOption {
   why_today: string
 }
 
-async function callGemini(prompt: string, apiKey: string): Promise<{ options: GeminiOption[] }> {
+type GeminiCallResult =
+  | { ok: true; data: { options: GeminiOption[] } }
+  | { ok: false; error: string }
+
+async function callGemini(prompt: string, apiKey: string): Promise<GeminiCallResult> {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-goog-api-key': apiKey,
-    },
-    body: JSON.stringify({
-      contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      generationConfig: {
-        responseMimeType: 'application/json',
-        responseSchema: RESPONSE_SCHEMA,
-        temperature: 0.8,
+  let res: Response
+  try {
+    res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': apiKey,
       },
-    }),
-    cache: 'no-store',
-  })
-  if (!res.ok) {
-    const body = await res.text()
-    throw new Error(`Gemini error ${res.status}: ${body.slice(0, 300)}`)
+      body: JSON.stringify({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: {
+          responseMimeType: 'application/json',
+          responseSchema: RESPONSE_SCHEMA,
+          temperature: 0.8,
+        },
+      }),
+      cache: 'no-store',
+    })
+  } catch {
+    return { ok: false, error: "Couldn't reach Google's AI service. Check your internet connection and try again." }
   }
-  const json = await res.json()
-  const text = json?.candidates?.[0]?.content?.parts?.[0]?.text
-  if (!text) throw new Error('Gemini returned no content')
-  return JSON.parse(text)
+  if (res.status === 401 || res.status === 403) {
+    return { ok: false, error: "Google rejected the AI key. Ask the site admin to check the GEMINI_API_KEY setting." }
+  }
+  if (res.status === 429) {
+    return { ok: false, error: "We've hit Google's rate limit for AI requests. Please try again in a minute." }
+  }
+  if (!res.ok) {
+    return { ok: false, error: `Google's AI service returned an error (${res.status}). Please try again.` }
+  }
+  let json: unknown
+  try {
+    json = await res.json()
+  } catch {
+    return { ok: false, error: "Got an unreadable response from the AI. Please try again." }
+  }
+  const text = (json as { candidates?: { content?: { parts?: { text?: string }[] } }[] })
+    ?.candidates?.[0]?.content?.parts?.[0]?.text
+  if (!text) {
+    return { ok: false, error: "The AI didn't return a plan this time. Please try again." }
+  }
+  try {
+    return { ok: true, data: JSON.parse(text) }
+  } catch {
+    return { ok: false, error: "The AI returned a response we couldn't read. Please try again." }
+  }
 }
 
-export async function generateDayRecommendations(date: string): Promise<RecommendationResult> {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error('Invalid date')
+export async function generateDayRecommendations(date: string): Promise<RecommendationResponse> {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return { ok: false, error: 'Please pick a valid date.' }
+  }
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Not signed in')
+  if (!user) {
+    return { ok: false, error: 'You need to be signed in to use Plan my day.' }
+  }
 
   const apiKey = process.env.GEMINI_API_KEY
-  if (!apiKey) throw new Error('Recommendations are not configured. (Missing GEMINI_API_KEY.)')
+  if (!apiKey) {
+    return {
+      ok: false,
+      error: "Plan my day isn't set up yet. Ask the site admin to add a GEMINI_API_KEY.",
+    }
+  }
 
   const admin = createAdminClient()
   const [profileRes, activitiesRes] = await Promise.all([
     admin.from('profiles').select('*').eq('id', user.id).single(),
     admin.from('activities').select('*'),
   ])
-  if (profileRes.error) throw new Error(`Failed to load profile: ${profileRes.error.message}`)
-  if (activitiesRes.error) throw new Error(`Failed to load activities: ${activitiesRes.error.message}`)
+  if (profileRes.error || activitiesRes.error) {
+    return { ok: false, error: "Couldn't load your profile or the activity list. Please try again." }
+  }
   const profile = profileRes.data
   const allActivities = (activitiesRes.data ?? []) as Activity[]
 
@@ -268,7 +312,11 @@ export async function generateDayRecommendations(date: string): Promise<Recommen
   })
 
   if (candidates.length < 3) {
-    throw new Error('Not enough activities match your filters for that day. Try a different date or update your home address / kids’ ages in settings.')
+    return {
+      ok: false,
+      error:
+        "Not enough activities match this day. Try a different date, or check your home address and kids' ages in settings.",
+    }
   }
 
   // Cap candidates by distance proximity (when home is set) to keep prompt tight.
@@ -296,13 +344,14 @@ export async function generateDayRecommendations(date: string): Promise<Recommen
     candidates: compact,
   })
 
-  const raw = await callGemini(prompt, apiKey)
+  const geminiResult = await callGemini(prompt, apiKey)
+  if (!geminiResult.ok) return geminiResult
 
   // Validate and hydrate.
   const byId = new Map(allActivities.map((a) => [a.id, a]))
   const seenVibes = new Set<string>()
   const hydrated: RecommendationOption[] = []
-  for (const opt of raw.options ?? []) {
+  for (const opt of geminiResult.data.options ?? []) {
     if (!VIBES.includes(opt.vibe_label as typeof VIBES[number])) continue
     if (seenVibes.has(opt.vibe_label)) continue
     const anchor = byId.get(opt.anchor_activity_id)
@@ -325,16 +374,15 @@ export async function generateDayRecommendations(date: string): Promise<Recommen
     })
   }
 
-  // Order: Chill, Burn Energy, Special Treat
   hydrated.sort(
     (a, b) => VIBES.indexOf(a.vibe_label as typeof VIBES[number]) - VIBES.indexOf(b.vibe_label as typeof VIBES[number])
   )
 
   if (hydrated.length === 0) {
-    throw new Error('No valid recommendations were generated. Please try again.')
+    return { ok: false, error: "The AI couldn't put together a plan for that day. Please try again." }
   }
 
-  return { date, weather, options: hydrated }
+  return { ok: true, data: { date, weather, options: hydrated } }
 }
 
 function addMinutes(time: string, minutes: number): string {
@@ -348,10 +396,12 @@ function addMinutes(time: string, minutes: number): string {
 export async function commitRecommendation(
   option: RecommendationOption,
   date: string
-): Promise<{ outing_id: string }> {
+): Promise<CommitResponse> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Not signed in')
+  if (!user) {
+    return { ok: false, error: 'You need to be signed in to save an outing.' }
+  }
 
   const admin = createAdminClient()
 
@@ -368,7 +418,9 @@ export async function commitRecommendation(
     })
     .select('*')
     .single()
-  if (outingErr || !outing) throw new Error(outingErr?.message ?? 'Failed to create outing')
+  if (outingErr || !outing) {
+    return { ok: false, error: "Couldn't create the outing. Please try again." }
+  }
 
   // Build plan items from the sequence.
   type StepRow = {
@@ -469,7 +521,9 @@ export async function commitRecommendation(
   }
 
   const { error: itemsErr } = await admin.from('plan_items').insert(rows)
-  if (itemsErr) throw new Error(itemsErr.message)
+  if (itemsErr) {
+    return { ok: false, error: "The outing was created but we couldn't add the activities to it. Please try again." }
+  }
 
-  return { outing_id: outing.id }
+  return { ok: true, outing_id: outing.id }
 }
