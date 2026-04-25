@@ -8,9 +8,11 @@ import {
   type RecommendationResult,
   type RecommendationOption,
   type RecommendationPick,
+  type RecommendationPin,
 } from '@/app/plan/actions'
 import ShareRecommendationsModal from './ShareRecommendationsModal'
 import ExploreNearbyLink from './ExploreNearbyLink'
+import PinPicker, { type PinDisplay } from './PinPicker'
 
 interface PlanMyDayModalProps {
   initialDate: string
@@ -40,13 +42,16 @@ export default function PlanMyDayModal({
   const [error, setError] = useState<string | null>(null)
   const [committingIdx, setCommittingIdx] = useState<number | null>(null)
   const [shareOpen, setShareOpen] = useState(false)
+  const [pins, setPins] = useState<RecommendationPin[]>([])
+  const [pinDisplays, setPinDisplays] = useState<PinDisplay[]>([])
+  const [pickerOpen, setPickerOpen] = useState(false)
 
   const handleGenerate = async () => {
     setError(null)
     setStep('loading')
     let response
     try {
-      response = await generateDayRecommendations(date)
+      response = await generateDayRecommendations(date, pins)
     } catch {
       setError("Something went wrong reaching the server. Please try again.")
       setStep('pick')
@@ -59,6 +64,19 @@ export default function PlanMyDayModal({
     }
     setResult(response.data)
     setStep('results')
+  }
+
+  const handleAddPin = (pin: RecommendationPin, display: PinDisplay) => {
+    if (pins.length >= 2) return
+    setPins((prev) => [...prev, pin])
+    setPinDisplays((prev) => [...prev, display])
+  }
+
+  const handleRemovePin = (key: string) => {
+    const idx = pinDisplays.findIndex((p) => p.key === key)
+    if (idx < 0) return
+    setPins((prev) => prev.filter((_, i) => i !== idx))
+    setPinDisplays((prev) => prev.filter((_, i) => i !== idx))
   }
 
   const handleCommit = async (option: RecommendationOption, idx: number) => {
@@ -115,6 +133,46 @@ export default function PlanMyDayModal({
                   className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                 />
               </div>
+
+              <div>
+                <span className="mb-2 block text-sm font-medium text-gray-700">
+                  Want to include something specific? <span className="font-normal text-gray-500">(optional, up to 2)</span>
+                </span>
+                {pinDisplays.length > 0 && (
+                  <div className="mb-2 flex flex-wrap gap-2">
+                    {pinDisplays.map((p) => (
+                      <span
+                        key={p.key}
+                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${
+                          p.kind === 'activity'
+                            ? 'bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200'
+                            : 'bg-amber-50 text-amber-800 ring-1 ring-amber-200'
+                        }`}
+                      >
+                        {p.kind === 'idea' ? '💡' : '📌'} {p.emoji ? `${p.emoji} ` : ''}{p.label}
+                        <button
+                          onClick={() => handleRemovePin(p.key)}
+                          className="ml-0.5 rounded-full hover:bg-black/10"
+                          aria-label="Remove"
+                        >
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <path d="M18 6L6 18M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {pinDisplays.length < 2 && (
+                  <button
+                    onClick={() => setPickerOpen(true)}
+                    className="rounded-lg border border-dashed border-gray-300 px-3 py-1.5 text-sm text-gray-600 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700"
+                  >
+                    + Add something I want to do
+                  </button>
+                )}
+              </div>
+
               {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
               <div className="flex justify-end">
                 <button
@@ -197,6 +255,14 @@ export default function PlanMyDayModal({
           options={result.options}
           existingShareUrl={shareSlug ? `${window.location.origin}/share/${shareSlug}` : undefined}
           onClose={() => setShareOpen(false)}
+        />
+      )}
+
+      {pickerOpen && (
+        <PinPicker
+          pinned={pinDisplays}
+          onAdd={handleAddPin}
+          onClose={() => setPickerOpen(false)}
         />
       )}
     </div>

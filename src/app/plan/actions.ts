@@ -39,6 +39,10 @@ export interface RecommendationOption {
   secondary_activity: Activity | null
 }
 
+export type RecommendationPin =
+  | { kind: 'activity'; activity_id: string }
+  | { kind: 'idea'; text: string }
+
 export interface RecommendationResult {
   date: string
   weather: DailyWeather | null
@@ -168,8 +172,10 @@ function buildPrompt(args: {
   napStartTime: string | null
   napEndTime: string | null
   candidates: CompactActivity[]
+  pinnedActivities: Activity[]
+  ideaPins: string[]
 }): string {
-  const { date, weather, season, kidsAges, homeAddress, napStartTime, napEndTime, candidates } = args
+  const { date, weather, season, kidsAges, homeAddress, napStartTime, napEndTime, candidates, pinnedActivities, ideaPins } = args
   const weatherLine = weather
     ? `Weather: ${weather.conditions}, high ${weather.temp_high_f}°F / low ${weather.temp_low_f}°F, ${weather.precipitation_chance}% chance of precipitation. ${weather.is_wet ? 'Lean indoor or covered.' : ''}`
     : `Weather: forecast not available; rely on the season (${season}).`
@@ -180,6 +186,27 @@ function buildPrompt(args: {
   const napLine = napStartTime && napEndTime
     ? `NAP WINDOW: ${formatTime12h(napStartTime)}–${formatTime12h(napEndTime)}. Do NOT schedule activities during this window. The family MUST be back home BEFORE ${formatTime12h(napStartTime)} — account for drive time so the last out-of-home step ends with enough buffer to be home by then. Resume (if relevant) after ${formatTime12h(napEndTime)}.`
     : ''
+
+  const pinLines: string[] = []
+  if (pinnedActivities.length > 0) {
+    pinLines.push('USER PINS (you MUST honor these):')
+    for (const a of pinnedActivities) {
+      pinLines.push(
+        `- Anchor pin: the user explicitly wants to do "${a.title}" (id: ${a.id}). Make it the anchor_activity_id of ONE of the three options. Vibes for this activity: ${a.vibes.join(', ')}. Pick the vibe_label for that option that best matches one of the three target vibes (Chill / Easy, Burn Energy, Special / Treat).`
+      )
+    }
+  }
+  if (ideaPins.length > 0) {
+    if (pinLines.length === 0) pinLines.push('USER PINS (you MUST honor these):')
+    for (const text of ideaPins) {
+      pinLines.push(
+        `- Idea pin: the user also wants to include "${text}". Weave this into the sequence of ONE of the three options as a "food" or "other" step at a reasonable time. Do NOT use it as the anchor_activity_id. The user's idea text should appear verbatim in that step's title.`
+      )
+    }
+  }
+  if (pinLines.length > 0) {
+    pinLines.push('Remaining option(s) (if any) are yours to design freely. Each option must still cover a distinct vibe — no duplicates.')
+  }
 
   return `You are a Seattle family-outing concierge. Plan ONE outing for each of three vibes — "Chill / Easy", "Burn Energy", and "Special / Treat" — for the date below.
 
@@ -205,6 +232,8 @@ Each option needs:
 - "why_today": one sentence explicitly referencing weather or season
 
 Aim for 3–5 sequence steps total (the coffee stop counts as one). Keep timing realistic (drive buffers, kid stamina). Default to a late-morning start (~9:30–10:30) unless the activity has a known constraint.
+
+${pinLines.join('\n')}
 
 CANDIDATES (json):
 ${JSON.stringify(candidates)}
@@ -339,9 +368,15 @@ async function callGemini(prompt: string, apiKey: string): Promise<GeminiCallRes
   }
 }
 
-export async function generateDayRecommendations(date: string): Promise<RecommendationResponse> {
+export async function generateDayRecommendations(
+  date: string,
+  pins: RecommendationPin[] = [],
+): Promise<RecommendationResponse> {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     return { ok: false, error: 'Please pick a valid date.' }
+  }
+  if (pins.length > 2) {
+    return { ok: false, error: 'You can pin up to 2 things per day.' }
   }
 
   const supabase = await createClient()
@@ -414,7 +449,26 @@ export async function generateDayRecommendations(date: string): Promise<Recommen
     })
   }
   const limited = ranked.slice(0, MAX_CANDIDATES)
-  const compact = limited.map((a) => toCompact(a, homeLat, homeLng))
+
+  // Resolve pinned activities and guarantee they're in the candidate list,
+  // even if season/distance/age filters or the 40-cap would have dropped them.
+  const allById = new Map(allActivities.map((a) => [a.id, a]))
+  const pinnedActivities: Activity[] = []
+  const ideaPins: string[] = []
+  for (const pin of pins) {
+    if (pin.kind === 'activity') {
+      const a = allById.get(pin.activity_id)
+      if (a) pinnedActivities.push(a)
+    } else if (pin.kind === 'idea') {
+      const text = pin.text.trim()
+      if (text) ideaPins.push(text)
+    }
+  }
+  const finalCandidates = [...limited]
+  for (const a of pinnedActivities) {
+    if (!finalCandidates.some((c) => c.id === a.id)) finalCandidates.unshift(a)
+  }
+  const compact = finalCandidates.map((a) => toCompact(a, homeLat, homeLng))
 
   const weather = homeLat != null && homeLng != null
     ? await fetchDailyWeather(homeLat, homeLng, date)
@@ -429,6 +483,8 @@ export async function generateDayRecommendations(date: string): Promise<Recommen
     napStartTime: profile?.nap_start_time ?? null,
     napEndTime: profile?.nap_end_time ?? null,
     candidates: compact,
+    pinnedActivities,
+    ideaPins,
   })
 
   const geminiResult = await callGemini(prompt, apiKey)
