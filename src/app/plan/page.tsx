@@ -12,6 +12,7 @@ import NearbyIdeas from '@/components/plan/NearbyIdeas'
 import OutingSummary from '@/components/plan/OutingSummary'
 import OutingManager from '@/components/plan/OutingManager'
 import PlanMyDayModal from '@/components/plan/PlanMyDayModal'
+import SharedPlansList from '@/components/plan/SharedPlansList'
 import type { Activity } from '@/lib/types'
 import Link from 'next/link'
 
@@ -178,6 +179,12 @@ export default function PlanPage() {
               />
             </div>
           )}
+          <SharedPlansList
+            onCommitted={async (outingId) => {
+              await Promise.all([refreshOutings(), refreshItems()])
+              setSelectedOutingId(outingId)
+            }}
+          />
           <CalendarView
             items={filteredItems}
             userId={user.id}

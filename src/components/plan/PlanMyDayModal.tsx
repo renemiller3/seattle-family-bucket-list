@@ -7,22 +7,38 @@ import {
   commitRecommendation,
   type RecommendationResult,
   type RecommendationOption,
+  type RecommendationPick,
 } from '@/app/plan/actions'
+import ShareRecommendationsModal from './ShareRecommendationsModal'
 
 interface PlanMyDayModalProps {
   initialDate: string
   onClose: () => void
   onCommitted: (outingId: string) => void
+  // Optional: open the modal in "results" mode rehydrated from a previously shared snapshot.
+  initialResult?: RecommendationResult
+  sharedRecommendationId?: string
+  picks?: RecommendationPick[]
+  shareSlug?: string
 }
 
 type Step = 'pick' | 'loading' | 'results' | 'committing'
 
-export default function PlanMyDayModal({ initialDate, onClose, onCommitted }: PlanMyDayModalProps) {
-  const [step, setStep] = useState<Step>('pick')
-  const [date, setDate] = useState(initialDate)
-  const [result, setResult] = useState<RecommendationResult | null>(null)
+export default function PlanMyDayModal({
+  initialDate,
+  onClose,
+  onCommitted,
+  initialResult,
+  sharedRecommendationId,
+  picks,
+  shareSlug,
+}: PlanMyDayModalProps) {
+  const [step, setStep] = useState<Step>(initialResult ? 'results' : 'pick')
+  const [date, setDate] = useState(initialResult?.date ?? initialDate)
+  const [result, setResult] = useState<RecommendationResult | null>(initialResult ?? null)
   const [error, setError] = useState<string | null>(null)
   const [committingIdx, setCommittingIdx] = useState<number | null>(null)
+  const [shareOpen, setShareOpen] = useState(false)
 
   const handleGenerate = async () => {
     setError(null)
@@ -50,7 +66,7 @@ export default function PlanMyDayModal({ initialDate, onClose, onCommitted }: Pl
     setStep('committing')
     let response
     try {
-      response = await commitRecommendation(option, date)
+      response = await commitRecommendation(option, date, sharedRecommendationId, idx)
     } catch {
       setError("Something went wrong reaching the server. Please try again.")
       setStep('results')
@@ -126,32 +142,62 @@ export default function PlanMyDayModal({ initialDate, onClose, onCommitted }: Pl
                   <OptionCard
                     key={idx}
                     option={option}
+                    optionIndex={idx}
+                    picks={picks}
                     onCommit={() => handleCommit(option, idx)}
                     isCommitting={step === 'committing' && committingIdx === idx}
                     disabled={step === 'committing'}
                   />
                 ))}
               </div>
-              <div className="flex justify-between">
-                <button
-                  onClick={() => { setResult(null); setStep('pick') }}
-                  disabled={step === 'committing'}
-                  className="text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50"
-                >
-                  ← Pick a different day
-                </button>
-                <button
-                  onClick={handleGenerate}
-                  disabled={step === 'committing'}
-                  className="text-sm font-medium text-emerald-600 hover:text-emerald-700 disabled:opacity-50"
-                >
-                  Regenerate
-                </button>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                {!initialResult ? (
+                  <button
+                    onClick={() => { setResult(null); setStep('pick') }}
+                    disabled={step === 'committing'}
+                    className="text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50"
+                  >
+                    ← Pick a different day
+                  </button>
+                ) : <span />}
+                <div className="flex items-center gap-3">
+                  {!shareSlug && (
+                    <button
+                      onClick={() => setShareOpen(true)}
+                      disabled={step === 'committing'}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm font-medium text-emerald-700 hover:bg-emerald-50 disabled:opacity-50"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                      </svg>
+                      Share
+                    </button>
+                  )}
+                  {!initialResult && (
+                    <button
+                      onClick={handleGenerate}
+                      disabled={step === 'committing'}
+                      className="text-sm font-medium text-emerald-600 hover:text-emerald-700 disabled:opacity-50"
+                    >
+                      Regenerate
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           )}
         </div>
       </div>
+
+      {shareOpen && result && (
+        <ShareRecommendationsModal
+          date={date}
+          weather={result.weather}
+          options={result.options}
+          onClose={() => setShareOpen(false)}
+        />
+      )}
     </div>
   )
 }
@@ -216,15 +262,20 @@ function formatDriveTime(minutes: number): string {
 
 function OptionCard({
   option,
+  optionIndex,
+  picks,
   onCommit,
   isCommitting,
   disabled,
 }: {
   option: RecommendationOption
+  optionIndex: number
+  picks?: RecommendationPick[]
   onCommit: () => void
   isCommitting: boolean
   disabled: boolean
 }) {
+  const myPicks = picks?.filter((p) => p.option_index === optionIndex) ?? []
   const vibeColor = {
     'Chill / Easy': 'bg-sky-50 text-sky-700 border-sky-200',
     'Burn Energy': 'bg-orange-50 text-orange-700 border-orange-200',
@@ -279,6 +330,21 @@ function OptionCard({
       )}
 
       <p className="mt-3 text-xs italic text-gray-500">{option.why_today}</p>
+
+      {myPicks.length > 0 && (
+        <div className="mt-3 rounded-lg bg-rose-50 px-3 py-2">
+          <div className="text-xs font-medium uppercase tracking-wide text-rose-600">Picked by</div>
+          <ul className="mt-1 space-y-1">
+            {myPicks.map((p) => (
+              <li key={p.id} className="text-sm text-gray-700">
+                <span className="mr-1">❤️</span>
+                <span className="font-medium">{p.voter_name}</span>
+                {p.comment && <span className="text-gray-600"> — &ldquo;{p.comment}&rdquo;</span>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="mt-3 flex justify-end">
         <button

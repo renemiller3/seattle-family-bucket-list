@@ -126,6 +126,16 @@ export interface SharedPlan {
   created_at: string
 }
 
+export interface CrewMember {
+  id: string
+  user_id: string
+  name: string
+  phone: string | null
+  email: string | null
+  sort_order: number
+  created_at: string
+}
+
 export interface ActivityPhoto {
   id: string
   user_id: string

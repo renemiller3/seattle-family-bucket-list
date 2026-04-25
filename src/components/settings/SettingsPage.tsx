@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from 'react'
 import { APIProvider } from '@vis.gl/react-google-maps'
 import { useAuth } from '@/hooks/useAuth'
 import { useProfile } from '@/hooks/useProfile'
+import { useCrew } from '@/hooks/useCrew'
+import type { CrewMember } from '@/lib/types'
 import Link from 'next/link'
 
 // Inner component — must be rendered inside APIProvider so google.maps is available
@@ -254,6 +256,205 @@ function NapTimeInput({
   )
 }
 
+function CrewSection({ userId }: { userId: string }) {
+  const { crew, loading, add, update, remove } = useCrew(userId)
+  const [adding, setAdding] = useState(false)
+  const [name, setName] = useState('')
+  const [phone, setPhone] = useState('')
+  const [email, setEmail] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
+
+  const reset = () => { setName(''); setPhone(''); setEmail(''); setError(null) }
+
+  const handleAdd = async () => {
+    setError(null)
+    if (!name.trim()) { setError("Please add a name."); return }
+    setSaving(true)
+    const res = await add({ name, phone: phone || null, email: email || null })
+    setSaving(false)
+    if (!res.ok) { setError(res.error); return }
+    reset()
+    setAdding(false)
+  }
+
+  if (loading) return <div className="text-sm text-gray-400">Loading…</div>
+
+  return (
+    <div className="space-y-3">
+      {crew.length > 0 && (
+        <div className="space-y-2">
+          {crew.map((m) => (
+            <CrewRow
+              key={`${m.id}-${editingId === m.id ? 'edit' : 'view'}`}
+              member={m}
+              isEditing={editingId === m.id}
+              onEdit={() => setEditingId(m.id)}
+              onCancel={() => setEditingId(null)}
+              onSave={async (patch) => {
+                const res = await update(m.id, patch)
+                if (res.ok) setEditingId(null)
+                return res
+              }}
+              onRemove={() => remove(m.id)}
+            />
+          ))}
+        </div>
+      )}
+
+      {adding ? (
+        <div className="space-y-2 rounded-lg border border-gray-200 bg-gray-50 p-3">
+          <input
+            type="text"
+            placeholder="Name (e.g. Sarah)"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+          />
+          <input
+            type="tel"
+            placeholder="Phone (optional)"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+          />
+          <input
+            type="email"
+            placeholder="Email (optional)"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+          />
+          {error && <p className="text-xs text-red-500">{error}</p>}
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => { setAdding(false); reset() }}
+              className="rounded-lg px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleAdd}
+              disabled={saving}
+              className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+            >
+              {saving ? 'Saving…' : 'Add'}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          onClick={() => setAdding(true)}
+          className="text-sm font-medium text-emerald-700 hover:text-emerald-800"
+        >
+          + Add someone
+        </button>
+      )}
+
+      <p className="text-xs text-gray-400">
+        Adding a phone or email lets you send the share link with one tap.
+      </p>
+    </div>
+  )
+}
+
+function CrewRow({
+  member,
+  isEditing,
+  onEdit,
+  onCancel,
+  onSave,
+  onRemove,
+}: {
+  member: CrewMember
+  isEditing: boolean
+  onEdit: () => void
+  onCancel: () => void
+  onSave: (patch: { name?: string; phone?: string | null; email?: string | null }) => Promise<{ ok: boolean }>
+  onRemove: () => void
+}) {
+  const [name, setName] = useState(member.name)
+  const [phone, setPhone] = useState(member.phone ?? '')
+  const [email, setEmail] = useState(member.email ?? '')
+  const [saving, setSaving] = useState(false)
+
+  if (isEditing) {
+    return (
+      <div className="space-y-2 rounded-lg border border-gray-200 bg-gray-50 p-3">
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+        />
+        <input
+          type="tel"
+          placeholder="Phone (optional)"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+        />
+        <input
+          type="email"
+          placeholder="Email (optional)"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+        />
+        <div className="flex justify-end gap-2">
+          <button onClick={onCancel} className="rounded-lg px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100">
+            Cancel
+          </button>
+          <button
+            onClick={async () => {
+              setSaving(true)
+              await onSave({ name, phone: phone || null, email: email || null })
+              setSaving(false)
+            }}
+            disabled={saving}
+            className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+          >
+            {saving ? 'Saving…' : 'Save'}
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  const sub = member.phone ?? member.email ?? 'No contact info'
+  return (
+    <div className="group flex items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2.5">
+      <div className="min-w-0">
+        <div className="truncate text-sm font-medium text-gray-900">{member.name}</div>
+        <div className="truncate text-xs text-gray-500">{sub}</div>
+      </div>
+      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button
+          onClick={onEdit}
+          className="rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+          title="Edit"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4 12.5-12.5z" />
+          </svg>
+        </button>
+        <button
+          onClick={() => {
+            if (confirm(`Remove ${member.name} from your crew?`)) onRemove()
+          }}
+          className="rounded p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500"
+          title="Remove"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export default function SettingsPage() {
   const { user, loading: authLoading } = useAuth()
   const { profile, loading: profileLoading, updateHomeAddress, clearHomeAddress, updateKidsAges, updateNapTime } = useProfile(user?.id)
@@ -327,6 +528,14 @@ export default function SettingsPage() {
           currentEnd={profile?.nap_end_time ?? null}
           onSave={updateNapTime}
         />
+      </section>
+
+      <section className="mt-6 rounded-xl border border-gray-200 bg-white p-6">
+        <h2 className="mb-1 text-base font-semibold text-gray-900">👯 Crew</h2>
+        <p className="mb-4 text-sm text-gray-500">
+          People you plan with often. They&rsquo;ll show up as one-tap quick-send buttons when you share a Plan my day.
+        </p>
+        <CrewSection userId={user.id} />
       </section>
     </div>
   )

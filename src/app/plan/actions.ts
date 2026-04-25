@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { fetchDailyWeather, type DailyWeather } from '@/lib/weather'
 import { distanceMiles, seasonFromDate } from '@/lib/geo'
+import { generateSlug } from '@/lib/utils'
 import type { Activity, AgeRange } from '@/lib/types'
 
 const GEMINI_MODEL = 'gemini-2.5-flash'
@@ -49,6 +50,55 @@ export type RecommendationResponse =
 
 export type CommitResponse =
   | { ok: true; outing_id: string }
+  | { ok: false; error: string }
+
+export interface RecommendationPick {
+  id: string
+  voter_name: string
+  option_index: number
+  comment: string | null
+  created_at: string
+}
+
+export interface SharedRecommendationSummary {
+  id: string
+  slug: string
+  date: string
+  created_at: string
+  expires_at: string
+  committed_option_index: number | null
+  options: RecommendationOption[]
+  weather: DailyWeather | null
+  picks: RecommendationPick[]
+}
+
+export type CreateShareResponse =
+  | { ok: true; slug: string }
+  | { ok: false; error: string }
+
+export type PublicShareResponse =
+  | {
+      ok: true
+      expired: boolean
+      data: {
+        slug: string
+        date: string
+        owner_name: string
+        weather: DailyWeather | null
+        options: RecommendationOption[]
+        committed_option_index: number | null
+        expires_at: string
+        picks: RecommendationPick[]
+      }
+    }
+  | { ok: false; error: string }
+
+export type SubmitPickResponse =
+  | { ok: true }
+  | { ok: false; error: string }
+
+export type ListSharesResponse =
+  | { ok: true; data: SharedRecommendationSummary[] }
   | { ok: false; error: string }
 
 function ageRangeFits(range: AgeRange, kidAge: number): boolean {
@@ -420,7 +470,9 @@ function addMinutes(time: string, minutes: number): string {
 
 export async function commitRecommendation(
   option: RecommendationOption,
-  date: string
+  date: string,
+  sharedRecommendationId?: string,
+  optionIndex?: number
 ): Promise<CommitResponse> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -550,5 +602,215 @@ export async function commitRecommendation(
     return { ok: false, error: "The outing was created but we couldn't add the activities to it. Please try again." }
   }
 
+  // If this commit came from a shared recommendation, mark it as committed
+  // so anyone holding the share link sees "we're doing this one!".
+  if (sharedRecommendationId && typeof optionIndex === 'number') {
+    await admin
+      .from('shared_recommendations')
+      .update({ committed_option_index: optionIndex, committed_outing_id: outing.id })
+      .eq('id', sharedRecommendationId)
+      .eq('user_id', user.id)
+  }
+
   return { ok: true, outing_id: outing.id }
+}
+
+// =============================================================================
+// Sharing — snapshot of generated recommendations + picks from invitees
+// =============================================================================
+
+function expiryFromDate(dateStr: string): string {
+  // Show as past 7 days after the outing date (rather than 404).
+  const d = new Date(dateStr + 'T23:59:59')
+  d.setDate(d.getDate() + 7)
+  return d.toISOString()
+}
+
+export async function createSharedRecommendation(
+  date: string,
+  weather: DailyWeather | null,
+  options: RecommendationOption[]
+): Promise<CreateShareResponse> {
+  if (!Array.isArray(options) || options.length === 0) {
+    return { ok: false, error: "Nothing to share — generate options first." }
+  }
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { ok: false, error: "You need to be signed in to share." }
+
+  const admin = createAdminClient()
+  // Generate a slug, retry once on the rare collision.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const slug = generateSlug()
+    const { data, error } = await admin
+      .from('shared_recommendations')
+      .insert({
+        user_id: user.id,
+        slug,
+        date,
+        weather,
+        options,
+        expires_at: expiryFromDate(date),
+      })
+      .select('slug')
+      .single()
+    if (data?.slug) return { ok: true, slug: data.slug }
+    if (error && !error.message?.includes('duplicate')) {
+      return { ok: false, error: "Couldn't create your share link. Please try again." }
+    }
+  }
+  return { ok: false, error: "Couldn't create your share link. Please try again." }
+}
+
+export async function getPublicSharedRecommendation(
+  slug: string
+): Promise<PublicShareResponse> {
+  if (!slug || slug.length > 32) {
+    return { ok: false, error: "That link doesn't look right." }
+  }
+  const admin = createAdminClient()
+  const { data: share, error } = await admin
+    .from('shared_recommendations')
+    .select('*')
+    .eq('slug', slug)
+    .single()
+  if (error || !share) {
+    return { ok: false, error: "We couldn't find this plan. The link may have been removed." }
+  }
+
+  const expired = new Date(share.expires_at).getTime() < Date.now()
+
+  // Owner display name (best-effort)
+  const { data: profile } = await admin
+    .from('profiles')
+    .select('display_name')
+    .eq('id', share.user_id)
+    .single()
+
+  const { data: picks } = await admin
+    .from('recommendation_picks')
+    .select('*')
+    .eq('shared_recommendation_id', share.id)
+    .order('created_at', { ascending: true })
+
+  return {
+    ok: true,
+    expired,
+    data: {
+      slug: share.slug,
+      date: share.date,
+      owner_name: profile?.display_name ?? 'A friend',
+      weather: share.weather as DailyWeather | null,
+      options: share.options as RecommendationOption[],
+      committed_option_index: share.committed_option_index,
+      expires_at: share.expires_at,
+      picks: (picks ?? []) as RecommendationPick[],
+    },
+  }
+}
+
+export async function submitRecommendationPick(
+  slug: string,
+  voterName: string,
+  optionIndex: number,
+  comment: string | null
+): Promise<SubmitPickResponse> {
+  const trimmedName = (voterName ?? '').trim()
+  if (!trimmedName) return { ok: false, error: "Please share your name so they know who voted." }
+  if (trimmedName.length > 60) return { ok: false, error: "Name is too long." }
+  if (!Number.isInteger(optionIndex) || optionIndex < 0 || optionIndex > 2) {
+    return { ok: false, error: "Pick one of the three options." }
+  }
+  const trimmedComment = (comment ?? '').trim()
+  if (trimmedComment.length > 500) return { ok: false, error: "Comment is too long." }
+
+  const admin = createAdminClient()
+  const { data: share, error: shareErr } = await admin
+    .from('shared_recommendations')
+    .select('id, expires_at')
+    .eq('slug', slug)
+    .single()
+  if (shareErr || !share) {
+    return { ok: false, error: "We couldn't find this plan." }
+  }
+  if (new Date(share.expires_at).getTime() < Date.now()) {
+    return { ok: false, error: "This plan has expired and is no longer accepting votes." }
+  }
+
+  const { error: insertErr } = await admin
+    .from('recommendation_picks')
+    .insert({
+      shared_recommendation_id: share.id,
+      voter_name: trimmedName,
+      option_index: optionIndex,
+      comment: trimmedComment || null,
+    })
+  if (insertErr) {
+    return { ok: false, error: "Couldn't save your pick. Please try again." }
+  }
+
+  return { ok: true }
+}
+
+export async function listMySharedRecommendations(): Promise<ListSharesResponse> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { ok: false, error: "Not signed in." }
+
+  const admin = createAdminClient()
+  const { data: shares, error } = await admin
+    .from('shared_recommendations')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+    .limit(20)
+  if (error) return { ok: false, error: "Couldn't load your shared plans." }
+
+  const ids = (shares ?? []).map((s: { id: string }) => s.id)
+  const { data: picks } = ids.length
+    ? await admin
+        .from('recommendation_picks')
+        .select('*')
+        .in('shared_recommendation_id', ids)
+        .order('created_at', { ascending: true })
+    : { data: [] as RecommendationPick[] & { shared_recommendation_id: string }[] }
+
+  const picksByShare = new Map<string, RecommendationPick[]>()
+  for (const p of (picks ?? []) as (RecommendationPick & { shared_recommendation_id: string })[]) {
+    const list = picksByShare.get(p.shared_recommendation_id) ?? []
+    list.push(p)
+    picksByShare.set(p.shared_recommendation_id, list)
+  }
+
+  const data: SharedRecommendationSummary[] = (shares ?? []).map((s: {
+    id: string
+    slug: string
+    date: string
+    created_at: string
+    expires_at: string
+    committed_option_index: number | null
+    options: RecommendationOption[]
+    weather: DailyWeather | null
+  }) => ({
+    id: s.id,
+    slug: s.slug,
+    date: s.date,
+    created_at: s.created_at,
+    expires_at: s.expires_at,
+    committed_option_index: s.committed_option_index,
+    options: s.options,
+    weather: s.weather,
+    picks: picksByShare.get(s.id) ?? [],
+  }))
+
+  return { ok: true, data }
+}
+
+export async function deleteSharedRecommendation(id: string): Promise<{ ok: boolean }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { ok: false }
+  const admin = createAdminClient()
+  await admin.from('shared_recommendations').delete().eq('id', id).eq('user_id', user.id)
+  return { ok: true }
 }
