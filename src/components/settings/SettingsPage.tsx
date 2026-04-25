@@ -5,7 +5,7 @@ import { APIProvider } from '@vis.gl/react-google-maps'
 import { useAuth } from '@/hooks/useAuth'
 import { useProfile } from '@/hooks/useProfile'
 import { useCrew } from '@/hooks/useCrew'
-import type { CrewMember } from '@/lib/types'
+import type { CrewMember, DayOfWeek } from '@/lib/types'
 import Link from 'next/link'
 
 // Inner component — must be rendered inside APIProvider so google.maps is available
@@ -256,6 +256,116 @@ function NapTimeInput({
   )
 }
 
+const DAY_OPTIONS: { value: DayOfWeek; label: string }[] = [
+  { value: 'monday', label: 'Monday' },
+  { value: 'tuesday', label: 'Tuesday' },
+  { value: 'wednesday', label: 'Wednesday' },
+  { value: 'thursday', label: 'Thursday' },
+  { value: 'friday', label: 'Friday' },
+  { value: 'saturday', label: 'Saturday' },
+  { value: 'sunday', label: 'Sunday' },
+]
+
+function WeeklyPlanEmailInput({
+  userId,
+  currentDay,
+  currentIncludeCrew,
+  onSave,
+}: {
+  userId: string
+  currentDay: DayOfWeek | null
+  currentIncludeCrew: boolean
+  onSave: (day: DayOfWeek | null, includeCrew: boolean) => Promise<void>
+}) {
+  const { crew } = useCrew(userId)
+  const [enabled, setEnabled] = useState<boolean>(currentDay !== null)
+  const [day, setDay] = useState<DayOfWeek>(currentDay ?? 'wednesday')
+  const [includeCrew, setIncludeCrew] = useState<boolean>(currentIncludeCrew)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  const canonical = `${currentDay ?? 'off'}|${currentIncludeCrew}`
+  const current = `${enabled ? day : 'off'}|${enabled && includeCrew}`
+  const dirty = current !== canonical
+
+  const crewWithEmail = crew.filter((m) => m.email && m.email.trim().length > 0)
+
+  const handleSave = async () => {
+    setSaving(true)
+    await onSave(enabled ? day : null, enabled && includeCrew)
+    setSaving(false)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2000)
+  }
+
+  return (
+    <div className="space-y-3">
+      <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-gray-700">
+        <input
+          type="checkbox"
+          checked={enabled}
+          onChange={(e) => setEnabled(e.target.checked)}
+          className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+        />
+        Send me a weekly Plan-my-day email
+      </label>
+
+      {enabled && (
+        <div className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-gray-600">Send on</span>
+            <select
+              value={day}
+              onChange={(e) => setDay(e.target.value as DayOfWeek)}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            >
+              {DAY_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </label>
+
+          <label className="inline-flex cursor-pointer items-start gap-2 text-sm text-gray-700">
+            <input
+              type="checkbox"
+              checked={includeCrew}
+              onChange={(e) => setIncludeCrew(e.target.checked)}
+              disabled={crewWithEmail.length === 0}
+              className="mt-0.5 h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 disabled:opacity-50"
+            />
+            <span>
+              Also send to my crew
+              {crewWithEmail.length > 0 ? (
+                <span className="block text-xs text-gray-500">
+                  {crewWithEmail.map((m) => m.name).join(', ')}
+                </span>
+              ) : (
+                <span className="block text-xs text-gray-400">
+                  Add crew members with email addresses to enable.
+                </span>
+              )}
+            </span>
+          </label>
+        </div>
+      )}
+
+      {dirty && (
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+        >
+          {saving ? 'Saving…' : saved ? 'Saved!' : 'Save'}
+        </button>
+      )}
+
+      <p className="text-xs text-gray-400">
+        We&rsquo;ll generate three Plan-my-day options for the upcoming weekend and send them straight to your inbox.
+      </p>
+    </div>
+  )
+}
+
 function CrewSection({ userId }: { userId: string }) {
   const { crew, loading, add, update, remove } = useCrew(userId)
   const [adding, setAdding] = useState(false)
@@ -457,7 +567,7 @@ function CrewRow({
 
 export default function SettingsPage() {
   const { user, loading: authLoading } = useAuth()
-  const { profile, loading: profileLoading, updateHomeAddress, clearHomeAddress, updateKidsAges, updateNapTime } = useProfile(user?.id)
+  const { profile, loading: profileLoading, updateHomeAddress, clearHomeAddress, updateKidsAges, updateNapTime, updateWeeklyPlanEmail } = useProfile(user?.id)
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY
 
@@ -527,6 +637,19 @@ export default function SettingsPage() {
           currentStart={profile?.nap_start_time ?? null}
           currentEnd={profile?.nap_end_time ?? null}
           onSave={updateNapTime}
+        />
+      </section>
+
+      <section className="mt-6 rounded-xl border border-gray-200 bg-white p-6">
+        <h2 className="mb-1 text-base font-semibold text-gray-900">📬 Weekly Plan Email</h2>
+        <p className="mb-4 text-sm text-gray-500">
+          Get three fresh Plan-my-day options emailed to you every week, ready for the upcoming weekend.
+        </p>
+        <WeeklyPlanEmailInput
+          userId={user.id}
+          currentDay={profile?.weekly_plan_day ?? null}
+          currentIncludeCrew={profile?.weekly_plan_include_crew ?? false}
+          onSave={updateWeeklyPlanEmail}
         />
       </section>
 

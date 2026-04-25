@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import type { Profile } from '@/lib/types'
+import type { Profile, DayOfWeek } from '@/lib/types'
 
 export function useProfile(userId: string | undefined) {
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -71,5 +71,16 @@ export function useProfile(userId: string | undefined) {
     if (data) setProfile(data)
   }
 
-  return { profile, loading, updateHomeAddress, clearHomeAddress, updateKidsAges, updateNapTime }
+  const updateWeeklyPlanEmail = async (day: DayOfWeek | null, includeCrew: boolean) => {
+    if (!userId) return
+    const { data } = await supabase
+      .from('profiles')
+      .update({ weekly_plan_day: day, weekly_plan_include_crew: includeCrew })
+      .eq('id', userId)
+      .select()
+      .single()
+    if (data) setProfile(data)
+  }
+
+  return { profile, loading, updateHomeAddress, clearHomeAddress, updateKidsAges, updateNapTime, updateWeeklyPlanEmail }
 }

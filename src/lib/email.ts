@@ -21,7 +21,13 @@ export async function sendAdminEmail(subject: string, text: string, html?: strin
   return sendEmail(ADMIN_EMAIL, subject, text, html)
 }
 
-export async function sendEmail(to: string, subject: string, text: string, html?: string): Promise<boolean> {
+export async function sendEmail(
+  to: string,
+  subject: string,
+  text: string,
+  html?: string,
+  options?: { cc?: string[] },
+): Promise<boolean> {
   const transport = getTransport()
   if (!transport) {
     console.warn('[email] GMAIL_USER / GMAIL_APP_PASSWORD not set — skipping send.')
@@ -31,6 +37,7 @@ export async function sendEmail(to: string, subject: string, text: string, html?
     await transport.sendMail({
       from: `Seattle Family Bucket List <${process.env.GMAIL_USER}>`,
       to,
+      cc: options?.cc && options.cc.length > 0 ? options.cc : undefined,
       subject,
       text,
       html: html ?? text.replace(/\n/g, '<br>'),

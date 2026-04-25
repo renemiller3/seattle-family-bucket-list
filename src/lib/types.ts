@@ -55,6 +55,15 @@ export interface Outing {
   created_at: string
 }
 
+export type DayOfWeek =
+  | 'monday'
+  | 'tuesday'
+  | 'wednesday'
+  | 'thursday'
+  | 'friday'
+  | 'saturday'
+  | 'sunday'
+
 export interface Profile {
   id: string
   display_name: string
@@ -65,6 +74,8 @@ export interface Profile {
   kids_ages: number[] | null
   nap_start_time: string | null
   nap_end_time: string | null
+  weekly_plan_day: DayOfWeek | null
+  weekly_plan_include_crew: boolean
   created_at: string
 }
 
