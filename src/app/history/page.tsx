@@ -91,7 +91,15 @@ export default function HistoryPage() {
     setPastOutings(past)
 
     if (items) {
-      const result: CompletedActivity[] = items.map((item: any) => ({
+      // Deduplicate by activity_id / user_activity_id — keep first (most recent date) per unique activity
+      const seen = new Set<string>()
+      const deduped = (items as any[]).filter((item) => {
+        const key = item.activity_id ?? item.user_activity_id ?? item.id
+        if (seen.has(key)) return false
+        seen.add(key)
+        return true
+      })
+      const result: CompletedActivity[] = deduped.map((item: any) => ({
         item,
         photos: (photos ?? []).filter((p: ActivityPhoto) => p.activity_id === item.activity_id),
       }))

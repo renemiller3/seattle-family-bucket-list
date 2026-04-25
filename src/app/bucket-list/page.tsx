@@ -30,6 +30,7 @@ export default function BucketListPage() {
   const [photos, setPhotos] = useState<ActivityPhoto[]>([])
   const [showAddDream, setShowAddDream] = useState(false)
   const [editingDream, setEditingDream] = useState<UserActivity | null>(null)
+  const [markingId, setMarkingId] = useState<string | null>(null)
   const supabase = createClient()
 
   const fetchPhotos = async () => {
@@ -236,8 +237,15 @@ export default function BucketListPage() {
 
                       <div className="flex shrink-0 items-center gap-1">
                         <button
-                          onClick={() => markComplete(item, format(new Date(), 'yyyy-MM-dd'))}
-                          className="rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-100 transition-colors"
+                          onClick={async () => {
+                            const key = item.activity_id ?? item.user_activity_id
+                            if (!key || markingId) return
+                            setMarkingId(key)
+                            await markComplete(item, format(new Date(), 'yyyy-MM-dd'))
+                            setMarkingId(null)
+                          }}
+                          disabled={!!markingId}
+                          className="rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-100 transition-colors disabled:opacity-50"
                           title="Mark complete"
                         >
                           ✓ Did it
