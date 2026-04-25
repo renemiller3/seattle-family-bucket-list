@@ -2,7 +2,8 @@
 
 import { useState, useMemo, useRef, useCallback, useEffect } from 'react'
 import Link from 'next/link'
-import type { Activity, Vibe } from '@/lib/types'
+import { useSearchParams } from 'next/navigation'
+import type { Activity, Area, Vibe } from '@/lib/types'
 import ActivityCard from './ActivityCard'
 import VibeButtons from './VibeButtons'
 import FilterBar, { type Filters } from './FilterBar'
@@ -28,10 +29,16 @@ export default function ActivityGrid({ activities }: ActivityGridProps) {
     profile?.home_lat && profile?.home_lng && profile?.home_address
       ? { lat: profile.home_lat, lng: profile.home_lng, address: profile.home_address }
       : null
+  const searchParams = useSearchParams()
+  const VALID_AREAS: Area[] = ['Seattle', 'Eastside', 'North', 'South', 'Tacoma', 'Wider PNW']
+  const initialArea = (() => {
+    const a = searchParams.get('area')
+    return a && VALID_AREAS.includes(a as Area) ? (a as Area) : null
+  })()
   const [filters, setFilters] = useState<Filters>({
     vibes: [],
     ageRange: null,
-    area: null,
+    area: initialArea,
     cost: null,
     type: null,
     pregnancyFriendly: null,

@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import ActivityGrid from '@/components/activities/ActivityGrid'
 
@@ -10,7 +11,9 @@ export default async function HomePage() {
 
   return (
     <div className="mx-auto px-4 py-8 sm:px-6">
-      <ActivityGrid activities={activities ?? []} />
+      <Suspense fallback={null}>
+        <ActivityGrid activities={activities ?? []} />
+      </Suspense>
     </div>
   )
 }

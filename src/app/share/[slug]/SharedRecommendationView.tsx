@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { submitRecommendationPick } from '@/app/plan/actions'
 import type { RecommendationOption, RecommendationPick } from '@/app/plan/actions'
 import type { DailyWeather } from '@/lib/weather'
+import ExploreNearbyLink from '@/components/plan/ExploreNearbyLink'
 
 interface PublicShareData {
   slug: string
@@ -279,6 +280,8 @@ export default function SharedRecommendationView({ slug, initial, expired }: Pro
           )
         })}
       </div>
+
+      <ExploreNearbyLink options={initial.options} />
 
       <footer className="mt-10 text-center text-xs text-gray-400">
         Powered by{' '}

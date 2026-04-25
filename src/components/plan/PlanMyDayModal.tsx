@@ -10,6 +10,7 @@ import {
   type RecommendationPick,
 } from '@/app/plan/actions'
 import ShareRecommendationsModal from './ShareRecommendationsModal'
+import ExploreNearbyLink from './ExploreNearbyLink'
 
 interface PlanMyDayModalProps {
   initialDate: string
@@ -150,6 +151,7 @@ export default function PlanMyDayModal({
                   />
                 ))}
               </div>
+              <ExploreNearbyLink options={result.options} onClose={onClose} />
               <div className="flex flex-wrap items-center justify-between gap-2">
                 {!initialResult ? (
                   <button
