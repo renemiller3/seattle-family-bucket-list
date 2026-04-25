@@ -31,6 +31,7 @@ export default function ActivityAdminList({ activities }: { activities: Activity
     pregnancyFriendly: null,
     crowdLevel: null,
   })
+  const [missingImageOnly, setMissingImageOnly] = useState(false)
   const [, startTransition] = useTransition()
   const router = useRouter()
 
@@ -45,6 +46,7 @@ export default function ActivityAdminList({ activities }: { activities: Activity
       if (filters.type && a.type !== filters.type) return false
       if (filters.pregnancyFriendly && !a.pregnancy_friendly?.includes(filters.pregnancyFriendly)) return false
       if (filters.crowdLevel && a.crowd_level !== filters.crowdLevel) return false
+      if (missingImageOnly && a.image_url) return false
       return true
     })
     const sorted = [...filtered].sort((a, b) => {
@@ -55,7 +57,7 @@ export default function ActivityAdminList({ activities }: { activities: Activity
       return 0
     })
     return sorted
-  }, [activities, search, sortKey, sortDir, filters])
+  }, [activities, search, sortKey, sortDir, filters, missingImageOnly])
 
   const toggleSort = (k: SortKey) => {
     if (sortKey === k) setSortDir(sortDir === 'asc' ? 'desc' : 'asc')
@@ -99,6 +101,15 @@ export default function ActivityAdminList({ activities }: { activities: Activity
           className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 sm:max-w-sm"
         />
         <FilterBar filters={filters} onChange={setFilters} compact />
+        <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-gray-700">
+          <input
+            type="checkbox"
+            checked={missingImageOnly}
+            onChange={(e) => setMissingImageOnly(e.target.checked)}
+            className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+          />
+          Missing image only
+        </label>
         <div className="text-xs text-gray-500">{visible.length} of {activities.length}</div>
       </div>
 
