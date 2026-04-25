@@ -79,7 +79,7 @@ export default function ShareRecommendationsModal({
 
     if (member.email) {
       setSending(member.id)
-      const res = await sendShareEmail(member.email, member.name, shareUrl)
+      const res = await sendShareEmail(member.email, member.name, shareUrl, date, weather, options)
       setSending(null)
       if (!res.ok) {
         setError(res.error)

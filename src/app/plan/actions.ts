@@ -427,6 +427,9 @@ export async function sendShareEmail(
   toEmail: string,
   toName: string,
   shareUrl: string,
+  date: string,
+  weather: DailyWeather | null,
+  options: RecommendationOption[],
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -435,20 +438,14 @@ export async function sendShareEmail(
   const { data: profile } = await supabase.from('profiles').select('display_name').eq('id', user.id).single()
   const senderFirst = profile?.display_name?.split(' ')[0] ?? 'Someone'
 
-  const subject = `${senderFirst} wants your pick for a family day out`
-  const text = `Hey ${toName},\n\n${senderFirst} is planning a family day and wants to know which option you like best.\n\nVote here (no sign-in needed):\n${shareUrl}\n\n— Seattle Family Bucket List`
-  const html = `
-    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;color:#111">
-      <p>Hey ${toName},</p>
-      <p>${senderFirst} is planning a family day and wants to know which option you like best.</p>
-      <p style="margin:24px 0">
-        <a href="${shareUrl}" style="background:#059669;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:600">
-          See the options &amp; vote
-        </a>
-      </p>
-      <p style="color:#6b7280;font-size:13px">No sign-in needed.</p>
-    </div>
-  `
+  const { buildPlanEmail } = await import('@/lib/plan-email')
+  const { subject, text, html } = buildPlanEmail({
+    date,
+    weather,
+    options,
+    shareUrl,
+    variant: { kind: 'share', senderFirst, recipientName: toName },
+  })
 
   const { sendEmail } = await import('@/lib/email')
   const sent = await sendEmail(toEmail, subject, text, html)
