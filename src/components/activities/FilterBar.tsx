@@ -1,5 +1,6 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import type { AgeRange, Area, Cost, Vibe, ActivityType, PregnancyFriendly, CrowdLevel } from '@/lib/types'
 import { getVibeEmoji } from '@/lib/utils'
 
@@ -17,6 +18,7 @@ interface FilterBarProps {
   filters: Filters
   onChange: (filters: Filters) => void
   compact?: boolean
+  trailing?: ReactNode
 }
 
 const ALL_VIBES: Vibe[] = ['Chill / Easy', 'Burn Energy', 'Outdoor / Nature', 'Rainy Day', 'Special / Treat', 'Animals', 'Transportation']
@@ -63,7 +65,7 @@ const EMPTY_FILTERS: Filters = {
   crowdLevel: null,
 }
 
-export default function FilterBar({ filters, onChange, compact }: FilterBarProps) {
+export default function FilterBar({ filters, onChange, compact, trailing }: FilterBarProps) {
   const hasFilters =
     filters.ageRange || filters.area || filters.cost || filters.type ||
     filters.vibes.length > 0 || filters.pregnancyFriendly || filters.crowdLevel
@@ -118,6 +120,7 @@ export default function FilterBar({ filters, onChange, compact }: FilterBarProps
         options={CROWD_OPTIONS}
         onChange={(val) => onChange({ ...filters, crowdLevel: val })}
       />
+      {trailing}
       {hasFilters && (
         <button
           onClick={() => onChange(EMPTY_FILTERS)}

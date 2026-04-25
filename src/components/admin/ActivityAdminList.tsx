@@ -93,24 +93,32 @@ export default function ActivityAdminList({ activities }: { activities: Activity
       </div>
 
       <div className="mb-4 space-y-3">
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by title..."
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 sm:max-w-sm"
-        />
-        <FilterBar filters={filters} onChange={setFilters} compact />
-        <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-gray-700">
+        <div className="flex flex-wrap items-center gap-3">
           <input
-            type="checkbox"
-            checked={missingImageOnly}
-            onChange={(e) => setMissingImageOnly(e.target.checked)}
-            className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by title..."
+            className="min-w-0 flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 sm:max-w-sm sm:flex-none"
           />
-          Missing image only
-        </label>
-        <div className="text-xs text-gray-500">{visible.length} of {activities.length}</div>
+          <span className="ml-auto text-xs text-gray-500">{visible.length} of {activities.length}</span>
+        </div>
+        <FilterBar
+          filters={filters}
+          onChange={setFilters}
+          compact
+          trailing={
+            <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-gray-700">
+              <input
+                type="checkbox"
+                checked={missingImageOnly}
+                onChange={(e) => setMissingImageOnly(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+              />
+              Missing image only
+            </label>
+          }
+        />
       </div>
 
       {deletedTitle && (
