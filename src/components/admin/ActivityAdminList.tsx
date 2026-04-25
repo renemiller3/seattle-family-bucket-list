@@ -127,7 +127,7 @@ export default function ActivityAdminList({ activities }: { activities: Activity
                 ) : (
                   <>
                     <td className="px-4 py-3">
-                      <Link href={`/admin/activities/${a.id}`} className="font-medium text-gray-900 hover:text-emerald-700 hover:underline">
+                      <Link href={`/activities/${a.id}`} className="font-medium text-gray-900 hover:text-emerald-700 hover:underline">
                         {a.title}
                       </Link>
                     </td>
