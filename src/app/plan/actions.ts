@@ -29,6 +29,7 @@ export interface RecommendationOption {
   anchor_activity_id: string
   secondary_activity_id: string | null
   food_stop: { name: string; vicinity: string; why: string } | null
+  coffee_stop: { name: string; vicinity: string; why: string } | null
   sequence: RecommendationStep[]
   cost_band: 'Free' | '$' | '$$' | '$$$'
   total_drive_time_minutes: number
@@ -177,7 +178,7 @@ function buildPrompt(args: {
     : `Family ages unspecified.`
   const homeLine = homeAddress ? `Home base: ${homeAddress}.` : `Home base unknown.`
   const napLine = napStartTime && napEndTime
-    ? `NAP WINDOW: ${formatTime12h(napStartTime)}–${formatTime12h(napEndTime)}. Do NOT schedule activities during this window. Plan to be home or wrapping up by ${formatTime12h(napStartTime)}, then resume (if relevant) after ${formatTime12h(napEndTime)}.`
+    ? `NAP WINDOW: ${formatTime12h(napStartTime)}–${formatTime12h(napEndTime)}. Do NOT schedule activities during this window. The family MUST be back home BEFORE ${formatTime12h(napStartTime)} — account for drive time so the last out-of-home step ends with enough buffer to be home by then. Resume (if relevant) after ${formatTime12h(napEndTime)}.`
     : ''
 
   return `You are a Seattle family-outing concierge. Plan ONE outing for each of three vibes — "Chill / Easy", "Burn Energy", and "Special / Treat" — for the date below.
@@ -188,7 +189,7 @@ ${familyLine}
 ${homeLine}
 ${napLine}
 
-You MUST select anchor and secondary activities by id from the candidate list below. Do not invent activities that aren't on the list. The "food_stop" field is the one place you may suggest a real restaurant by name (use the activity's nearby_food hints when available, otherwise pick something plausible near the anchor's location_text).
+You MUST select anchor and secondary activities by id from the candidate list below. Do not invent activities that aren't on the list. The "food_stop" and "coffee_stop" fields are the only places you may suggest a real business by name — use the activity's nearby_food hints when available, otherwise pick something plausible near the anchor's location_text.
 
 Each option needs:
 - "vibe_label": exactly one of "Chill / Easy", "Burn Energy", "Special / Treat" (one per vibe, no duplicates)
@@ -196,13 +197,14 @@ Each option needs:
 - "pitch": one-sentence pitch
 - "anchor_activity_id": the main draw (id from list)
 - "secondary_activity_id": optional second stop nearby (id from list, or null)
+- "coffee_stop": { name, vicinity, why } — REQUIRED. A cool, well-loved coffee shop on the morning drive route from home toward the anchor activity. Prefer local independent shops with character over chains. The "why" should be one short sentence on what makes it worth the stop.
 - "food_stop": { name, vicinity, why } or null if not appropriate
-- "sequence": ordered timed steps. Use HH:MM 24-hour times. step_type ∈ {"activity","food","other"}. Reference the anchor by exact title in title field.
+- "sequence": ordered timed steps. Use HH:MM 24-hour times. step_type ∈ {"activity","food","other"}. Reference the anchor by exact title in title field. Include the coffee stop as a step with step_type "food" before the anchor.
 - "cost_band": "Free" | "$" | "$$" | "$$$"
 - "total_drive_time_minutes": rough estimate of driving across the day
 - "why_today": one sentence explicitly referencing weather or season
 
-Aim for 3–5 sequence steps total. Keep timing realistic (drive buffers, kid stamina). Default to a late-morning start (~9:30–10:30) unless the activity has a known constraint.
+Aim for 3–5 sequence steps total (the coffee stop counts as one). Keep timing realistic (drive buffers, kid stamina). Default to a late-morning start (~9:30–10:30) unless the activity has a known constraint.
 
 CANDIDATES (json):
 ${JSON.stringify(candidates)}
@@ -232,6 +234,15 @@ const RESPONSE_SCHEMA = {
             },
             required: ['name', 'vicinity', 'why'],
           },
+          coffee_stop: {
+            type: 'object',
+            properties: {
+              name: { type: 'string' },
+              vicinity: { type: 'string' },
+              why: { type: 'string' },
+            },
+            required: ['name', 'vicinity', 'why'],
+          },
           sequence: {
             type: 'array',
             items: {
@@ -251,7 +262,7 @@ const RESPONSE_SCHEMA = {
           why_today: { type: 'string' },
         },
         required: [
-          'vibe_label', 'title', 'pitch', 'anchor_activity_id',
+          'vibe_label', 'title', 'pitch', 'anchor_activity_id', 'coffee_stop',
           'sequence', 'cost_band', 'total_drive_time_minutes', 'why_today',
         ],
       },
@@ -267,6 +278,7 @@ interface GeminiOption {
   anchor_activity_id: string
   secondary_activity_id?: string | null
   food_stop?: { name: string; vicinity: string; why: string } | null
+  coffee_stop?: { name: string; vicinity: string; why: string } | null
   sequence: RecommendationStep[]
   cost_band: 'Free' | '$' | '$$' | '$$$'
   total_drive_time_minutes: number
@@ -440,6 +452,7 @@ export async function generateDayRecommendations(date: string): Promise<Recommen
       anchor_activity_id: opt.anchor_activity_id,
       secondary_activity_id: opt.secondary_activity_id ?? null,
       food_stop: opt.food_stop ?? null,
+      coffee_stop: opt.coffee_stop ?? null,
       sequence: opt.sequence,
       cost_band: opt.cost_band,
       total_drive_time_minutes: opt.total_drive_time_minutes,

@@ -203,6 +203,12 @@ export default function SharedRecommendationView({ slug, initial, expired }: Pro
                   </ol>
                 </div>
 
+                {option.coffee_stop && (
+                  <div className="mt-2 text-xs text-gray-600">
+                    ☕ <span className="font-medium">{option.coffee_stop.name}</span> ({option.coffee_stop.vicinity}) — {option.coffee_stop.why}
+                  </div>
+                )}
+
                 {option.food_stop && (
                   <div className="mt-2 text-xs text-gray-600">
                     🍽 <span className="font-medium">{option.food_stop.name}</span> ({option.food_stop.vicinity}) — {option.food_stop.why}
