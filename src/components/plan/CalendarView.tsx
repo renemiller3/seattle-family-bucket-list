@@ -11,6 +11,7 @@ import MonthlyView from './MonthlyView'
 import LifeBlockPicker from './LifeBlockPicker'
 import PlanNotes from './PlanNotes'
 import MapView from './MapView'
+import Link from 'next/link'
 
 type ViewMode = 'itinerary' | 'daily' | 'weekly' | 'monthly'
 
@@ -31,6 +32,7 @@ interface CalendarViewProps {
     image_url: string | null
   }) => void
   outings: Outing[]
+  pastOutingIds: Set<string>
   selectedOutingId: string | null
   onOutingChange: (outingId: string | null) => void
   onOpenOutingManager: () => void
@@ -45,6 +47,7 @@ export default function CalendarView({
   onReorder,
   onAddLifeBlock,
   outings,
+  pastOutingIds,
   selectedOutingId,
   onOutingChange,
   onOpenOutingManager,
@@ -81,6 +84,9 @@ export default function CalendarView({
     () => (selectedOutingId ? outings.find((o) => o.id === selectedOutingId) : null) ?? null,
     [selectedOutingId, outings]
   )
+
+  const upcomingOutings = useMemo(() => outings.filter((o) => !pastOutingIds.has(o.id)), [outings, pastOutingIds])
+  const pastOutings = useMemo(() => outings.filter((o) => pastOutingIds.has(o.id)), [outings, pastOutingIds])
 
   const { profile } = useProfile(userId)
 
@@ -230,7 +236,7 @@ export default function CalendarView({
                 <span className="w-4 text-emerald-600">{selectedOutingId === null ? '✓' : ''}</span>
                 <span>All Outings</span>
               </button>
-              {outings.map((o) => (
+              {upcomingOutings.map((o) => (
                 <button
                   key={o.id}
                   onClick={() => { onOutingChange(o.id); setPickerOpen(false) }}
@@ -240,6 +246,22 @@ export default function CalendarView({
                   <span className="truncate">{o.name}</span>
                 </button>
               ))}
+              {pastOutings.length > 0 && (
+                <>
+                  <div className="my-1 border-t border-gray-100" />
+                  <div className="px-3 py-1 text-xs font-medium uppercase tracking-wide text-gray-400">Past</div>
+                  {pastOutings.map((o) => (
+                    <button
+                      key={o.id}
+                      onClick={() => { onOutingChange(o.id); setPickerOpen(false) }}
+                      className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-gray-50 ${selectedOutingId === o.id ? 'font-medium text-emerald-600' : 'text-gray-400'}`}
+                    >
+                      <span className="w-4 text-emerald-600">{selectedOutingId === o.id ? '✓' : ''}</span>
+                      <span className="truncate">{o.name}</span>
+                    </button>
+                  ))}
+                </>
+              )}
               <div className="my-1 border-t border-gray-100" />
               <button
                 onClick={() => { setPickerOpen(false); onOpenOutingManager() }}
@@ -258,6 +280,16 @@ export default function CalendarView({
                   </svg>
                   <span>Manage Outings</span>
                 </button>
+              )}
+              {pastOutings.length > 0 && (
+                <Link
+                  href="/history"
+                  onClick={() => setPickerOpen(false)}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-500 hover:bg-gray-50"
+                >
+                  <span className="w-4">↩</span>
+                  <span>View past outings</span>
+                </Link>
               )}
             </div>
           )}

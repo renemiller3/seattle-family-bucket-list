@@ -25,15 +25,20 @@ export default function PlanPage() {
   const [outingManagerOpen, setOutingManagerOpen] = useState(false)
   const [planMyDayOpen, setPlanMyDayOpen] = useState(false)
 
-  const sortedOutings = useMemo(() => {
+  const today = format(new Date(), 'yyyy-MM-dd')
+
+  const { sortedOutings, pastOutingIds } = useMemo(() => {
     const earliestDate = new Map<string, string>()
+    const latestDate = new Map<string, string>()
     for (const item of items) {
       if (item.outing_id) {
-        const cur = earliestDate.get(item.outing_id)
-        if (!cur || item.date < cur) earliestDate.set(item.outing_id, item.date)
+        const curEarliest = earliestDate.get(item.outing_id)
+        if (!curEarliest || item.date < curEarliest) earliestDate.set(item.outing_id, item.date)
+        const curLatest = latestDate.get(item.outing_id)
+        if (!curLatest || item.date > curLatest) latestDate.set(item.outing_id, item.date)
       }
     }
-    return [...outings].sort((a, b) => {
+    const sorted = [...outings].sort((a, b) => {
       const da = earliestDate.get(a.id) ?? ''
       const db = earliestDate.get(b.id) ?? ''
       if (!da && !db) return 0
@@ -41,7 +46,13 @@ export default function PlanPage() {
       if (!db) return -1
       return da.localeCompare(db)
     })
-  }, [outings, items])
+    const pastIds = new Set<string>()
+    for (const outing of outings) {
+      const latest = latestDate.get(outing.id)
+      if (latest && latest < today) pastIds.add(outing.id)
+    }
+    return { sortedOutings: sorted, pastOutingIds: pastIds }
+  }, [outings, items, today])
 
   const filteredItems = useMemo(() => {
     let result = items
@@ -176,6 +187,7 @@ export default function PlanPage() {
             onReorder={reorderItems}
             onAddLifeBlock={handleAddLifeBlock}
             outings={sortedOutings}
+            pastOutingIds={pastOutingIds}
             selectedOutingId={selectedOutingId}
             onOutingChange={setSelectedOutingId}
             onOpenOutingManager={() => setOutingManagerOpen(true)}
