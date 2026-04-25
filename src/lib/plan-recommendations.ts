@@ -323,8 +323,8 @@ export async function buildRecommendationsForUser(
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     return { ok: false, error: 'Please pick a valid date.' }
   }
-  if (pins.length > 2) {
-    return { ok: false, error: 'You can pin up to 2 things per day.' }
+  if (pins.length > 1) {
+    return { ok: false, error: 'You can pin up to 1 thing per day.' }
   }
 
   const apiKey = process.env.GEMINI_API_KEY

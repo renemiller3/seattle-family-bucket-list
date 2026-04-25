@@ -67,7 +67,7 @@ export default function PlanMyDayModal({
   }
 
   const handleAddPin = (pin: RecommendationPin, display: PinDisplay) => {
-    if (pins.length >= 2) return
+    if (pins.length >= 1) return
     setPins((prev) => [...prev, pin])
     setPinDisplays((prev) => [...prev, display])
   }
@@ -136,7 +136,7 @@ export default function PlanMyDayModal({
 
               <div>
                 <span className="mb-2 block text-sm font-medium text-gray-700">
-                  Want to include something specific? <span className="font-normal text-gray-500">(optional, up to 2)</span>
+                  Want to include something specific? <span className="font-normal text-gray-500">(optional)</span>
                 </span>
                 {pinDisplays.length > 0 && (
                   <div className="mb-2 flex flex-wrap gap-2">
@@ -163,7 +163,7 @@ export default function PlanMyDayModal({
                     ))}
                   </div>
                 )}
-                {pinDisplays.length < 2 && (
+                {pinDisplays.length < 1 && (
                   <button
                     onClick={() => setPickerOpen(true)}
                     className="rounded-lg border border-dashed border-gray-300 px-3 py-1.5 text-sm text-gray-600 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700"
