@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { format } from 'date-fns'
+import { format, addDays } from 'date-fns'
 import {
   generateDayRecommendations,
   commitRecommendation,
@@ -88,15 +88,16 @@ export default function PlanMyDayModal({ initialDate, onClose, onCommitted }: Pl
         <div className="px-6 py-5">
           {step === 'pick' && (
             <div className="space-y-4">
-              <label className="block">
-                <span className="mb-1 block text-sm font-medium text-gray-700">Which day?</span>
+              <div>
+                <span className="mb-2 block text-sm font-medium text-gray-700">Which day?</span>
+                <QuickDateButtons selected={date} onSelect={setDate} />
                 <input
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                 />
-              </label>
+              </div>
               {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
               <div className="flex justify-end">
                 <button
@@ -151,6 +152,39 @@ export default function PlanMyDayModal({ initialDate, onClose, onCommitted }: Pl
           )}
         </div>
       </div>
+    </div>
+  )
+}
+
+function QuickDateButtons({ selected, onSelect }: { selected: string; onSelect: (date: string) => void }) {
+  const now = new Date()
+  const todayStr = format(now, 'yyyy-MM-dd')
+  const tomorrowStr = format(addDays(now, 1), 'yyyy-MM-dd')
+  const dayOfWeek = now.getDay() // 0=Sun, 6=Sat
+  const daysUntilSat = dayOfWeek === 6 ? 7 : 6 - dayOfWeek
+  const nextSaturdayStr = format(addDays(now, daysUntilSat), 'yyyy-MM-dd')
+
+  const options = [
+    { label: 'Today', value: todayStr },
+    { label: 'Tomorrow', value: tomorrowStr },
+    { label: 'Next Weekend', value: nextSaturdayStr },
+  ]
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      {options.map(({ label, value }) => (
+        <button
+          key={label}
+          onClick={() => onSelect(value)}
+          className={`rounded-full border px-3 py-1 text-sm transition-colors ${
+            selected === value
+              ? 'border-emerald-500 bg-emerald-50 font-medium text-emerald-700'
+              : 'border-gray-200 text-gray-600 hover:border-emerald-400 hover:text-emerald-600'
+          }`}
+        >
+          {label}
+        </button>
+      ))}
     </div>
   )
 }
