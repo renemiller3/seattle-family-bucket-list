@@ -234,40 +234,42 @@ export default function BucketListPage() {
                         </span>
                       )}
 
-                      {isDream && (
-                        <div className="flex shrink-0 items-center gap-1">
-                          <button
-                            onClick={() => markComplete(item, format(new Date(), 'yyyy-MM-dd'))}
-                            className="rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-100 transition-colors"
-                            title="Mark complete"
-                          >
-                            ✓ Did it
-                          </button>
-                          <button
-                            onClick={() => item.user_activity && setEditingDream(item.user_activity)}
-                            className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-amber-600 transition-colors"
-                            title="Edit"
-                          >
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M12 20h9" />
-                              <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4 12.5-12.5z" />
-                            </svg>
-                          </button>
-                          <button
-                            onClick={() => {
-                              if (confirm(`Remove "${title}" from your bucket list?`)) {
-                                removeDream(item.user_activity_id!)
-                              }
-                            }}
-                            className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-red-500 transition-colors"
-                            title="Remove"
-                          >
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z" />
-                            </svg>
-                          </button>
-                        </div>
-                      )}
+                      <div className="flex shrink-0 items-center gap-1">
+                        <button
+                          onClick={() => markComplete(item, format(new Date(), 'yyyy-MM-dd'))}
+                          className="rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-100 transition-colors"
+                          title="Mark complete"
+                        >
+                          ✓ Did it
+                        </button>
+                        {isDream && (
+                          <>
+                            <button
+                              onClick={() => item.user_activity && setEditingDream(item.user_activity)}
+                              className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-amber-600 transition-colors"
+                              title="Edit"
+                            >
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M12 20h9" />
+                                <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4 12.5-12.5z" />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (confirm(`Remove "${title}" from your bucket list?`)) {
+                                  removeDream(item.user_activity_id!)
+                                }
+                              }}
+                              className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-red-500 transition-colors"
+                              title="Remove"
+                            >
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z" />
+                              </svg>
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
                   )
                 })}
