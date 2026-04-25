@@ -248,32 +248,32 @@ async function callGemini(prompt: string, apiKey: string): Promise<GeminiCallRes
       cache: 'no-store',
     })
   } catch {
-    return { ok: false, error: "Couldn't reach Google's AI service. Check your internet connection and try again." }
+    return { ok: false, error: "We couldn't connect to generate your plan. Check your internet and try again." }
   }
   if (res.status === 401 || res.status === 403) {
-    return { ok: false, error: "Google rejected the AI key. Ask the site admin to check the GEMINI_API_KEY setting." }
+    return { ok: false, error: "There's a configuration issue on our end. Please contact support." }
   }
   if (res.status === 429) {
-    return { ok: false, error: "We've hit Google's rate limit for AI requests. Please try again in a minute." }
+    return { ok: false, error: "Too many requests right now — please wait a minute and try again." }
   }
   if (!res.ok) {
-    return { ok: false, error: `Google's AI service returned an error (${res.status}). Please try again.` }
+    return { ok: false, error: "Something went wrong. Please try again in a moment." }
   }
   let json: unknown
   try {
     json = await res.json()
   } catch {
-    return { ok: false, error: "Got an unreadable response from the AI. Please try again." }
+    return { ok: false, error: "Something went wrong. Please try again." }
   }
   const text = (json as { candidates?: { content?: { parts?: { text?: string }[] } }[] })
     ?.candidates?.[0]?.content?.parts?.[0]?.text
   if (!text) {
-    return { ok: false, error: "The AI didn't return a plan this time. Please try again." }
+    return { ok: false, error: "We couldn't put together a plan this time. Please try again." }
   }
   try {
     return { ok: true, data: JSON.parse(text) }
   } catch {
-    return { ok: false, error: "The AI returned a response we couldn't read. Please try again." }
+    return { ok: false, error: "Something went wrong. Please try again." }
   }
 }
 
