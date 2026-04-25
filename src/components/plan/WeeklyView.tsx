@@ -21,7 +21,15 @@ export default function WeeklyView({ items, weekStart, onUpdate, onDelete, onSel
 
   const getItemsForDay = (day: Date) => {
     const dateStr = format(day, 'yyyy-MM-dd')
-    return items.filter((item) => item.date === dateStr)
+    return items
+      .filter((item) => item.date === dateStr)
+      .sort((a, b) => {
+        // Timed items first, sorted by start_time; untimed items at the bottom by sort_order
+        if (a.start_time && b.start_time) return a.start_time.localeCompare(b.start_time)
+        if (a.start_time) return -1
+        if (b.start_time) return 1
+        return (a.sort_order ?? 0) - (b.sort_order ?? 0)
+      })
   }
 
   const isToday = (day: Date) => isSameDay(day, new Date())
@@ -57,7 +65,7 @@ export default function WeeklyView({ items, weekStart, onUpdate, onDelete, onSel
                 {format(day, 'd')}
               </button>
               <div className="space-y-1">
-                {dayItems.slice(0, 4).map((item) => (
+                {dayItems.slice(0, 8).map((item) => (
                   <PlanItemCard
                     key={item.id}
                     item={item}
@@ -66,12 +74,12 @@ export default function WeeklyView({ items, weekStart, onUpdate, onDelete, onSel
                     compact
                   />
                 ))}
-                {dayItems.length > 4 && (
+                {dayItems.length > 8 && (
                   <button
                     onClick={() => onSelectDay(dateStr)}
                     className="text-xs font-medium text-gray-500 hover:text-gray-700"
                   >
-                    +{dayItems.length - 4} more
+                    +{dayItems.length - 8} more
                   </button>
                 )}
               </div>

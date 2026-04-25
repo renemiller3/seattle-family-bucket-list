@@ -16,14 +16,17 @@ interface DailyViewProps {
   outings?: Outing[]
 }
 
-const HOURS = Array.from({ length: 16 }, (_, i) => i + 6) // 6 AM to 9 PM
-const HOUR_HEIGHT = 64 // pixels per hour
+const HOUR_HEIGHT = 52 // pixels per hour
+const DEFAULT_START_HOUR = 8 // 8 AM
+const DEFAULT_END_HOUR = 20 // 8 PM (exclusive — last row is 7 PM)
+const MIN_START_HOUR = 5
+const MAX_END_HOUR = 23
 
-function getItemPosition(item: PlanItem) {
+function getItemPosition(item: PlanItem, startHour: number) {
   if (!item.start_time) return null
 
   const [hours, minutes] = item.start_time.split(':').map(Number)
-  const startOffset = (hours - 6) * HOUR_HEIGHT + (minutes / 60) * HOUR_HEIGHT
+  const startOffset = (hours - startHour) * HOUR_HEIGHT + (minutes / 60) * HOUR_HEIGHT
 
   let durationMinutes = item.duration_minutes
   if (!durationMinutes && item.end_time) {
@@ -32,7 +35,7 @@ function getItemPosition(item: PlanItem) {
   }
   if (!durationMinutes) durationMinutes = 60 // default 1 hour
 
-  const height = Math.max((durationMinutes / 60) * HOUR_HEIGHT, 40) // min 40px so it's readable
+  const height = Math.max((durationMinutes / 60) * HOUR_HEIGHT, 36) // min 36px so it's readable
 
   return { top: startOffset, height }
 }
@@ -47,6 +50,34 @@ export default function DailyView({ items, date, onUpdate, onDelete, outings }: 
 
   const timedItems = dayItems.filter((item) => item.start_time)
   const untimedItems = dayItems.filter((item) => !item.start_time)
+
+  const { startHour, hours } = useMemo(() => {
+    let start = DEFAULT_START_HOUR
+    let end = DEFAULT_END_HOUR
+    for (const item of timedItems) {
+      if (!item.start_time) continue
+      const [sH, sM] = item.start_time.split(':').map(Number)
+      // Buffer one hour before earliest start
+      start = Math.min(start, sH - 1)
+
+      // Compute end hour for this item
+      let endHour = sH + 1
+      if (item.end_time) {
+        const [eH, eM] = item.end_time.split(':').map(Number)
+        endHour = eM > 0 ? eH + 1 : eH
+      } else if (item.duration_minutes) {
+        const totalMin = sH * 60 + sM + item.duration_minutes
+        endHour = Math.ceil(totalMin / 60)
+      }
+      end = Math.max(end, endHour)
+    }
+    start = Math.max(MIN_START_HOUR, start)
+    end = Math.min(MAX_END_HOUR, end)
+    return {
+      startHour: start,
+      hours: Array.from({ length: end - start }, (_, i) => i + start),
+    }
+  }, [timedItems])
 
   return (
     <div>
@@ -71,7 +102,7 @@ export default function DailyView({ items, date, onUpdate, onDelete, outings }: 
       {/* Time grid */}
       <div className="relative border-t border-gray-200">
         {/* Hour rows (background grid) */}
-        {HOURS.map((hour) => (
+        {hours.map((hour) => (
           <div
             key={hour}
             className="flex border-b border-gray-100"
@@ -86,7 +117,7 @@ export default function DailyView({ items, date, onUpdate, onDelete, outings }: 
 
         {/* Positioned items overlay */}
         {timedItems.map((item) => {
-          const pos = getItemPosition(item)
+          const pos = getItemPosition(item, startHour)
           if (!pos) return null
 
           const title = item.title || item.activity?.title || 'Untitled'

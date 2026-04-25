@@ -21,6 +21,13 @@ export function formatTime(time: string): string {
   return `${displayHours}:${minutes.toString().padStart(2, '0')} ${ampm}`
 }
 
+export function formatTimeShort(time: string): string {
+  const [hours, minutes] = time.split(':').map(Number)
+  const ampm = hours >= 12 ? 'p' : 'a'
+  const displayHours = hours % 12 || 12
+  return minutes === 0 ? `${displayHours}${ampm}` : `${displayHours}:${minutes.toString().padStart(2, '0')}${ampm}`
+}
+
 export function formatDuration(minutes: number): string {
   if (minutes < 60) return `${minutes}min`
   const h = Math.floor(minutes / 60)

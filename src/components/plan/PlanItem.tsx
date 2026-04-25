@@ -1,7 +1,7 @@
 'use client'
 
 import type { PlanItem as PlanItemType, Outing } from '@/lib/types'
-import { formatTime, formatDuration } from '@/lib/utils'
+import { formatTime, formatTimeShort, formatDuration } from '@/lib/utils'
 
 interface PlanItemProps {
   item: PlanItemType
@@ -38,8 +38,11 @@ export default function PlanItemCard({ item, onUpdate, onDelete, dragHandleProps
 
   if (compact) {
     return (
-      <div className={`rounded-md border-l-4 px-2 py-1 text-xs ${TYPE_STYLES[item.type]} ${item.is_completed ? 'opacity-50' : ''}`}>
-        <span className="font-medium">{icon} {title}</span>
+      <div className={`rounded-md border-l-4 px-2 py-1 text-xs leading-tight ${TYPE_STYLES[item.type]} ${item.is_completed ? 'opacity-50' : ''}`}>
+        {item.start_time && (
+          <span className="mr-1 font-mono text-gray-500">{formatTimeShort(item.start_time)}</span>
+        )}
+        <span className={`font-medium ${item.is_completed ? 'line-through' : ''}`}>{icon} {title}</span>
       </div>
     )
   }
