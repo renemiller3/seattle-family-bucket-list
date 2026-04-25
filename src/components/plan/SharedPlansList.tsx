@@ -16,6 +16,7 @@ interface Props {
 export default function SharedPlansList({ onCommitted }: Props) {
   const [shares, setShares] = useState<SharedRecommendationSummary[] | null>(null)
   const [openShareId, setOpenShareId] = useState<string | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
   const refresh = async () => {
     const res = await listMySharedRecommendations()
@@ -35,7 +36,7 @@ export default function SharedPlansList({ onCommitted }: Props) {
   if (activeShares.length === 0) return null
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Stop sharing this plan?')) return
+    setConfirmDeleteId(null)
     setShares((prev) => prev?.filter((s) => s.id !== id) ?? null)
     await deleteSharedRecommendation(id)
   }
@@ -54,33 +55,60 @@ export default function SharedPlansList({ onCommitted }: Props) {
           const voterNames = Array.from(new Set(s.picks.map((p) => p.voter_name)))
           const committed = s.committed_option_index !== null
           return (
-            <div key={s.id} className="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 px-3 py-2.5">
-              <button
-                onClick={() => setOpenShareId(s.id)}
-                className="flex min-w-0 flex-1 flex-col items-start text-left"
-              >
-                <div className="text-sm font-medium text-gray-900">{dateLabel}</div>
-                <div className="text-xs text-gray-500">
-                  {committed ? (
-                    <span className="text-emerald-700">✓ Committed to option {s.committed_option_index! + 1}</span>
-                  ) : voterNames.length > 0 ? (
-                    <span>
-                      {voterNames.length} {voterNames.length === 1 ? 'pick' : 'picks'} from {voterNames.join(', ')}
-                    </span>
-                  ) : (
-                    <span>Waiting for votes…</span>
-                  )}
-                </div>
-              </button>
-              <button
-                onClick={() => handleDelete(s.id)}
-                className="ml-2 rounded p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500"
-                title="Stop sharing"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M18 6L6 18M6 6l12 12" />
-                </svg>
-              </button>
+            <div
+              key={s.id}
+              className={`flex items-center justify-between rounded-lg border px-3 py-2.5 ${
+                confirmDeleteId === s.id ? 'border-red-200 bg-red-50' : 'border-gray-100 bg-gray-50'
+              }`}
+            >
+              {confirmDeleteId === s.id ? (
+                <>
+                  <span className="text-sm text-red-900">Stop sharing this plan?</span>
+                  <div className="ml-2 flex gap-2">
+                    <button
+                      onClick={() => handleDelete(s.id)}
+                      className="rounded-lg bg-red-600 px-3 py-1 text-xs font-medium text-white hover:bg-red-700"
+                    >
+                      Stop sharing
+                    </button>
+                    <button
+                      onClick={() => setConfirmDeleteId(null)}
+                      className="rounded-lg border border-gray-300 bg-white px-3 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => setOpenShareId(s.id)}
+                    className="flex min-w-0 flex-1 flex-col items-start text-left"
+                  >
+                    <div className="text-sm font-medium text-gray-900">{dateLabel}</div>
+                    <div className="text-xs text-gray-500">
+                      {committed ? (
+                        <span className="text-emerald-700">✓ Committed to option {s.committed_option_index! + 1}</span>
+                      ) : voterNames.length > 0 ? (
+                        <span>
+                          {voterNames.length} {voterNames.length === 1 ? 'pick' : 'picks'} from {voterNames.join(', ')}
+                        </span>
+                      ) : (
+                        <span>Waiting for votes…</span>
+                      )}
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => setConfirmDeleteId(s.id)}
+                    className="ml-2 rounded p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500"
+                    title="Stop sharing"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M18 6L6 18M6 6l12 12" />
+                    </svg>
+                  </button>
+                </>
+              )}
             </div>
           )
         })}
