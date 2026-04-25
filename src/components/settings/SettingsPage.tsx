@@ -172,7 +172,7 @@ function KidsAgesInput({
       </div>
       {error && <p className="text-xs text-red-500">{error}</p>}
       <p className="text-xs text-gray-400">
-        Used by Plan-my-day to recommend age-appropriate outings. Leave empty to skip age filtering.
+        Helps us suggest outings that work for your whole crew. Leave blank to see everything.
       </p>
     </div>
   )
@@ -233,7 +233,7 @@ export default function SettingsPage() {
       <section className="mt-6 rounded-xl border border-gray-200 bg-white p-6">
         <h2 className="mb-1 text-base font-semibold text-gray-900">👧 Kids&rsquo; Ages</h2>
         <p className="mb-4 text-sm text-gray-500">
-          Comma-separated ages of the kids who&rsquo;ll be on outings.
+          How old are your kids? Enter their ages separated by commas.
         </p>
         <KidsAgesInput
           currentAges={profile?.kids_ages ?? null}
