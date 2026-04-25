@@ -1,7 +1,6 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isAdmin } from '@/lib/admin'
@@ -83,5 +82,4 @@ export async function deleteActivity(id: string): Promise<void> {
   const { error } = await admin.from('activities').delete().eq('id', id)
   if (error) throw new Error(error.message)
   revalidatePublic()
-  redirect('/admin')
 }
