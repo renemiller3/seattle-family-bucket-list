@@ -75,9 +75,8 @@ export default function OutingSummary({
       >
         <div className="flex items-center gap-2">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-500">
-            <path d="M12 2L2 7l10 5 10-5-10-5z" />
-            <path d="M2 17l10 5 10-5" />
-            <path d="M2 12l10 5 10-5" />
+            <circle cx="12" cy="12" r="10" />
+            <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
           </svg>
           <h2 className="text-sm font-semibold text-gray-900">At a glance</h2>
         </div>
