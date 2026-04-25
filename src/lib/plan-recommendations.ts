@@ -28,7 +28,6 @@ export interface RecommendationOption {
   title: string
   pitch: string
   anchor_activity_id: string
-  secondary_activity_id: string | null
   food_stop: { name: string; vicinity: string; why: string } | null
   coffee_stop: { name: string; vicinity: string; why: string } | null
   sequence: RecommendationStep[]
@@ -36,7 +35,6 @@ export interface RecommendationOption {
   total_drive_time_minutes: number
   why_today: string
   anchor_activity: Activity
-  secondary_activity: Activity | null
 }
 
 export type RecommendationPin =
@@ -163,22 +161,21 @@ ${familyLine}
 ${homeLine}
 ${napLine}
 
-You MUST select anchor and secondary activities by id from the candidate list below. Do not invent activities that aren't on the list. The "food_stop" and "coffee_stop" fields are the only places you may suggest a real business by name — use the activity's nearby_food hints when available, otherwise pick something plausible near the anchor's location_text.
+You MUST select the anchor activity by id from the candidate list below. Do not invent activities that aren't on the list. Each option has EXACTLY ONE anchor activity — do NOT propose a second activity (no "and then we'll also visit X" stops). The "food_stop" and "coffee_stop" fields are the only places you may suggest a real business by name — use the activity's nearby_food hints when available, otherwise pick something plausible near the anchor's location_text.
 
 Each option needs:
 - "vibe_label": exactly one of "Chill / Easy", "Burn Energy", "Special / Treat" (one per vibe, no duplicates)
-- "title": short evocative title (e.g. "Soggy Saturday: aquarium + ramen + bookstore wander")
+- "title": short evocative title (e.g. "Soggy Saturday: aquarium + ramen")
 - "pitch": one-sentence pitch
-- "anchor_activity_id": the main draw (id from list)
-- "secondary_activity_id": optional second stop nearby (id from list, or null)
+- "anchor_activity_id": the SINGLE main activity for the day (id from list)
 - "coffee_stop": { name, vicinity, why } — REQUIRED. A cool, well-loved coffee shop on the morning drive route from home toward the anchor activity. Prefer local independent shops with character over chains. The "why" should be one short sentence on what makes it worth the stop.
 - "food_stop": { name, vicinity, why } or null if not appropriate
-- "sequence": ordered timed steps. Use HH:MM 24-hour times. step_type ∈ {"activity","food","other"}. Reference the anchor by exact title in title field. Include the coffee stop as a step with step_type "food" before the anchor.
+- "sequence": ordered timed steps. Use HH:MM 24-hour times. step_type ∈ {"activity","food","other"}. The ONLY "activity" step is the anchor — reference it by exact title in the title field. Include the coffee stop as a step with step_type "food" before the anchor.
 - "cost_band": "Free" | "$" | "$$" | "$$$"
 - "total_drive_time_minutes": rough estimate of driving across the day
 - "why_today": one sentence explicitly referencing weather or season
 
-Aim for 3–5 sequence steps total (the coffee stop counts as one). Keep timing realistic (drive buffers, kid stamina). Default to a late-morning start (~9:30–10:30) unless the activity has a known constraint.
+Aim for 3–5 sequence steps total (coffee + anchor + optional food/other). Keep timing realistic (drive buffers, kid stamina). Default to a late-morning start (~9:30–10:30) unless the activity has a known constraint.
 
 ${pinLines.join('\n')}
 
@@ -199,7 +196,6 @@ const RESPONSE_SCHEMA = {
           title: { type: 'string' },
           pitch: { type: 'string' },
           anchor_activity_id: { type: 'string' },
-          secondary_activity_id: { type: 'string', nullable: true },
           food_stop: {
             type: 'object',
             nullable: true,
@@ -252,7 +248,6 @@ interface GeminiOption {
   title: string
   pitch: string
   anchor_activity_id: string
-  secondary_activity_id?: string | null
   food_stop?: { name: string; vicinity: string; why: string } | null
   coffee_stop?: { name: string; vicinity: string; why: string } | null
   sequence: RecommendationStep[]
@@ -323,8 +318,8 @@ export async function buildRecommendationsForUser(
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     return { ok: false, error: 'Please pick a valid date.' }
   }
-  if (pins.length > 1) {
-    return { ok: false, error: 'You can pin up to 1 thing per day.' }
+  if (pins.length > 2) {
+    return { ok: false, error: 'You can pin up to 2 things per day.' }
   }
 
   const apiKey = process.env.GEMINI_API_KEY
@@ -437,14 +432,12 @@ export async function buildRecommendationsForUser(
     if (seenVibes.has(opt.vibe_label)) continue
     const anchor = byId.get(opt.anchor_activity_id)
     if (!anchor) continue
-    const secondary = opt.secondary_activity_id ? byId.get(opt.secondary_activity_id) ?? null : null
     seenVibes.add(opt.vibe_label)
     hydrated.push({
       vibe_label: opt.vibe_label,
       title: opt.title,
       pitch: opt.pitch,
       anchor_activity_id: opt.anchor_activity_id,
-      secondary_activity_id: opt.secondary_activity_id ?? null,
       food_stop: opt.food_stop ?? null,
       coffee_stop: opt.coffee_stop ?? null,
       sequence: opt.sequence,
@@ -452,7 +445,6 @@ export async function buildRecommendationsForUser(
       total_drive_time_minutes: opt.total_drive_time_minutes,
       why_today: opt.why_today,
       anchor_activity: anchor,
-      secondary_activity: secondary,
     })
   }
 

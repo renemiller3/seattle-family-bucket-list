@@ -145,7 +145,6 @@ export async function commitRecommendation(
   }
   const rows: StepRow[] = []
   let usedAnchor = false
-  let usedSecondary = false
 
   option.sequence.forEach((step, idx) => {
     const startTime = step.time
@@ -174,13 +173,7 @@ export async function commitRecommendation(
     }
 
     if (step.step_type === 'activity') {
-      if (!usedAnchor && step.title.toLowerCase().includes(option.anchor_activity.title.toLowerCase().split(' ')[0])) {
-        row = { ...row, type: 'activity', activity_id: option.anchor_activity.id, lat: option.anchor_activity.lat, lng: option.anchor_activity.lng, location_url: option.anchor_activity.location_url, image_url: option.anchor_activity.image_url }
-        usedAnchor = true
-      } else if (!usedSecondary && option.secondary_activity && step.title.toLowerCase().includes(option.secondary_activity.title.toLowerCase().split(' ')[0])) {
-        row = { ...row, type: 'activity', activity_id: option.secondary_activity.id, lat: option.secondary_activity.lat, lng: option.secondary_activity.lng, location_url: option.secondary_activity.location_url, image_url: option.secondary_activity.image_url }
-        usedSecondary = true
-      } else if (!usedAnchor) {
+      if (!usedAnchor) {
         row = { ...row, type: 'activity', activity_id: option.anchor_activity.id, lat: option.anchor_activity.lat, lng: option.anchor_activity.lng, location_url: option.anchor_activity.location_url, image_url: option.anchor_activity.image_url }
         usedAnchor = true
       }
