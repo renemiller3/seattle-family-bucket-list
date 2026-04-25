@@ -71,11 +71,11 @@ export function useProfile(userId: string | undefined) {
     if (data) setProfile(data)
   }
 
-  const updateWeeklyPlanEmail = async (day: DayOfWeek | null, includeCrew: boolean) => {
+  const updateWeeklyPlanEmail = async (day: DayOfWeek | null) => {
     if (!userId) return
     const { data } = await supabase
       .from('profiles')
-      .update({ weekly_plan_day: day, weekly_plan_include_crew: includeCrew })
+      .update({ weekly_plan_day: day })
       .eq('id', userId)
       .select()
       .single()

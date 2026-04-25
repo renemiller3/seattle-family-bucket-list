@@ -70,6 +70,7 @@ function activityFitsAllKids(ranges: AgeRange[], kidAges: number[]): boolean {
 interface CompactActivity {
   id: string
   title: string
+  type: string
   area: string
   cost: string
   vibes: string[]
@@ -79,6 +80,9 @@ interface CompactActivity {
   nearby_food: { name: string; description: string }[]
   location_text: string
   distance_miles: number | null
+  start_date: string | null
+  end_date: string | null
+  recurrence: string | null
 }
 
 function toCompact(a: Activity, homeLat: number | null, homeLng: number | null): CompactActivity {
@@ -89,6 +93,7 @@ function toCompact(a: Activity, homeLat: number | null, homeLng: number | null):
   return {
     id: a.id,
     title: a.title,
+    type: a.type,
     area: a.area,
     cost: a.cost,
     vibes: a.vibes,
@@ -98,6 +103,9 @@ function toCompact(a: Activity, homeLat: number | null, homeLng: number | null):
     nearby_food: a.nearby_food ?? [],
     location_text: a.location_text,
     distance_miles: distance,
+    start_date: a.start_date,
+    end_date: a.end_date,
+    recurrence: a.recurrence,
   }
 }
 
@@ -162,6 +170,11 @@ ${homeLine}
 ${napLine}
 
 You MUST select the anchor activity by id from the candidate list below. Do not invent activities that aren't on the list. Each option has EXACTLY ONE anchor activity — do NOT propose a second activity (no "and then we'll also visit X" stops). The "food_stop" and "coffee_stop" fields are the only places you may suggest a real business by name — use the activity's nearby_food hints when available, otherwise pick something plausible near the anchor's location_text.
+
+DATE CONSTRAINTS (critical): Each candidate may carry "start_date" and "end_date" (YYYY-MM-DD) and a "type" of "activity" or "event". Treat these as hard constraints:
+- For type "event" or recurrence "one-time": ${date} MUST fall within [start_date, end_date]. If the event happens on a single day, the dates will be equal — do not pick it for any other day.
+- For type "activity": if start_date or end_date is set, ${date} must satisfy them; if both are null, the activity runs year-round.
+The candidate list has already been pre-filtered, but if a candidate's dates clearly don't include ${date}, skip it.
 
 Each option needs:
 - "vibe_label": exactly one of "Chill / Easy", "Burn Energy", "Special / Treat" (one per vibe, no duplicates)
@@ -358,8 +371,20 @@ export async function buildRecommendationsForUser(
   const candidates = allActivities.filter((a) => {
     if (completedActivityIds.has(a.id)) return false
     if (a.seasons && a.seasons.length > 0 && !a.seasons.includes(season)) return false
-    if (a.start_date && date < a.start_date) return false
-    if (a.end_date && date > a.end_date) return false
+
+    // Date windows. Events MUST have a usable window — drop them otherwise so we
+    // never recommend a Saturday 5k for a random Tuesday in April.
+    const isEvent = a.type === 'event' || a.recurrence === 'one-time'
+    if (isEvent) {
+      if (!a.start_date && !a.end_date) return false // event with no dates is unusable
+      const start = a.start_date ?? a.end_date!
+      const end = a.end_date ?? a.start_date!
+      if (date < start || date > end) return false
+    } else {
+      if (a.start_date && date < a.start_date) return false
+      if (a.end_date && date > a.end_date) return false
+    }
+
     if (homeLat != null && homeLng != null && a.lat != null && a.lng != null) {
       const d = distanceMiles(homeLat, homeLng, a.lat, a.lng)
       if (d > MAX_DISTANCE_MILES) return false

@@ -37,7 +37,12 @@ export function useCrew(userId: string | undefined) {
 
   const update = async (
     id: string,
-    input: { name?: string; phone?: string | null; email?: string | null }
+    input: {
+      name?: string
+      phone?: string | null
+      email?: string | null
+      receives_weekly_plan?: boolean
+    }
   ) => {
     const res = await updateCrewAction(id, input)
     if (res.ok) setCrew((prev) => prev.map((c) => (c.id === id ? res.data : c)))

@@ -59,7 +59,6 @@ interface ProfileRow {
   id: string
   display_name: string | null
   weekly_plan_day: DayOfWeek | null
-  weekly_plan_include_crew: boolean
 }
 
 interface CrewRow {
@@ -306,7 +305,7 @@ export async function GET(request: Request) {
   const admin = createAdminClient()
   const { data: profiles, error: profilesErr } = await admin
     .from('profiles')
-    .select('id, display_name, weekly_plan_day, weekly_plan_include_crew')
+    .select('id, display_name, weekly_plan_day')
     .eq('weekly_plan_day', todayDow)
     .returns<ProfileRow[]>()
 
@@ -325,12 +324,13 @@ export async function GET(request: Request) {
     if (!error && data?.user?.email) emailById.set(id, data.user.email)
   }
 
-  // Pull crew rows for the cohort (single query).
+  // Pull crew rows for the cohort that opted in to receive the weekly email.
   const { data: crewRows } = await admin
     .from('crew_members')
     .select('user_id, email')
     .in('user_id', userIds)
     .not('email', 'is', null)
+    .eq('receives_weekly_plan', true)
     .returns<CrewRow[]>()
 
   const crewByUser = new Map<string, string[]>()
@@ -388,7 +388,7 @@ export async function GET(request: Request) {
 
     const firstName = p.display_name?.split(' ')[0] ?? 'there'
     const shareUrl = `${siteUrl}/share/${slug}`
-    const cc = p.weekly_plan_include_crew ? (crewByUser.get(p.id) ?? []) : []
+    const cc = crewByUser.get(p.id) ?? []
 
     const { subject, text, html } = buildEmail({
       firstName,

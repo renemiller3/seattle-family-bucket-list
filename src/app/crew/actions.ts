@@ -54,7 +54,12 @@ export async function addCrewMember(input: {
 
 export async function updateCrewMember(
   id: string,
-  input: { name?: string; phone?: string | null; email?: string | null }
+  input: {
+    name?: string
+    phone?: string | null
+    email?: string | null
+    receives_weekly_plan?: boolean
+  }
 ): Promise<CrewMutateResponse> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -67,6 +72,7 @@ export async function updateCrewMember(
   }
   if (input.phone !== undefined) patch.phone = input.phone?.trim() || null
   if (input.email !== undefined) patch.email = input.email?.trim() || null
+  if (input.receives_weekly_plan !== undefined) patch.receives_weekly_plan = input.receives_weekly_plan
 
   const { data, error } = await supabase
     .from('crew_members')

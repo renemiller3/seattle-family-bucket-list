@@ -75,7 +75,6 @@ export interface Profile {
   nap_start_time: string | null
   nap_end_time: string | null
   weekly_plan_day: DayOfWeek | null
-  weekly_plan_include_crew: boolean
   created_at: string
 }
 
@@ -143,6 +142,7 @@ export interface CrewMember {
   name: string
   phone: string | null
   email: string | null
+  receives_weekly_plan: boolean
   sort_order: number
   created_at: string
 }

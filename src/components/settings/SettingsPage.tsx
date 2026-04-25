@@ -269,33 +269,37 @@ const DAY_OPTIONS: { value: DayOfWeek; label: string }[] = [
 function WeeklyPlanEmailInput({
   userId,
   currentDay,
-  currentIncludeCrew,
   onSave,
 }: {
   userId: string
   currentDay: DayOfWeek | null
-  currentIncludeCrew: boolean
-  onSave: (day: DayOfWeek | null, includeCrew: boolean) => Promise<void>
+  onSave: (day: DayOfWeek | null) => Promise<void>
 }) {
-  const { crew } = useCrew(userId)
+  const { crew, update: updateCrew } = useCrew(userId)
   const [enabled, setEnabled] = useState<boolean>(currentDay !== null)
   const [day, setDay] = useState<DayOfWeek>(currentDay ?? 'wednesday')
-  const [includeCrew, setIncludeCrew] = useState<boolean>(currentIncludeCrew)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [togglingId, setTogglingId] = useState<string | null>(null)
 
-  const canonical = `${currentDay ?? 'off'}|${currentIncludeCrew}`
-  const current = `${enabled ? day : 'off'}|${enabled && includeCrew}`
+  const canonical = `${currentDay ?? 'off'}`
+  const current = `${enabled ? day : 'off'}`
   const dirty = current !== canonical
 
   const crewWithEmail = crew.filter((m) => m.email && m.email.trim().length > 0)
 
   const handleSave = async () => {
     setSaving(true)
-    await onSave(enabled ? day : null, enabled && includeCrew)
+    await onSave(enabled ? day : null)
     setSaving(false)
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
+  }
+
+  const handleToggleRecipient = async (id: string, value: boolean) => {
+    setTogglingId(id)
+    await updateCrew(id, { receives_weekly_plan: value })
+    setTogglingId(null)
   }
 
   return (
@@ -325,27 +329,34 @@ function WeeklyPlanEmailInput({
             </select>
           </label>
 
-          <label className="inline-flex cursor-pointer items-start gap-2 text-sm text-gray-700">
-            <input
-              type="checkbox"
-              checked={includeCrew}
-              onChange={(e) => setIncludeCrew(e.target.checked)}
-              disabled={crewWithEmail.length === 0}
-              className="mt-0.5 h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 disabled:opacity-50"
-            />
-            <span>
-              Also send to my crew
-              {crewWithEmail.length > 0 ? (
-                <span className="block text-xs text-gray-500">
-                  {crewWithEmail.map((m) => m.name).join(', ')}
-                </span>
-              ) : (
-                <span className="block text-xs text-gray-400">
-                  Add crew members with email addresses to enable.
-                </span>
-              )}
-            </span>
-          </label>
+          <div>
+            <span className="mb-1 block text-xs font-medium text-gray-600">Also send to</span>
+            {crewWithEmail.length === 0 ? (
+              <p className="text-xs text-gray-400">
+                Add crew members with email addresses below to send the email to them too.
+              </p>
+            ) : (
+              <ul className="space-y-1.5">
+                {crewWithEmail.map((m) => (
+                  <li key={m.id}>
+                    <label className="flex cursor-pointer items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2 hover:border-emerald-300">
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-medium text-gray-900">{m.name}</span>
+                        <span className="block truncate text-xs text-gray-500">{m.email}</span>
+                      </span>
+                      <input
+                        type="checkbox"
+                        checked={m.receives_weekly_plan}
+                        onChange={(e) => handleToggleRecipient(m.id, e.target.checked)}
+                        disabled={togglingId === m.id}
+                        className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 disabled:opacity-50"
+                      />
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
       )}
 
@@ -648,7 +659,6 @@ export default function SettingsPage() {
         <WeeklyPlanEmailInput
           userId={user.id}
           currentDay={profile?.weekly_plan_day ?? null}
-          currentIncludeCrew={profile?.weekly_plan_include_crew ?? false}
           onSave={updateWeeklyPlanEmail}
         />
       </section>
