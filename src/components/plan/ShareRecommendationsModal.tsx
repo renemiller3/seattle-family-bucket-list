@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/hooks/useAuth'
 import { useCrew } from '@/hooks/useCrew'
-import { createSharedRecommendation } from '@/app/plan/actions'
+import { createSharedRecommendation, sendShareEmail } from '@/app/plan/actions'
 import type { RecommendationOption } from '@/app/plan/actions'
 import type { DailyWeather } from '@/lib/weather'
 import type { CrewMember } from '@/lib/types'
@@ -30,6 +30,8 @@ export default function ShareRecommendationsModal({
   const [shareUrl, setShareUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [sending, setSending] = useState<string | null>(null) // member id
+  const [sentTo, setSentTo] = useState<Set<string>>(new Set())
 
   // Lazily create the shared link when the modal opens (one snapshot per modal session).
   useEffect(() => {
@@ -68,20 +70,25 @@ export default function ShareRecommendationsModal({
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const handleSendToCrew = (member: CrewMember) => {
+  const handleSendToCrew = async (member: CrewMember) => {
     if (!shareUrl) return
-    const body = `${DEFAULT_MESSAGE}\n\n${shareUrl}`
-    if (member.phone) {
-      // sms:?body= works on iOS; sms:?&body= works on Android — using ?& covers both.
+    setError(null)
+
+    if (member.email) {
+      setSending(member.id)
+      const res = await sendShareEmail(member.email, member.name, shareUrl)
+      setSending(null)
+      if (!res.ok) {
+        setError(res.error)
+        return
+      }
+      setSentTo((prev) => new Set(prev).add(member.id))
+    } else if (member.phone) {
+      const body = `${DEFAULT_MESSAGE}\n\n${shareUrl}`
       const phone = member.phone.replace(/[^\d+]/g, '')
       const url = `sms:${phone}${/Android/i.test(navigator.userAgent) ? '?' : '&'}body=${encodeURIComponent(body)}`
       window.location.href = url
-    } else if (member.email) {
-      const subject = "Help me pick our day"
-      const url = `mailto:${encodeURIComponent(member.email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
-      window.location.href = url
     } else {
-      // No contact info — just copy and tell user
       handleCopy()
     }
   }
@@ -124,20 +131,35 @@ export default function ShareRecommendationsModal({
                   </p>
                   <div className="space-y-1.5">
                     {crew.map((member) => {
-                      const sub = member.phone ?? member.email ?? 'Copy & send manually'
+                      const sub = member.email ?? member.phone ?? 'Copy & send manually'
+                      const isSent = sentTo.has(member.id)
+                      const isSending = sending === member.id
                       return (
                         <button
                           key={member.id}
                           onClick={() => handleSendToCrew(member)}
-                          className="flex w-full items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-left hover:border-emerald-300 hover:bg-emerald-50"
+                          disabled={isSending || isSent}
+                          className={`flex w-full items-center justify-between rounded-lg border px-3 py-2.5 text-left transition-colors ${
+                            isSent
+                              ? 'border-emerald-200 bg-emerald-50'
+                              : 'border-gray-200 bg-white hover:border-emerald-300 hover:bg-emerald-50'
+                          } disabled:cursor-default`}
                         >
                           <div className="min-w-0">
                             <div className="truncate text-sm font-medium text-gray-900">{member.name}</div>
                             <div className="truncate text-xs text-gray-500">{sub}</div>
                           </div>
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 text-gray-400">
-                            <path d="M22 2L11 13" /><path d="M22 2l-7 20-4-9-9-4 20-7z" />
-                          </svg>
+                          {isSending ? (
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-200 border-t-emerald-600 shrink-0" />
+                          ) : isSent ? (
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="shrink-0 text-emerald-600">
+                              <path d="M20 6L9 17l-5-5" />
+                            </svg>
+                          ) : (
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 text-gray-400">
+                              <path d="M22 2L11 13" /><path d="M22 2l-7 20-4-9-9-4 20-7z" />
+                            </svg>
+                          )}
                         </button>
                       )
                     })}

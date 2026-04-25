@@ -18,6 +18,10 @@ function getTransport(): nodemailer.Transporter | null {
 }
 
 export async function sendAdminEmail(subject: string, text: string, html?: string): Promise<boolean> {
+  return sendEmail(ADMIN_EMAIL, subject, text, html)
+}
+
+export async function sendEmail(to: string, subject: string, text: string, html?: string): Promise<boolean> {
   const transport = getTransport()
   if (!transport) {
     console.warn('[email] GMAIL_USER / GMAIL_APP_PASSWORD not set — skipping send.')
@@ -26,7 +30,7 @@ export async function sendAdminEmail(subject: string, text: string, html?: strin
   try {
     await transport.sendMail({
       from: `Seattle Family Bucket List <${process.env.GMAIL_USER}>`,
-      to: ADMIN_EMAIL,
+      to,
       subject,
       text,
       html: html ?? text.replace(/\n/g, '<br>'),
