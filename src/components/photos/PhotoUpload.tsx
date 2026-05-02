@@ -46,6 +46,8 @@ export default function PhotoUpload({
 }: PhotoUploadProps) {
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
+  const successTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const inputId = `photo-upload-${activityId ?? userActivityId ?? 'unknown'}`
   const supabase = createClient()
@@ -85,6 +87,8 @@ export default function PhotoUpload({
 
     setUploading(true)
     setError(null)
+    setSuccess(null)
+    if (successTimer.current) clearTimeout(successTimer.current)
     const failures: string[] = []
 
     for (const file of Array.from(files)) {
@@ -93,12 +97,17 @@ export default function PhotoUpload({
     }
 
     setUploading(false)
+    const succeeded = files.length - failures.length
     if (failures.length > 0) {
       setError(
         failures.length === files.length
           ? `Upload failed: ${failures[0]}`
           : `${failures.length} of ${files.length} photos failed: ${failures[0]}`,
       )
+    }
+    if (succeeded > 0) {
+      setSuccess(succeeded === 1 ? 'Photo added' : `${succeeded} photos added`)
+      successTimer.current = setTimeout(() => setSuccess(null), 3000)
     }
     onUploaded()
     if (inputRef.current) inputRef.current.value = ''
@@ -146,6 +155,14 @@ export default function PhotoUpload({
       {error && (
         <p role="alert" className="mt-1.5 text-xs text-red-600">
           {error}
+        </p>
+      )}
+      {success && !error && (
+        <p role="status" className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-emerald-600">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+            <path d="M20 6L9 17l-5-5" />
+          </svg>
+          {success}
         </p>
       )}
     </div>
