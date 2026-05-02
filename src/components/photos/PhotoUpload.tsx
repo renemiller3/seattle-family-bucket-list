@@ -30,7 +30,7 @@ export default function PhotoUpload({
 
     setUploading(true)
     setError(null)
-    let failures = 0
+    const failures: string[] = []
 
     for (const file of Array.from(files)) {
       const formData = new FormData()
@@ -42,19 +42,26 @@ export default function PhotoUpload({
 
       try {
         const res = await fetch('/api/upload', { method: 'POST', body: formData })
-        if (!res.ok) failures++
-      } catch {
-        failures++
+        if (!res.ok) {
+          let msg = `${res.status} ${res.statusText}`.trim()
+          try {
+            const body = await res.json()
+            if (body?.error) msg = body.error
+          } catch {}
+          failures.push(msg)
+        }
+      } catch (err) {
+        failures.push(err instanceof Error ? err.message : 'Network error')
       }
     }
 
     setUploading(false)
-    if (failures > 0) {
-      setError(
-        failures === files.length
-          ? 'Upload failed. Photo may be too large — try a smaller image.'
-          : `${failures} of ${files.length} photos failed to upload.`,
-      )
+    if (failures.length > 0) {
+      const summary =
+        failures.length === files.length
+          ? `Upload failed: ${failures[0]}`
+          : `${failures.length} of ${files.length} photos failed: ${failures[0]}`
+      setError(summary)
     }
     onUploaded()
     if (inputRef.current) inputRef.current.value = ''
