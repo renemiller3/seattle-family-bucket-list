@@ -24,7 +24,7 @@ export default function PlanPage() {
   const { bucketListIds } = useBucketList(user?.id)
   const [selectedOutingId, setSelectedOutingId] = useState<string | null>(null)
   const [outingManagerOpen, setOutingManagerOpen] = useState(false)
-  const [planMyDayOpen, setPlanMyDayOpen] = useState(false)
+  const [planMyDayDate, setPlanMyDayDate] = useState<string | null>(null)
 
   const today = format(new Date(), 'yyyy-MM-dd')
 
@@ -197,7 +197,7 @@ export default function PlanPage() {
             selectedOutingId={selectedOutingId}
             onOutingChange={setSelectedOutingId}
             onOpenOutingManager={() => setOutingManagerOpen(true)}
-            onOpenPlanMyDay={() => setPlanMyDayOpen(true)}
+            onOpenPlanMyDay={(date) => setPlanMyDayDate(date)}
           />
           {selectedOuting && (
             <NearbyIdeas
@@ -217,14 +217,14 @@ export default function PlanPage() {
               onClose={() => setOutingManagerOpen(false)}
             />
           )}
-          {planMyDayOpen && (
+          {planMyDayDate && (
             <PlanMyDayModal
-              initialDate={format(new Date(), 'yyyy-MM-dd')}
-              onClose={() => setPlanMyDayOpen(false)}
+              initialDate={planMyDayDate}
+              onClose={() => setPlanMyDayDate(null)}
               onCommitted={async (outingId) => {
                 await Promise.all([refreshOutings(), refreshItems()])
                 setSelectedOutingId(outingId)
-                setPlanMyDayOpen(false)
+                setPlanMyDayDate(null)
               }}
             />
           )}
