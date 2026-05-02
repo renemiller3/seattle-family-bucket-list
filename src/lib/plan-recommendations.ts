@@ -182,13 +182,15 @@ Each option needs:
 - "pitch": one-sentence pitch
 - "anchor_activity_id": the SINGLE main activity for the day (id from list)
 - "coffee_stop": { name, vicinity, why } — REQUIRED. A cool, well-loved coffee shop on the morning drive route from home toward the anchor activity. Prefer local independent shops with character over chains. The "why" should be one short sentence on what makes it worth the stop.
-- "food_stop": { name, vicinity, why } or null if not appropriate
+- "food_stop": { name, vicinity, why } or null if not appropriate. When included, make it MEMORABLE — a beloved local spot with real Seattle character: a food truck, hole-in-the-wall, food-hall stall, neighborhood institution, or classic diner with a known signature dish. Prefer places people drive across town for. AVOID national/regional chains. AVOID white-tablecloth or scene-y restaurants where kids feel unwelcome — but the place MUST be genuinely kid-tolerant (loud and casual are fine; no dress codes, no no-kids policies, no 90-minute waits without strollers). The "why" must name the specific thing — the dish, the room, the tradition — that makes this stop worth it (e.g. "the salted-caramel cake doughnut at Top Pot", not "great donuts").
 - "sequence": ordered timed steps. Use HH:MM 24-hour times. step_type ∈ {"activity","food","other"}. The ONLY "activity" step is the anchor — reference it by exact title in the title field. Include the coffee stop as a step with step_type "food" before the anchor.
 - "cost_band": "Free" | "$" | "$$" | "$$$"
 - "total_drive_time_minutes": rough estimate of driving across the day
 - "why_today": one sentence explicitly referencing weather or season
 
 Aim for 3–5 sequence steps total (coffee + anchor + optional food/other). Keep timing realistic (drive buffers, kid stamina). Default to a late-morning start (~9:30–10:30) unless the activity has a known constraint.
+
+Across the three options, vary the food and coffee picks — don't repeat cuisines or neighborhoods.
 
 ${pinLines.join('\n')}
 
