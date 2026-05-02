@@ -113,7 +113,7 @@ export default function PlanMyDayModal({
         <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
           <div>
             <h2 className="text-lg font-semibold text-gray-900">✨ Plan my day</h2>
-            <p className="text-xs text-gray-500">Pick a vibe. Get a plan. Go play.</p>
+            <p className="text-xs text-gray-500">Three plans, zero planning.</p>
           </div>
           <button onClick={onClose} className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
