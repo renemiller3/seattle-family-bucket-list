@@ -24,8 +24,8 @@ export default async function AdminPage() {
 
   return (
     <div>
-      {pendingCount > 0 && (
-        <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6">
+      <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 space-y-2">
+        {pendingCount > 0 && (
           <Link
             href="/admin/events"
             className="flex items-center justify-between rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm hover:bg-amber-100 transition-colors"
@@ -35,8 +35,15 @@ export default async function AdminPage() {
             </span>
             <span className="text-amber-600">Review Events Queue →</span>
           </Link>
-        </div>
-      )}
+        )}
+        <Link
+          href="/admin/ops"
+          className="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm hover:bg-gray-50 transition-colors"
+        >
+          <span className="font-medium text-gray-700">Weekly Ops</span>
+          <span className="text-gray-400">View dashboard →</span>
+        </Link>
+      </div>
       <ActivityAdminList activities={(activitiesResult.data ?? []) as Activity[]} />
     </div>
   )

@@ -206,6 +206,37 @@ export interface EventQueueItem {
   updated_at: string
 }
 
+// ─── Business Ops ─────────────────────────────────────────────────────────────
+
+export interface OpsRecurringTask {
+  id: string
+  title: string
+  notes: string | null
+  day_of_week: string | null
+  sort_order: number
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface OpsWeeklyTask {
+  id: string
+  week_starting: string   // YYYY-MM-DD (always a Monday)
+  title: string
+  notes: string | null
+  is_done: boolean
+  sort_order: number
+  created_at: string
+  updated_at: string
+}
+
+export interface OpsRecurringCompletion {
+  id: string
+  recurring_task_id: string
+  week_starting: string
+  completed_at: string
+}
+
 // ─── Supabase Database type for typed client ──────────────────────────────────
 export interface Database {
   public: {
