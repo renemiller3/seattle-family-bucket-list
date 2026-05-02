@@ -35,6 +35,9 @@ export default function Header() {
           <Link href="/" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
             Discover
           </Link>
+          <Link href="/events" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+            Events
+          </Link>
           {user && (
             <>
               <Link href="/bucket-list" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
@@ -100,6 +103,13 @@ export default function Header() {
                 className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
               >
                 Discover
+              </Link>
+              <Link
+                href="/events"
+                onClick={() => setMenuOpen(false)}
+                className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+              >
+                Events
               </Link>
               {user && (
                 <>

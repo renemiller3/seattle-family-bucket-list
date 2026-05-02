@@ -167,7 +167,46 @@ export interface SavedActivity {
   created_at: string
 }
 
-// Supabase Database type for typed client
+// ─── Event Discovery ──────────────────────────────────────────────────────────
+
+export type EventReviewStatus = 'pending' | 'approved' | 'rejected' | 'auto_approved'
+export type EventSourceType = 'parentmap' | 'visitseattle' | 'seattle_center' | 'manual'
+
+export interface EventQueueItem {
+  id: string
+  raw_title: string
+  raw_description: string | null
+  raw_location: string | null
+  raw_start_at: string   // ISO timestamp
+  raw_end_at: string | null
+  raw_image_url: string | null
+  raw_cost_text: string | null
+  source_type: EventSourceType
+  source_id: string
+  source_url: string | null
+  ai_title: string | null
+  ai_description: string | null
+  ai_age_ranges: AgeRange[]
+  ai_cost: Cost | null
+  ai_vibes: Vibe[]
+  ai_area: Area | null
+  ai_location_text: string | null
+  ai_lat: number | null
+  ai_lng: number | null
+  ai_is_family_friendly: boolean | null
+  ai_confidence: number | null
+  ai_reasoning: string | null
+  ai_enriched_at: string | null
+  review_status: EventReviewStatus
+  reviewed_at: string | null
+  reviewed_by: string | null
+  rejection_reason: string | null
+  activity_id: string | null
+  created_at: string
+  updated_at: string
+}
+
+// ─── Supabase Database type for typed client ──────────────────────────────────
 export interface Database {
   public: {
     Tables: {
