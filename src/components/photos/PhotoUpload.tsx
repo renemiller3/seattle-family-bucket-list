@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { createClient } from '@/lib/supabase/client'
 
 interface PhotoUploadProps {
   activityId?: string
@@ -9,6 +10,30 @@ interface PhotoUploadProps {
   dateCompleted: string
   onUploaded: () => void
   compact?: boolean
+}
+
+const MIME_TO_EXT: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/jpg': 'jpg',
+  'image/pjpeg': 'jpg',
+  'image/png': 'png',
+  'image/gif': 'gif',
+  'image/webp': 'webp',
+  'image/heic': 'heic',
+  'image/heif': 'heif',
+  'image/avif': 'avif',
+}
+
+function pickExtension(file: File): string {
+  const fromMime = MIME_TO_EXT[file.type?.toLowerCase() ?? '']
+  if (fromMime) return fromMime
+  const name = file.name ?? ''
+  const dot = name.lastIndexOf('.')
+  if (dot > 0 && dot < name.length - 1) {
+    const ext = name.slice(dot + 1).toLowerCase()
+    if (/^[a-z0-9]{1,5}$/.test(ext)) return ext
+  }
+  return 'jpg'
 }
 
 export default function PhotoUpload({
@@ -23,6 +48,36 @@ export default function PhotoUpload({
   const [error, setError] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const inputId = `photo-upload-${activityId ?? userActivityId ?? 'unknown'}`
+  const supabase = createClient()
+
+  const uploadOne = async (file: File): Promise<string | null> => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return 'Not signed in'
+
+    const ext = pickExtension(file)
+    const contentType = file.type || `image/${ext === 'jpg' ? 'jpeg' : ext}`
+    const targetId = activityId ?? userActivityId
+    const path = `${user.id}/${targetId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
+
+    const { error: uploadError } = await supabase.storage
+      .from('photos')
+      .upload(path, file, { contentType, upsert: false })
+    if (uploadError) return uploadError.message
+
+    const { data: { publicUrl } } = supabase.storage.from('photos').getPublicUrl(path)
+
+    const { error: insertError } = await supabase.from('activity_photos').insert({
+      user_id: user.id,
+      activity_id: activityId ?? null,
+      user_activity_id: userActivityId ?? null,
+      plan_item_id: planItemId ?? null,
+      photo_url: publicUrl,
+      date_completed: dateCompleted,
+    })
+    if (insertError) return insertError.message
+
+    return null
+  }
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
@@ -33,35 +88,17 @@ export default function PhotoUpload({
     const failures: string[] = []
 
     for (const file of Array.from(files)) {
-      const formData = new FormData()
-      formData.append('file', file)
-      if (activityId) formData.append('activity_id', activityId)
-      if (userActivityId) formData.append('user_activity_id', userActivityId)
-      if (planItemId) formData.append('plan_item_id', planItemId)
-      formData.append('date_completed', dateCompleted)
-
-      try {
-        const res = await fetch('/api/upload', { method: 'POST', body: formData })
-        if (!res.ok) {
-          let msg = `${res.status} ${res.statusText}`.trim()
-          try {
-            const body = await res.json()
-            if (body?.error) msg = body.error
-          } catch {}
-          failures.push(msg)
-        }
-      } catch (err) {
-        failures.push(err instanceof Error ? err.message : 'Network error')
-      }
+      const err = await uploadOne(file)
+      if (err) failures.push(err)
     }
 
     setUploading(false)
     if (failures.length > 0) {
-      const summary =
+      setError(
         failures.length === files.length
           ? `Upload failed: ${failures[0]}`
-          : `${failures.length} of ${files.length} photos failed: ${failures[0]}`
-      setError(summary)
+          : `${failures.length} of ${files.length} photos failed: ${failures[0]}`,
+      )
     }
     onUploaded()
     if (inputRef.current) inputRef.current.value = ''
