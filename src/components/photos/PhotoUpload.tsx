@@ -20,6 +20,7 @@ export default function PhotoUpload({
   compact,
 }: PhotoUploadProps) {
   const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const inputId = `photo-upload-${activityId ?? userActivityId ?? 'unknown'}`
 
@@ -28,6 +29,8 @@ export default function PhotoUpload({
     if (!files || files.length === 0) return
 
     setUploading(true)
+    setError(null)
+    let failures = 0
 
     for (const file of Array.from(files)) {
       const formData = new FormData()
@@ -37,10 +40,22 @@ export default function PhotoUpload({
       if (planItemId) formData.append('plan_item_id', planItemId)
       formData.append('date_completed', dateCompleted)
 
-      await fetch('/api/upload', { method: 'POST', body: formData })
+      try {
+        const res = await fetch('/api/upload', { method: 'POST', body: formData })
+        if (!res.ok) failures++
+      } catch {
+        failures++
+      }
     }
 
     setUploading(false)
+    if (failures > 0) {
+      setError(
+        failures === files.length
+          ? 'Upload failed. Photo may be too large — try a smaller image.'
+          : `${failures} of ${files.length} photos failed to upload.`,
+      )
+    }
     onUploaded()
     if (inputRef.current) inputRef.current.value = ''
   }
@@ -83,6 +98,11 @@ export default function PhotoUpload({
           </svg>
           {uploading ? 'Uploading…' : 'Add Photos'}
         </label>
+      )}
+      {error && (
+        <p role="alert" className="mt-1.5 text-xs text-red-600">
+          {error}
+        </p>
       )}
     </div>
   )
