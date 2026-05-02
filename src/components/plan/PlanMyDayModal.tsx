@@ -107,7 +107,7 @@ export default function PlanMyDayModal({
       onClick={onClose}
     >
       <div
-        className="my-8 w-full max-w-3xl rounded-xl bg-white shadow-xl"
+        className="my-8 w-full max-w-6xl rounded-xl bg-white shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
@@ -211,7 +211,7 @@ export default function PlanMyDayModal({
                 </button>
               </div>
               {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 items-stretch gap-4 lg:grid-cols-3">
                 {result.options.map((option, idx) => (
                   <OptionCard
                     key={idx}
@@ -349,31 +349,34 @@ function OptionCard({
     'Special / Treat': 'bg-violet-50 text-violet-700 border-violet-200',
   }[option.vibe_label] ?? 'bg-gray-50 text-gray-700 border-gray-200'
 
+  const vibeTopBorder = {
+    'Chill / Easy': 'border-t-sky-400',
+    'Burn Energy': 'border-t-orange-400',
+    'Special / Treat': 'border-t-violet-400',
+  }[option.vibe_label] ?? 'border-t-gray-300'
+
   const imageUrl = option.anchor_activity.image_url
 
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+    <div className={`flex h-full flex-col overflow-hidden rounded-xl border border-t-4 border-gray-200 ${vibeTopBorder} bg-white`}>
       {imageUrl && (
         <img
           src={imageUrl}
           alt={option.anchor_activity.title}
-          className="h-40 w-full object-cover"
+          className="h-32 w-full object-cover"
         />
       )}
-      <div className="p-4">
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div className="min-w-0 flex-1">
-          <span className={`inline-block rounded-full border px-2 py-0.5 text-xs font-medium ${vibeColor}`}>
-            {option.vibe_label}
-          </span>
-          <h3 className="mt-2 text-base font-semibold text-gray-900">{option.title}</h3>
-          <p className="mt-1 text-sm text-gray-600">{option.pitch}</p>
-        </div>
-        <div className="text-right text-xs text-gray-500">
-          <div>{option.cost_band}</div>
-          <div>{formatDriveTime(option.total_drive_time_minutes)}</div>
-        </div>
+      <div className="flex flex-1 flex-col p-4">
+      <span className={`inline-block self-start rounded-full border px-2 py-0.5 text-xs font-medium ${vibeColor}`}>
+        {option.vibe_label}
+      </span>
+      <h3 className="mt-2 text-base font-semibold text-gray-900">{option.title}</h3>
+      <div className="mt-1 flex flex-wrap items-center gap-x-2 text-xs text-gray-500">
+        <span>{option.cost_band}</span>
+        <span aria-hidden>·</span>
+        <span>{formatDriveTime(option.total_drive_time_minutes)}</span>
       </div>
+      <p className="mt-2 text-sm text-gray-600">{option.pitch}</p>
 
       <div className="mt-3 rounded-lg bg-gray-50 px-3 py-2">
         <div className="text-xs font-medium uppercase tracking-wide text-gray-500">Plan</div>
@@ -419,11 +422,11 @@ function OptionCard({
         </div>
       )}
 
-      <div className="mt-3 flex justify-end">
+      <div className="mt-auto pt-4">
         <button
           onClick={onCommit}
           disabled={disabled}
-          className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+          className="w-full rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
         >
           {isCommitting ? 'Creating outing…' : 'Make this my day'}
         </button>
